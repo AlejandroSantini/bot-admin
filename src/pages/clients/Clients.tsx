@@ -28,7 +28,7 @@ export default function Clients() {
     try {
       const data = await getClientes();
       // Adjust depending on if it returns array or { data: [] }
-      const list = Array.isArray(data) ? data : data.data || [];
+      const list = Array.isArray(data) ? data : (data as any).data || [];
       setClients(list);
     } catch (err: any) {
       console.error(err);

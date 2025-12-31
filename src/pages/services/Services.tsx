@@ -33,7 +33,7 @@ export default function Services() {
     try {
       const data = await getServices(tenantId);
       // Adjust if wrapped
-      setServices(Array.isArray(data) ? data : data.data || []);
+      setServices(Array.isArray(data) ? data : (data as any).data || []);
     } catch (err) {
       setError("Error cargando servicios");
     } finally {
