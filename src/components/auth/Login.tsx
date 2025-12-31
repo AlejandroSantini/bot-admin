@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Box, Card, CardContent, Typography, Alert, InputAdornment, IconButton } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Alert,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
 import { Input } from "../common/Input";
 import { ContainedButton } from "../common/ContainedButton";
-import { useAuth } from '../../hooks/useAuth';
-import {
-  Visibility,
-  VisibilityOff,
-  Email,
-  Lock,
-} from "@mui/icons-material";
+import { useAuth } from "../../hooks/useAuth";
+import { Visibility, VisibilityOff, Email, Lock } from "@mui/icons-material";
 
 interface LoginFormData {
   email: string;
@@ -52,26 +55,50 @@ export default function Login() {
         p: 2,
       }}
     >
-      <Card sx={{ maxWidth: 400, width: "100%", borderRadius: 3, boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)', border: '1px solid #e0e0e0', background: '#fff' }}>
+      <Card
+        sx={{
+          maxWidth: 400,
+          width: "100%",
+          borderRadius: 3,
+          boxShadow: "0 2px 8px 0 rgba(0,0,0,0.04)",
+          border: "1px solid #e0e0e0",
+          background: "#fff",
+        }}
+      >
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
             <Box
               sx={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 mb: 2,
                 py: 1,
               }}
             >
-              <img src="/logo.png" alt="Logo" style={{ maxWidth: 180, width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }} />
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{
+                  maxWidth: 180,
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
             </Box>
-            <Typography variant="h5" fontWeight={600} gutterBottom color="text.primary">
+            <Typography
+              variant="h5"
+              fontWeight={600}
+              gutterBottom
+              color="text.primary"
+            >
               Iniciar sesión
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Bienvenido a Pensagro Admin
+              Bienvenido a Bot Admin
             </Typography>
           </Box>
 
@@ -87,8 +114,8 @@ export default function Login() {
                 required: "El email es requerido",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Por favor ingresa un email válido"
-                }
+                  message: "Por favor ingresa un email válido",
+                },
               })}
               label="Email"
               type="email"
@@ -108,8 +135,8 @@ export default function Login() {
                 required: "La contraseña es requerida",
                 minLength: {
                   value: 6,
-                  message: "La contraseña debe tener al menos 6 caracteres"
-                }
+                  message: "La contraseña debe tener al menos 6 caracteres",
+                },
               })}
               label="Contraseña"
               type={showPassword ? "text" : "password"}
@@ -139,15 +166,11 @@ export default function Login() {
             <ContainedButton
               type="submit"
               fullWidth
-              disabled={
-                !watch("email") ||
-                !watch("password")
-              }
+              disabled={!watch("email") || !watch("password")}
               loading={loading}
             >
               Iniciar sesión
             </ContainedButton>
-
           </Box>
         </CardContent>
       </Card>

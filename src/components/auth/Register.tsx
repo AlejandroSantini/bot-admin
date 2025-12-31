@@ -38,7 +38,10 @@ interface RegisterProps {
   onSwitchToLogin?: () => void;
 }
 
-export default function Register({ onRegister, onSwitchToLogin }: RegisterProps) {
+export default function Register({
+  onRegister,
+  onSwitchToLogin,
+}: RegisterProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,8 +61,8 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
     setLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       if (onRegister) {
         const { confirmPassword, ...registerData } = data;
         onRegister(registerData);
@@ -82,26 +85,50 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
         p: 2,
       }}
     >
-      <Card sx={{ maxWidth: 500, width: "100%", borderRadius: 3, boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)', border: '1px solid #e0e0e0', background: '#fff' }}>
+      <Card
+        sx={{
+          maxWidth: 500,
+          width: "100%",
+          borderRadius: 3,
+          boxShadow: "0 2px 8px 0 rgba(0,0,0,0.04)",
+          border: "1px solid #e0e0e0",
+          background: "#fff",
+        }}
+      >
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
             <Box
               sx={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 mb: 2,
                 py: 1,
               }}
             >
-              <img src="/logo.png" alt="Logo" style={{ maxWidth: 180, width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }} />
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{
+                  maxWidth: 180,
+                  width: "100%",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
             </Box>
-            <Typography variant="h5" fontWeight={600} gutterBottom color="text.primary">
+            <Typography
+              variant="h5"
+              fontWeight={600}
+              gutterBottom
+              color="text.primary"
+            >
               Crear cuenta
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Únete a Pensagro Admin
+              Únete a Bot Admin
             </Typography>
           </Box>
 
@@ -118,8 +145,8 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                   required: "El nombre es requerido",
                   minLength: {
                     value: 2,
-                    message: "El nombre debe tener al menos 2 caracteres"
-                  }
+                    message: "El nombre debe tener al menos 2 caracteres",
+                  },
                 })}
                 label="Nombre completo"
                 error={!!errors.name}
@@ -138,8 +165,8 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                   required: "El email es requerido",
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Por favor ingresa un email válido"
-                  }
+                    message: "Por favor ingresa un email válido",
+                  },
                 })}
                 label="Email"
                 type="email"
@@ -159,8 +186,8 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                   required: "El teléfono es requerido",
                   pattern: {
                     value: /^\+?[\d\s-]{10,}$/,
-                    message: "Por favor ingresa un teléfono válido"
-                  }
+                    message: "Por favor ingresa un teléfono válido",
+                  },
                 })}
                 label="Teléfono"
                 error={!!errors.phone}
@@ -179,8 +206,8 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                   required: "La contraseña es requerida",
                   minLength: {
                     value: 6,
-                    message: "La contraseña debe tener al menos 6 caracteres"
-                  }
+                    message: "La contraseña debe tener al menos 6 caracteres",
+                  },
                 })}
                 label="Contraseña"
                 type={showPassword ? "text" : "password"}
@@ -211,7 +238,7 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                 {...register("confirmPassword", {
                   required: "Confirma tu contraseña",
                   validate: (value) =>
-                    value === password || "Las contraseñas no coinciden"
+                    value === password || "Las contraseñas no coinciden",
                 })}
                 label="Confirmar contraseña"
                 type={showConfirmPassword ? "text" : "password"}
@@ -226,10 +253,16 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         edge="end"
                       >
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -239,17 +272,13 @@ export default function Register({ onRegister, onSwitchToLogin }: RegisterProps)
               />
             </Stack>
 
-            <ContainedButton
-              type="submit"
-              fullWidth
-              loading={loading}
-            >
+            <ContainedButton type="submit" fullWidth loading={loading}>
               Crear cuenta
             </ContainedButton>
 
             <Box sx={{ textAlign: "center", mt: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                ¿Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta?{" "}
                 <Link
                   component="button"
                   variant="body2"

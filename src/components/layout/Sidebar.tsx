@@ -8,6 +8,7 @@ import {
   Box,
   Divider,
   IconButton,
+  Typography,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -96,33 +97,17 @@ export default function Sidebar({
         }}
       >
         {!collapsed && (
-          <Box
+          <Typography
+            variant="h6"
             sx={{
-              height: 48,
-              width: 90,
-              minHeight: 48,
-              minWidth: 90,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              mx: "auto",
+              ml: 2,
+              fontWeight: 700,
+              color: "primary.main",
+              whiteSpace: "nowrap",
             }}
           >
-            <Box
-              component="img"
-              src="/logo.png"
-              alt="Logo"
-              sx={{
-                height: 1,
-                width: 1,
-                objectFit: "contain",
-                opacity: 1,
-                transform: "scale(1)",
-                transition:
-                  "opacity 0.3s cubic-bezier(.4,0,.2,1), transform 0.3s cubic-bezier(.4,0,.2,1)",
-              }}
-            />
-          </Box>
+            Bot Admin
+          </Typography>
         )}
         <Box
           sx={{

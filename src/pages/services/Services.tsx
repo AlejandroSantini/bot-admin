@@ -99,14 +99,6 @@ export default function Services() {
         <Typography variant="h5">Servicios</Typography>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Select
-            label="Tenant"
-            value={tenantId}
-            onChange={(e) => setTenantId(e.target.value as string)}
-            options={TENANT_OPTIONS}
-            sx={{ width: 150, mb: 0 }}
-          />
-
           <ContainedButton
             startIcon={<AddIcon />}
             onClick={() => navigate("/servicios/nuevo")}

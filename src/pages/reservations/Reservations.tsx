@@ -157,14 +157,6 @@ export default function Reservations() {
         <Typography variant="h5">Reservas</Typography>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Select
-            label="Tenant"
-            value={tenantId}
-            onChange={(e) => setTenantId(e.target.value as string)}
-            options={TENANTS_OPTIONS}
-            sx={{ width: 150, mb: 0 }}
-          />
-
           <Input
             label="Buscar por Teléfono"
             value={searchPhone}
