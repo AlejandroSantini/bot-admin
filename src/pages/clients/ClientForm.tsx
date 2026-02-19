@@ -8,19 +8,11 @@ import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
 
-// Example tenant list - in a real app this should be configurable or fetched
-const TENANT_OPTIONS = [
-  { value: "nutricion", label: "nutricion" },
-  { value: "default", label: "default" },
-  { value: "demo", label: "demo" },
-];
-
 export default function ClientForm() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     phone_number: "",
     nombre_completo: "",
-    tenant_id: "nutricion",
     profile_name: "Manual",
     origen_cliente: "manual_admin",
   });
@@ -63,15 +55,6 @@ export default function ClientForm() {
             }
             sx={{ mb: 2 }}
             required
-          />
-          <Select
-            label="Tenant ID"
-            value={form.tenant_id}
-            onChange={(e) =>
-              setForm({ ...form, tenant_id: e.target.value as string })
-            }
-            options={TENANT_OPTIONS}
-            sx={{ mb: 2 }}
           />
 
           <ContainedButton type="submit" loading={loading} fullWidth>

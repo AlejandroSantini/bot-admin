@@ -1,9 +1,10 @@
 import { createContext } from "react";
 
 interface User {
-  id: string;
+  id: string | number;
   name: string;
-  email: string;
+  email?: string;
+  phone_number_id?: string;
   phone?: string;
 }
 
@@ -12,10 +13,12 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (phone_number_id: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export type { User, AuthContextType };

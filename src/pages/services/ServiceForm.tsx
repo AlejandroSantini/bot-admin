@@ -8,11 +8,6 @@ import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
 
-const TENANT_OPTIONS = [
-  { value: "nutricion", label: "nutricion" },
-  { value: "default", label: "default" },
-];
-
 export default function ServiceForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -23,7 +18,6 @@ export default function ServiceForm() {
     description: "",
     price: "",
     duration: "",
-    tenant_id: "nutricion",
   });
   const [loading, setLoading] = useState(false);
 
@@ -86,16 +80,6 @@ export default function ServiceForm() {
             variant="outlined"
             value={form.duration}
             onChange={(e) => setForm({ ...form, duration: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            label="Tenant ID"
-            value={form.tenant_id}
-            onChange={(e) =>
-              setForm({ ...form, tenant_id: e.target.value as string })
-            }
-            options={TENANT_OPTIONS}
-            disabled={isEdit}
             sx={{ mb: 2 }}
           />
 

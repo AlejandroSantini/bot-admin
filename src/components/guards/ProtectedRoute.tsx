@@ -8,10 +8,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated } = useAuth();
 
-  // TEMPORAL: hardcodear acceso para desarrollo
-  const isDevelopment = true; // Cambiar a false cuando tengas el backend
-
-  if (!isAuthenticated && !isDevelopment) {
+  if (!isAuthenticated) {
     return <Navigate to="/iniciar-sesion" replace />;
   }
 

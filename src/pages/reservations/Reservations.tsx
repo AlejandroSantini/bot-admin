@@ -23,18 +23,12 @@ import {
   eliminarReserva,
 } from "../../services/reservaService";
 
-// Example tenants
-const TENANTS_OPTIONS = [
-  { value: "nutricion", label: "nutricion" },
-  { value: "default", label: "default" },
-];
-
 export default function Reservations() {
   const navigate = useNavigate();
   const [reservas, setReservas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenantId, setTenantId] = useState("nutricion");
+
   const [searchPhone, setSearchPhone] = useState("");
 
   const loadReservas = useCallback(async () => {
@@ -43,9 +37,9 @@ export default function Reservations() {
     try {
       let res;
       if (searchPhone) {
-        res = await obtenerReservasPorTelefono(searchPhone, tenantId);
+        res = await obtenerReservasPorTelefono(searchPhone);
       } else {
-        res = await obtenerReservas(tenantId);
+        res = await obtenerReservas();
       }
 
       const list = Array.isArray(res) ? res : res.data || [];
@@ -57,7 +51,7 @@ export default function Reservations() {
     } finally {
       setLoading(false);
     }
-  }, [tenantId, searchPhone]);
+  }, [searchPhone]);
 
   useEffect(() => {
     loadReservas();
@@ -131,7 +125,7 @@ export default function Reservations() {
           onSelectEvent={(r) => {
             if (
               window.confirm(
-                `¿Ver detalles de ${r.nombre}? (Actualmente solo eliminar disponible)`
+                `¿Ver detalles de ${r.nombre}? (Actualmente solo eliminar disponible)`,
               )
             ) {
               // Could navigate or show modal. For now, reusing delete logic if confirmed again?

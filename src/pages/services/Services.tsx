@@ -6,7 +6,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import { Edit as EditIcon, Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Table } from "../../components/common/Table";
@@ -15,23 +15,17 @@ import { ContainedButton } from "../../components/common/ContainedButton";
 import DeleteButton from "../../components/common/DeleteButton";
 import { getServices, deleteService } from "../../services/serviceService";
 
-const TENANT_OPTIONS = [
-  { value: "nutricion", label: "nutricion" },
-  { value: "default", label: "default" },
-];
-
 export default function Services() {
   const navigate = useNavigate();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenantId, setTenantId] = useState("nutricion");
 
   const loadServices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getServices(tenantId);
+      const data = await getServices();
       // Adjust if wrapped
       setServices(Array.isArray(data) ? data : (data as any).data || []);
     } catch (err) {
@@ -39,7 +33,7 @@ export default function Services() {
     } finally {
       setLoading(false);
     }
-  }, [tenantId]);
+  }, []);
 
   useEffect(() => {
     loadServices();
@@ -67,14 +61,6 @@ export default function Services() {
       label: "Acciones",
       render: (s: any) => (
         <Box sx={{ display: "flex", gap: 1 }}>
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/servicios/${s.id || s._id}`);
-            }}
-          >
-            <EditIcon />
-          </IconButton>
           <DeleteButton
             onClick={(e) => {
               e?.stopPropagation();
@@ -124,6 +110,7 @@ export default function Services() {
             columns={columns}
             data={services}
             getRowKey={(s: any) => s._id || s.id}
+            onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
             emptyMessage="No hay servicios para este tenant."
           />
         )}

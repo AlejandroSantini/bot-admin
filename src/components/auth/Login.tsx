@@ -15,7 +15,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Visibility, VisibilityOff, Email, Lock } from "@mui/icons-material";
 
 interface LoginFormData {
-  email: string;
+  phone_number_id: string;
   password: string;
 }
 
@@ -36,7 +36,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await login(data.email, data.password);
+      await login(data.phone_number_id, data.password);
     } catch (err: any) {
       setError(err?.message || "Error al iniciar sesión. Intenta de nuevo.");
     } finally {
@@ -67,28 +67,6 @@ export default function Login() {
       >
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mb: 2,
-                py: 1,
-              }}
-            >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                style={{
-                  maxWidth: 180,
-                  width: "100%",
-                  height: "auto",
-                  objectFit: "contain",
-                  display: "block",
-                }}
-              />
-            </Box>
             <Typography
               variant="h5"
               fontWeight={600}
@@ -110,20 +88,16 @@ export default function Login() {
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)}>
             <Input
-              {...register("email", {
-                required: "El email es requerido",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Por favor ingresa un email válido",
-                },
+              {...register("phone_number_id", {
+                required: "El ID del número de teléfono es requerido",
               })}
-              label="Email"
-              type="email"
-              error={!!errors.email}
-              helperText={errors.email?.message}
+              label="Phone Number ID"
+              type="text"
+              error={!!errors.phone_number_id}
+              helperText={errors.phone_number_id?.message}
               icon={
                 <InputAdornment position="start">
-                  <Email />
+                  <Lock />
                 </InputAdornment>
               }
               sx={{ borderRadius: 2, mb: 2, height: 48 }}
@@ -166,7 +140,7 @@ export default function Login() {
             <ContainedButton
               type="submit"
               fullWidth
-              disabled={!watch("email") || !watch("password")}
+              disabled={!watch("phone_number_id") || !watch("password")}
               loading={loading}
             >
               Iniciar sesión

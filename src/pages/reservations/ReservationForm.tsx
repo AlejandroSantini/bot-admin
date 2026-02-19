@@ -9,11 +9,6 @@ import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import { DateInput } from "../../components/common/DateInput";
 
-const TENANT_OPTIONS = [
-  { value: "nutricion", label: "nutricion" },
-  { value: "default", label: "default" },
-];
-
 export default function ReservationForm() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -23,7 +18,6 @@ export default function ReservationForm() {
     horario: "",
     nombre: "",
     mail: "",
-    tenant_id: "nutricion",
   });
   const [loading, setLoading] = useState(false);
 
@@ -86,15 +80,6 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, horario: e.target.value })}
             sx={{ mb: 2 }}
             required
-          />
-          <Select
-            label="Tenant ID"
-            value={form.tenant_id}
-            onChange={(e) =>
-              setForm({ ...form, tenant_id: e.target.value as string })
-            }
-            options={TENANT_OPTIONS}
-            sx={{ mb: 2 }}
           />
 
           <ContainedButton type="submit" loading={loading} fullWidth>

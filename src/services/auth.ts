@@ -1,7 +1,7 @@
-import api from './api';
+import api from "./api";
 
 export interface LoginRequest {
-  email: string;
+  phone_number_id: string;
   password: string;
 }
 
@@ -12,11 +12,11 @@ export interface RegisterRequest {
   password: string;
 }
 
-
 export interface User {
-  id: string;
+  id: string | number;
   name: string;
-  email: string;
+  phone_number_id?: string;
+  email?: string;
   phone?: string;
   role?: string;
   status?: string;
@@ -27,54 +27,57 @@ export interface AuthResponse {
   user: User;
   token: string;
   refreshToken?: string;
-}
-
-export interface ApiResponse<T> {
-  status: boolean;
-  data: T;
   message?: string;
+  tenant?: User;
 }
 
 class Auth {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>('/api/users/login', credentials);
-      if (response.data.status) {
-        const authData = response.data.data;
+      const response = await api.post<AuthResponse>(
+        "/api/tenants/auth/login",
+        credentials,
+      );
+      if (response.data.token) {
+        const authData = response.data;
+        const userToSave = authData.tenant || authData.user;
         // Guarda cliente y token por separado
-        localStorage.setItem('user', JSON.stringify(authData.user));
-        localStorage.setItem('token', authData.token);
-        return authData;
+        localStorage.setItem("user", JSON.stringify(userToSave));
+        localStorage.setItem("token", authData.token);
+        return {
+          user: userToSave as User,
+          token: authData.token,
+        };
       } else {
-        throw new Error(response.data.message || 'Error en el login');
+        throw new Error(response.data.message || "Error en el login");
       }
     } catch (error) {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Error de conexión');
+      throw new Error("Error de conexión");
     }
   }
 
   async logout(): Promise<void> {
     try {
-      await api.post('/auth/logout');
+      await api.post("/auth/logout");
     } catch (error) {
-      console.warn('Error al hacer logout en el servidor:', error);
+      console.warn("Error al hacer logout en el servidor:", error);
     } finally {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     }
   }
 
-  getCurrentUser(): AuthResponse | null {
-    const user = localStorage.getItem('user');
+  getCurrentUser(): User | null {
+    const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   }
 
   isAuthenticated(): boolean {
-    const user = this.getCurrentUser();
-    return !!user && !!user.token;
+    const token = localStorage.getItem("token");
+    return !!token;
   }
 }
 
