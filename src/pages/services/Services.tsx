@@ -111,7 +111,7 @@ export default function Services() {
             data={services}
             getRowKey={(s: any) => s._id || s.id}
             onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
-            emptyMessage="No hay servicios para este tenant."
+            emptyMessage="No hay servicios."
           />
         )}
       </CustomPaper>

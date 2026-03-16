@@ -1,6 +1,6 @@
 
 import { Tabs, Tab, Box } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomPaper } from './CustomPaper';
 
 export interface SimpleTab {
@@ -15,6 +15,10 @@ interface SimpleTabsProps {
 
 export function SimpleTabs({ tabs, defaultTab = 0 }: SimpleTabsProps) {
   const [tab, setTab] = useState(defaultTab);
+
+  useEffect(() => {
+    setTab(defaultTab);
+  }, [defaultTab]);
   return (
     <CustomPaper sx={{ p: 2 }}>
       <Tabs

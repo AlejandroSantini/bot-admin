@@ -90,6 +90,14 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/reservas/:id"
+          element={
+            <ProtectedRoute>
+              <ReservationForm />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="/" element={<Navigate to="/reservas" replace />} />

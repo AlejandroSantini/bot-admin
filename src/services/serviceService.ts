@@ -5,9 +5,14 @@ export const createService = async (data: any) => {
   return response.data;
 };
 
-export const getServices = async (tenantId?: string) => {
-  const response = await api.get("/api/servicios", {
-    params: tenantId ? { tenantId } : undefined,
+export const getServices = async () => {
+  const response = await api.get("/api/servicios");
+  return response.data;
+};
+
+export const getService = async (id: string | number) => {
+  const response = await api.get(`/api/servicios/${id}`, {
+    params: { admin_pass: "ai" },
   });
   return response.data;
 };

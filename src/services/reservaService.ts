@@ -5,24 +5,21 @@ export const crearReserva = async (data: any) => {
   return response.data;
 };
 
-export const obtenerReservas = async (tenantId?: string) => {
+export const obtenerReservas = async (params?: { telefono?: string }) => {
   const response = await api.get("/api/reservas", {
-    params: tenantId ? { tenantId } : undefined,
+    params: params,
   });
   return response.data;
 };
 
-export const obtenerReservasPorTelefono = async (
-  phone: string,
-  tenantId?: string,
-) => {
-  const response = await api.get(`/api/reservas/telefono/${phone}`, {
-    params: tenantId ? { tenantId } : undefined,
-  });
+// obtenerReservas handles phone filtering via params now
+
+export const cancelarReserva = async (id: string | number) => {
+  const response = await api.patch(`/api/reservas/${id}`, { status: "cancelled" });
   return response.data;
 };
 
-export const eliminarReserva = async (id: string | number) => {
-  const response = await api.delete(`/api/reservas/${id}`);
+export const obtenerReserva = async (id: string | number) => {
+  const response = await api.get(`/api/reservas/${id}`);
   return response.data;
 };

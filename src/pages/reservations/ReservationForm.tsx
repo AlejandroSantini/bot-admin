@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { crearReserva } from "../../services/reservaService";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { crearReserva, obtenerReserva } from "../../services/reservaService";
+import { BackButton } from "../../components/common/BackButton";
 
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 import { DateInput } from "../../components/common/DateInput";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
+  const isView = Boolean(id);
+
   const [form, setForm] = useState({
     phone: "",
     rubro: "", // Service
@@ -20,6 +26,35 @@ export default function ReservationForm() {
     mail: "",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isView && id) {
+      const fetchReserva = async () => {
+        setLoading(true);
+        try {
+          const res = await obtenerReserva(id);
+          const data = res.data; 
+          
+          if (data) {
+            setForm({
+              phone: data.phone || "",
+              rubro: data.rubro || data.motivo || "",
+              fecha: data.fecha || "",
+              horario: data.horario || "",
+              nombre: data.nombre || "",
+              mail: data.mail || "",
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error al cargar la reserva");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchReserva();
+    }
+  }, [id, isView]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +71,12 @@ export default function ReservationForm() {
 
   return (
     <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
-      <Typography variant="h5" mb={3}>
-        Nueva Reserva
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+        <BackButton to="/reservas" state={location.state} />
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {isView ? "Detalle de Reserva" : "Nueva Reserva"}
+        </Typography>
+      </Box>
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
@@ -48,6 +86,7 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             required
             sx={{ mb: 2 }}
+            disabled={isView}
           />
           <Input
             label="Nombre Cliente"
@@ -55,6 +94,7 @@ export default function ReservationForm() {
             variant="outlined"
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             sx={{ mb: 2 }}
+            disabled={isView}
           />
           <Input
             label="Rubro / Servicio"
@@ -62,6 +102,7 @@ export default function ReservationForm() {
             variant="outlined"
             onChange={(e) => setForm({ ...form, rubro: e.target.value })}
             sx={{ mb: 2 }}
+            disabled={isView}
           />
           <DateInput
             label="Fecha"
@@ -70,6 +111,7 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, fecha: e.target.value })}
             sx={{ mb: 2 }}
             required
+            disabled={isView}
           />
           <Input
             type="time"
@@ -80,11 +122,19 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, horario: e.target.value })}
             sx={{ mb: 2 }}
             required
+            disabled={isView}
           />
 
-          <ContainedButton type="submit" loading={loading} fullWidth>
-            Crear Reserva
-          </ContainedButton>
+          {!isView && (
+            <ContainedButton
+              type="submit"
+              loading={loading}
+              fullWidth
+              sx={{ borderRadius: 50, mt: 3 }}
+            >
+              Crear Reserva
+            </ContainedButton>
+          )}
         </form>
       </CustomPaper>
     </Box>

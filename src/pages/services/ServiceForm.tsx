@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { createService, updateService } from "../../services/serviceService";
+import { createService, updateService, getService } from "../../services/serviceService";
+import { BackButton } from "../../components/common/BackButton";
 
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 
 export default function ServiceForm() {
   const navigate = useNavigate();
@@ -14,7 +16,8 @@ export default function ServiceForm() {
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState({
-    name: "",
+    title: "",
+    code: "",
     description: "",
     price: "",
     duration: "",
@@ -22,8 +25,30 @@ export default function ServiceForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Logic to fetch service if needed would go here
-  }, [id, isEdit]);
+    if (isEdit && id) {
+      const fetchService = async () => {
+        setLoading(true);
+        try {
+          const res = await getService(id);
+          const data = res.data || res; 
+          setForm({
+            title: data.title || "",
+            code: data.code || "",
+            description: data.description || "",
+            price: data.price ? Math.floor(parseFloat(data.price)).toString() : "",
+            duration: data.duration?.toString() || "",
+          });
+        } catch (err) {
+          console.error(err);
+          alert("Error al cargar los detalles del servicio");
+          navigate("/servicios");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchService();
+    }
+  }, [id, isEdit, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,16 +69,27 @@ export default function ServiceForm() {
 
   return (
     <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
-      <Typography variant="h5" mb={3}>
-        {isEdit ? "Editar" : "Nuevo"} Servicio
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+        <BackButton to="/servicios" />
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          {isEdit ? "Editar" : "Nuevo"} Servicio
+        </Typography>
+      </Box>
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
-            label="Nombre"
-            value={form.name}
+            label="Nombre / Título"
+            value={form.title}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            sx={{ mb: 2 }}
+            required
+          />
+          <Input
+            label="Código (ej: corte_hombre)"
+            value={form.code}
+            variant="outlined"
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
             sx={{ mb: 2 }}
             required
           />
@@ -83,7 +119,11 @@ export default function ServiceForm() {
             sx={{ mb: 2 }}
           />
 
-          <ContainedButton type="submit" loading={loading} fullWidth>
+          <ContainedButton
+            type="submit"
+            loading={loading}
+            fullWidth
+          >
             Guardar
           </ContainedButton>
         </form>

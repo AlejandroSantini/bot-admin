@@ -1,21 +1,24 @@
 import React from 'react';
 import { IconButton, Tooltip, useTheme, CircularProgress } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 interface DeleteButtonProps {
   onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   loading?: boolean;
   title?: string;
+  variant?: 'delete' | 'cancel';
 }
 
-export default function DeleteButton({ onClick, disabled, loading, title = 'Eliminar' }: DeleteButtonProps) {
+export default function DeleteButton({ onClick, disabled, loading, title, variant = 'delete' }: DeleteButtonProps) {
+  const displayTitle = title || (variant === 'cancel' ? 'Cancelar' : 'Eliminar');
   const theme = useTheme();
   const size = '40px';
   const isDisabled = disabled || loading;
 
   return (
-    <Tooltip title={loading ? 'Eliminando...' : title}>
+    <Tooltip title={loading ? (variant === 'cancel' ? 'Cancelando...' : 'Eliminando...') : displayTitle}>
       <IconButton
         onClick={onClick}
         disabled={isDisabled}
@@ -49,7 +52,7 @@ export default function DeleteButton({ onClick, disabled, loading, title = 'Elim
         {loading ? (
           <CircularProgress size={20} color="inherit" />
         ) : (
-          <DeleteIcon />
+          variant === 'cancel' ? <CancelIcon /> : <DeleteIcon />
         )}
       </IconButton>
     </Tooltip>

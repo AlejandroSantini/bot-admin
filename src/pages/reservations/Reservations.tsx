@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -19,12 +20,12 @@ import ReservationsCalendar from "./components/ReservationsCalendar";
 
 import {
   obtenerReservas,
-  obtenerReservasPorTelefono,
-  eliminarReserva,
+  cancelarReserva,
 } from "../../services/reservaService";
 
 export default function Reservations() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [reservas, setReservas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,12 +36,7 @@ export default function Reservations() {
     setLoading(true);
     setError(null);
     try {
-      let res;
-      if (searchPhone) {
-        res = await obtenerReservasPorTelefono(searchPhone);
-      } else {
-        res = await obtenerReservas();
-      }
+      const res = await obtenerReservas({ telefono: searchPhone });
 
       const list = Array.isArray(res) ? res : res.data || [];
       setReservas(list);
@@ -62,13 +58,14 @@ export default function Reservations() {
     loadReservas();
   };
 
-  const handleDelete = async (id: string | number) => {
-    if (!window.confirm("¿Cancelar/Eliminar reserva?")) return;
+  const handleCancel = async (id: string | number) => {
+    if (!window.confirm("¿Estás seguro de que deseas cancelar esta reserva?"))
+      return;
     try {
-      await eliminarReserva(id);
+      await cancelarReserva(id);
       loadReservas();
     } catch (err) {
-      alert("Error eliminando reserva");
+      alert("Error al cancelar la reserva");
     }
   };
 
@@ -89,9 +86,10 @@ export default function Reservations() {
       label: "Acciones",
       render: (r: any) => (
         <DeleteButton
+          variant="cancel"
           onClick={(e) => {
             e?.stopPropagation();
-            handleDelete(r._id || r.id);
+            handleCancel(r._id || r.id);
           }}
         />
       ),
@@ -112,6 +110,9 @@ export default function Reservations() {
           columns={columns}
           data={reservas}
           getRowKey={(r: any) => r._id || r.id}
+          onRowClick={(r: any) =>
+            navigate(`/reservas/${r._id || r.id}`, { state: { tab: 0 } })
+          }
           emptyMessage="No hay reservas."
           // loading handled in parent
         />
@@ -123,15 +124,7 @@ export default function Reservations() {
         <ReservationsCalendar
           reservas={reservas}
           onSelectEvent={(r) => {
-            if (
-              window.confirm(
-                `¿Ver detalles de ${r.nombre}? (Actualmente solo eliminar disponible)`,
-              )
-            ) {
-              // Could navigate or show modal. For now, reusing delete logic if confirmed again?
-              // Just log for now or show alert
-              // alert(JSON.stringify(r));
-            }
+            navigate(`/reservas/${r._id || r.id}`, { state: { tab: 1 } });
           }}
         />
       ),
@@ -178,7 +171,10 @@ export default function Reservations() {
         </Alert>
       )}
 
-      <SimpleTabs tabs={tabs} />
+      <SimpleTabs
+        tabs={tabs}
+        defaultTab={location.state?.tab !== undefined ? location.state.tab : 0}
+      />
     </Box>
   );
 }

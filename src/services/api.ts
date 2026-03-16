@@ -17,18 +17,6 @@ api.interceptors.request.use(
     }
     config.headers["ngrok-skip-browser-warning"] = "true";
 
-    const userStr = localStorage.getItem("user");
-    if (userStr && !config.url?.includes("/auth/")) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user?.id) {
-          config.params = { ...config.params, tenant_id: user.id };
-        }
-      } catch (e) {
-        console.error("Error parsing user from localStorage", e);
-      }
-    }
-
     return config;
   },
   (error) => {

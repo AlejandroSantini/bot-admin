@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { createCliente } from "../../services/clienteService";
+import { BackButton } from "../../components/common/BackButton";
 
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
 import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 
 export default function ClientForm() {
   const navigate = useNavigate();
@@ -33,9 +35,12 @@ export default function ClientForm() {
 
   return (
     <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
-      <Typography variant="h5" mb={3}>
-        Nuevo Cliente
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+        <BackButton to="/clientes" />
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Nuevo Cliente
+        </Typography>
+      </Box>
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
@@ -57,7 +62,11 @@ export default function ClientForm() {
             required
           />
 
-          <ContainedButton type="submit" loading={loading} fullWidth>
+          <ContainedButton
+            type="submit"
+            loading={loading}
+            fullWidth
+          >
             Guardar
           </ContainedButton>
         </form>
