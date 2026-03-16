@@ -15,7 +15,7 @@ export const obtenerReservas = async (params?: { telefono?: string }) => {
 // obtenerReservas handles phone filtering via params now
 
 export const cancelarReserva = async (id: string | number) => {
-  const response = await api.patch(`/api/reservas/${id}`, { status: "cancelled" });
+  const response = await api.delete(`/api/reservas/${id}`);
   return response.data;
 };
 
