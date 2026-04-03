@@ -14,3 +14,10 @@ export const deleteCliente = async (id: string | number) => {
   const response = await api.delete(`/api/clientes/${id}`);
   return response.data;
 };
+
+export const getFichasCliente = async (params: { cliente_id?: string | number; phone?: string }) => {
+  const response = await api.get("/api/reservas/fichas", {
+    params,
+  });
+  return response.data;
+};

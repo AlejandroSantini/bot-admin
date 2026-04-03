@@ -1,9 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
-import { Box, Typography, Alert, CircularProgress } from "@mui/material";
+import { Box, Typography, Alert, CircularProgress, IconButton } from "@mui/material";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Table } from "../../components/common/Table"; // Assuming this exists
 import DeleteButton from "../../components/common/DeleteButton";
-import { getClientes, deleteCliente } from "../../services/clienteService";
+import { getClientes, deleteCliente, getFichasCliente } from "../../services/clienteService";
+import { Paginator } from "../../components/common/Paginator";
+import { History as HistoryIcon } from "@mui/icons-material";
+import { FichaClienteModal } from "../../components/FichaClienteModal";
 
 // Simple interface based on use case
 interface Cliente {
@@ -21,6 +24,8 @@ export default function Clients() {
   const [clients, setClients] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
+  const [fichaOpen, setFichaOpen] = useState(false);
 
   const loadClients = async () => {
     setLoading(true);
@@ -53,6 +58,11 @@ export default function Clients() {
     }
   };
 
+  const handleOpenFicha = async (client: Cliente) => {
+    setSelectedClient(client);
+    setFichaOpen(true);
+  };
+
   const columns = [
     {
       label: "Teléfono",
@@ -67,12 +77,25 @@ export default function Clients() {
     {
       label: "Acciones",
       render: (c: Cliente) => (
-        <DeleteButton
-          onClick={(e) => {
-            e?.stopPropagation();
-            handleDelete(c._id || c.id);
-          }}
-        />
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton
+            size="small"
+            color="primary"
+            title="Ver Historial (Ficha)"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenFicha(c);
+            }}
+          >
+            <HistoryIcon />
+          </IconButton>
+          <DeleteButton
+            onClick={(e) => {
+              e?.stopPropagation();
+              handleDelete(c._id || c.id);
+            }}
+          />
+        </Box>
       ),
     },
   ];
@@ -89,20 +112,25 @@ export default function Clients() {
         </Alert>
       )}
 
-      <CustomPaper>
-        {loading ? (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Table
-            columns={columns}
-            data={clients}
-            getRowKey={(c: any) => c._id || c.id}
-            emptyMessage="No hay clientes registrados."
-          />
-        )}
-      </CustomPaper>
+      {loading ? (
+        <Box sx={{ p: 4, textAlign: "center" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Table
+          columns={columns}
+          data={clients}
+          getRowKey={(c: any) => c._id || c.id}
+          emptyMessage="No hay clientes registrados."
+        />
+      )}
+
+      <FichaClienteModal
+        open={fichaOpen}
+        onClose={() => setFichaOpen(false)}
+        clientName={selectedClient?.nombre_completo || selectedClient?.profile_name || ''}
+        phone={selectedClient?.phone_number || selectedClient?.wa_id || ''}
+      />
     </Box>
   );
 }

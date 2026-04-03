@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { History as HistoryIcon } from "@mui/icons-material";
 import { crearReserva, obtenerReserva } from "../../services/reservaService";
+import { getFichasCliente } from "../../services/clienteService";
 import { BackButton } from "../../components/common/BackButton";
+import { FichaClienteModal } from "../../components/FichaClienteModal";
 
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
@@ -26,6 +29,7 @@ export default function ReservationForm() {
     mail: "",
   });
   const [loading, setLoading] = useState(false);
+  const [fichaOpen, setFichaOpen] = useState(false);
 
   useEffect(() => {
     if (isView && id) {
@@ -56,6 +60,11 @@ export default function ReservationForm() {
     }
   }, [id, isView]);
 
+  const handleOpenFicha = async () => {
+    if (!form.phone) return;
+    setFichaOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -73,9 +82,18 @@ export default function ReservationForm() {
     <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
         <BackButton to="/reservas" state={location.state} />
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           {isView ? "Detalle de Reserva" : "Nueva Reserva"}
         </Typography>
+        {isView && form.phone && (
+          <OutlinedButton
+            startIcon={<HistoryIcon />}
+            onClick={handleOpenFicha}
+            sx={{ borderRadius: 50 }}
+          >
+            Ver Historial
+          </OutlinedButton>
+        )}
       </Box>
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
@@ -137,6 +155,13 @@ export default function ReservationForm() {
           )}
         </form>
       </CustomPaper>
+
+      <FichaClienteModal
+        open={fichaOpen}
+        onClose={() => setFichaOpen(false)}
+        clientName={form.nombre}
+        phone={form.phone}
+      />
     </Box>
   );
 }
