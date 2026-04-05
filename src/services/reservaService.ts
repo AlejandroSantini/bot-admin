@@ -23,3 +23,8 @@ export const obtenerReserva = async (id: string | number) => {
   const response = await api.get(`/api/reservas/${id}`);
   return response.data;
 };
+
+export const actualizarReserva = async (id: string | number, data: any) => {
+  const response = await api.patch(`/api/reservas/${id}`, data);
+  return response.data;
+};

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { History as HistoryIcon } from "@mui/icons-material";
-import { crearReserva, obtenerReserva } from "../../services/reservaService";
+import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
 import { getFichasCliente } from "../../services/clienteService";
 import { BackButton } from "../../components/common/BackButton";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
@@ -69,10 +69,15 @@ export default function ReservationForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await crearReserva(form);
-      navigate("/reservas");
+      if (isView && id) {
+        await actualizarReserva(id, form);
+        alert("Reserva actualizada correctamente");
+      } else {
+        await crearReserva(form);
+        navigate("/reservas");
+      }
     } catch (err) {
-      alert("Error creando reserva");
+      alert(isView ? "Error actualizando reserva" : "Error creando reserva");
     } finally {
       setLoading(false);
     }
@@ -83,7 +88,7 @@ export default function ReservationForm() {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
         <BackButton to="/reservas" state={location.state} />
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
-          {isView ? "Detalle de Reserva" : "Nueva Reserva"}
+          {isView ? "Editar Reserva" : "Nueva Reserva"}
         </Typography>
         {isView && form.phone && (
           <OutlinedButton
@@ -104,7 +109,6 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             required
             sx={{ mb: 2 }}
-            disabled={isView}
           />
           <Input
             label="Nombre Cliente"
@@ -112,7 +116,6 @@ export default function ReservationForm() {
             variant="outlined"
             onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             sx={{ mb: 2 }}
-            disabled={isView}
           />
           <Input
             label="Rubro / Servicio"
@@ -120,7 +123,6 @@ export default function ReservationForm() {
             variant="outlined"
             onChange={(e) => setForm({ ...form, rubro: e.target.value })}
             sx={{ mb: 2 }}
-            disabled={isView}
           />
           <DateInput
             label="Fecha"
@@ -129,7 +131,6 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, fecha: e.target.value })}
             sx={{ mb: 2 }}
             required
-            disabled={isView}
           />
           <Input
             type="time"
@@ -140,19 +141,15 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, horario: e.target.value })}
             sx={{ mb: 2 }}
             required
-            disabled={isView}
           />
 
-          {!isView && (
-            <ContainedButton
-              type="submit"
-              loading={loading}
-              fullWidth
-              sx={{ borderRadius: 50, mt: 3 }}
-            >
-              Crear Reserva
-            </ContainedButton>
-          )}
+          <ContainedButton
+            type="submit"
+            loading={loading}
+            fullWidth
+          >
+            {isView ? "Guardar Cambios" : "Crear Reserva"}
+          </ContainedButton>
         </form>
       </CustomPaper>
 
