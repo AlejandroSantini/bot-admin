@@ -19,7 +19,7 @@ interface Cliente {
   nombre_completo?: string;
   origen_cliente?: string;
   tenant_id?: string;
-  paused?: boolean;
+  bot_paused?: boolean;
   [key: string]: any;
 }
 
@@ -101,14 +101,14 @@ export default function Clients() {
         <Box sx={{ display: "flex", gap: 1 }}>
           <IconButton
             size="small"
-            color={c.paused ? "success" : "warning"}
-            title={c.paused ? "Reanudar Bot" : "Pausar Bot"}
+            color={c.bot_paused ? "error" : "success"}
+            title={c.bot_paused ? "Reanudar Bot (Click para activar)" : "Pausar Bot (Click para desactivar)"}
             onClick={(e) => {
               e.stopPropagation();
-              handleTogglePause(c._id || c.id, !!c.paused);
+              handleTogglePause(c._id || c.id, !!c.bot_paused);
             }}
           >
-            {c.paused ? <PlayIcon /> : <PauseIcon />}
+            {c.bot_paused ? <PlayIcon /> : <PauseIcon />}
           </IconButton>
           <IconButton
             size="small"
