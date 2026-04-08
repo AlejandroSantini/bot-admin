@@ -12,6 +12,7 @@ export function BackButton({ to, state }: BackButtonProps) {
 
   return (
     <IconButton
+      title="Volver"
       onClick={() => navigate(to, { state })}
       sx={{
         backgroundColor: "#f5f5f5",

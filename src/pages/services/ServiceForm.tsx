@@ -21,6 +21,7 @@ export default function ServiceForm() {
     description: "",
     price: "",
     duration: "",
+    orden: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +38,7 @@ export default function ServiceForm() {
             description: data.description || "",
             price: data.price ? Math.floor(parseFloat(data.price)).toString() : "",
             duration: data.duration?.toString() || "",
+            orden: data.orden?.toString() || "",
           });
         } catch (err) {
           console.error(err);
@@ -116,6 +118,15 @@ export default function ServiceForm() {
             variant="outlined"
             value={form.duration}
             onChange={(e) => setForm({ ...form, duration: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+
+          <Input
+            label="Orden de Visualización"
+            type="number"
+            variant="outlined"
+            value={form.orden}
+            onChange={(e) => setForm({ ...form, orden: e.target.value })}
             sx={{ mb: 2 }}
           />
 

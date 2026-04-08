@@ -3,10 +3,12 @@ import { Box, Typography, Alert, CircularProgress, IconButton } from "@mui/mater
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Table } from "../../components/common/Table"; // Assuming this exists
 import DeleteButton from "../../components/common/DeleteButton";
-import { getClientes, deleteCliente, getFichasCliente } from "../../services/clienteService";
+import { getClientes, deleteCliente, getFichasCliente, pauseCliente } from "../../services/clienteService";
+import { Input } from "../../components/common/Input";
 import { Paginator } from "../../components/common/Paginator";
-import { History as HistoryIcon } from "@mui/icons-material";
+import { History as HistoryIcon, PlayArrow as PlayIcon, Pause as PauseIcon, Search as SearchIcon } from "@mui/icons-material";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
+import { InputAdornment } from "@mui/material";
 
 // Simple interface based on use case
 interface Cliente {
@@ -17,6 +19,7 @@ interface Cliente {
   nombre_completo?: string;
   origen_cliente?: string;
   tenant_id?: string;
+  paused?: boolean;
   [key: string]: any;
 }
 
@@ -26,13 +29,13 @@ export default function Clients() {
   const [error, setError] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [fichaOpen, setFichaOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const loadClients = async () => {
+  const loadClients = async (searchStr?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getClientes();
-      // Adjust depending on if it returns array or { data: [] }
+      const data = await getClientes({ search: searchStr });
       const list = Array.isArray(data) ? data : (data as any).data || [];
       setClients(list);
     } catch (err: any) {
@@ -44,8 +47,17 @@ export default function Clients() {
   };
 
   useEffect(() => {
-    loadClients();
-  }, []);
+    if (!search) {
+      loadClients();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      loadClients(search);
+    }, 400); 
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleDelete = async (id: string | number) => {
     if (!window.confirm("¿Seguro de eliminar este cliente?")) return;
@@ -63,6 +75,15 @@ export default function Clients() {
     setFichaOpen(true);
   };
 
+  const handleTogglePause = async (id: string | number, currentPaused: boolean) => {
+    try {
+      await pauseCliente(id, !currentPaused);
+      loadClients(search);
+    } catch (err) {
+      alert("Error al cambiar estado de pausa");
+    }
+  };
+
   const columns = [
     {
       label: "Teléfono",
@@ -78,6 +99,17 @@ export default function Clients() {
       label: "Acciones",
       render: (c: Cliente) => (
         <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton
+            size="small"
+            color={c.paused ? "success" : "warning"}
+            title={c.paused ? "Reanudar Bot" : "Pausar Bot"}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTogglePause(c._id || c.id, !!c.paused);
+            }}
+          >
+            {c.paused ? <PlayIcon /> : <PauseIcon />}
+          </IconButton>
           <IconButton
             size="small"
             color="primary"
@@ -102,9 +134,27 @@ export default function Clients() {
 
   return (
     <Box sx={{ mx: "auto", p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        Clientes (Bot)
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Clientes (Bot)
+        </Typography>
+
+        <Box sx={{ width: 350 }}>
+          <Input
+            label="Buscar por Nombre o Teléfono"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            fullWidth
+            variant="outlined"
+            sx={{ mb: 0 }}
+            endAdornment={
+              <InputAdornment position="end">
+                <SearchIcon sx={{ color: "text.secondary" }} />
+              </InputAdornment>
+            }
+          />
+        </Box>
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

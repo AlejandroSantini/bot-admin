@@ -6,6 +6,7 @@ import {
   Alert,
   InputAdornment,
   CircularProgress,
+  Tooltip,
 } from "@mui/material"; // Keep basic layout/feedback
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -30,14 +31,13 @@ export default function Reservations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchPhone, setSearchPhone] = useState("");
+  const [search, setSearch] = useState("");
 
-  const loadReservas = useCallback(async () => {
+  const loadReservas = async (searchStr?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await obtenerReservas({ telefono: searchPhone });
-
+      const res = await obtenerReservas({ search: searchStr });
       const list = Array.isArray(res) ? res : res.data || [];
       setReservas(list);
     } catch (err: any) {
@@ -47,16 +47,18 @@ export default function Reservations() {
     } finally {
       setLoading(false);
     }
-  }, [searchPhone]);
+  };
 
   useEffect(() => {
-    loadReservas();
-  }, [loadReservas]); // Reload when tenant changes
-
-  // Trigger search manually or when phone is cleared
-  const handleSearch = () => {
-    loadReservas();
-  };
+    if (!search) {
+      loadReservas();
+      return;
+    }
+    const timer = setTimeout(() => {
+      loadReservas(search);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleCancel = async (id: string | number) => {
     if (!window.confirm("¿Estás seguro de que deseas cancelar esta reserva?"))
@@ -133,29 +135,26 @@ export default function Reservations() {
 
   return (
     <Box sx={{ mx: "auto", p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mb: 2,
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h5">Reservas</Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Reservas
+        </Typography>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Input
-            label="Buscar por Teléfono"
-            value={searchPhone}
-            variant="outlined"
-            onChange={(e) => setSearchPhone(e.target.value)}
-            sx={{ mb: 0, width: 200 }}
-            endAdornment={
-              <InputAdornment position="end">
-                <SearchIcon onClick={handleSearch} sx={{ cursor: "pointer" }} />
-              </InputAdornment>
-            }
-          />
+          <Box sx={{ width: 350 }}>
+            <Input
+              label="Buscar por Nombre o Teléfono"
+              value={search}
+              variant="outlined"
+              onChange={(e) => setSearch(e.target.value)}
+              sx={{ mb: 0 }}
+              endAdornment={
+                <InputAdornment position="end">
+                  <SearchIcon sx={{ color: "text.secondary" }} />
+                </InputAdornment>
+              }
+            />
+          </Box>
           <ContainedButton
             startIcon={<AddIcon />}
             onClick={() => navigate("/reservas/nueva")}

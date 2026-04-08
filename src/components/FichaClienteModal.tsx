@@ -63,7 +63,7 @@ export function FichaClienteModal({ open, onClose, clientName, phone }: FichaCli
             {totalVisitas && ` • ${totalVisitas} visita${Number(totalVisitas) !== 1 ? 's' : ''}`}
           </Typography>
         </Box>
-        <IconButton onClick={onClose}>
+        <IconButton onClick={onClose} title="Cerrar">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -79,8 +79,12 @@ export function FichaClienteModal({ open, onClose, clientName, phone }: FichaCli
               getRowKey={(item: any) => item.id || Math.random()}
               columns={[
                 { label: "Fecha", render: (item: any) => item.fecha },
-                { label: "Horario", render: (item: any) => item.horario },
                 { label: "Servicio", render: (item: any) => item.rubro || item.motivo || "-" },
+                { label: "Producto", render: (item: any) => item.producto || "-" },
+                { 
+                  label: "Pago", 
+                  render: (item: any) => item.monto_pago ? `$${Number(item.monto_pago).toLocaleString('es-AR')}` : "-" 
+                },
                 {
                   label: "Estado",
                   render: (item: any) => (
@@ -101,7 +105,7 @@ export function FichaClienteModal({ open, onClose, clientName, phone }: FichaCli
                 { 
                   label: "Observaciones", 
                   render: (item: any) => item.observaciones || "-",
-                  width: '30%'
+                  width: '25%'
                 },
               ]}
               emptyMessage="No hay registros previos para este cliente."

@@ -5,7 +5,7 @@ export const crearReserva = async (data: any) => {
   return response.data;
 };
 
-export const obtenerReservas = async (params?: { telefono?: string }) => {
+export const obtenerReservas = async (params?: { search?: string }) => {
   const response = await api.get("/api/reservas", {
     params: params,
   });

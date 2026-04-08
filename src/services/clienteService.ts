@@ -1,7 +1,7 @@
 import api from "./api";
 
-export const getClientes = async () => {
-  const response = await api.get("/api/clientes");
+export const getClientes = async (params?: { search?: string }) => {
+  const response = await api.get("/api/clientes", { params });
   return response.data;
 };
 
@@ -19,5 +19,10 @@ export const getFichasCliente = async (params: { cliente_id?: string | number; p
   const response = await api.get("/api/reservas/fichas", {
     params,
   });
+  return response.data;
+};
+
+export const pauseCliente = async (id: string | number, paused: boolean) => {
+  const response = await api.patch(`/api/clientes/${id}/pause`, { paused });
   return response.data;
 };

@@ -27,6 +27,9 @@ export default function ReservationForm() {
     horario: "",
     nombre: "",
     mail: "",
+    producto: "",
+    monto_pago: "",
+    observaciones: "",
   });
   const [loading, setLoading] = useState(false);
   const [fichaOpen, setFichaOpen] = useState(false);
@@ -47,6 +50,9 @@ export default function ReservationForm() {
               horario: data.horario || "",
               nombre: data.nombre || "",
               mail: data.mail || "",
+              producto: data.producto || "",
+              monto_pago: data.monto_pago || "",
+              observaciones: data.observaciones || "",
             });
           }
         } catch (err) {
@@ -94,9 +100,8 @@ export default function ReservationForm() {
           <OutlinedButton
             startIcon={<HistoryIcon />}
             onClick={handleOpenFicha}
-            sx={{ borderRadius: 50 }}
           >
-            Ver Historial
+            Ver Ficha
           </OutlinedButton>
         )}
       </Box>
@@ -141,6 +146,33 @@ export default function ReservationForm() {
             onChange={(e) => setForm({ ...form, horario: e.target.value })}
             sx={{ mb: 2 }}
             required
+          />
+
+          <Input
+            label="Producto"
+            value={form.producto}
+            variant="outlined"
+            onChange={(e) => setForm({ ...form, producto: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+
+          <Input
+            label="Monto Pago"
+            type="number"
+            value={form.monto_pago}
+            variant="outlined"
+            onChange={(e) => setForm({ ...form, monto_pago: e.target.value })}
+            sx={{ mb: 2 }}
+          />
+
+          <Input
+            label="Observaciones"
+            multiline
+            rows={3}
+            value={form.observaciones}
+            variant="outlined"
+            onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
+            sx={{ mb: 3 }}
           />
 
           <ContainedButton

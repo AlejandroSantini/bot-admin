@@ -26,6 +26,7 @@ export function Input({ label, icon, type, sx, variant = 'outlined', endAdornmen
         mt: 0,
         '& .MuiInputBase-root': {
           borderRadius: 2,
+          backgroundColor: 'white',
         },
         ...(sx || {}),
       }}
