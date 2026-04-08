@@ -7,6 +7,7 @@ import {
   InputAdornment,
   CircularProgress,
   Tooltip,
+  Chip,
 } from "@mui/material"; // Keep basic layout/feedback
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -81,8 +82,21 @@ export default function Reservations() {
       render: (r: any) => r.rubro || r.motivo || "-",
     },
     {
-      label: "Info Extra",
-      render: (r: any) => `${r.dni ? "DNI:" + r.dni : ""} ${r.mail || ""}`,
+      label: "Estado",
+      render: (r: any) => (
+        <Chip
+          label={r.estado?.toUpperCase() || "PENDIENTE"}
+          size="small"
+          color={
+            r.estado === "confirmado"
+              ? "success"
+              : r.estado === "cancelado"
+              ? "error"
+              : "warning"
+          }
+          sx={{ fontWeight: 600, fontSize: "0.65rem" }}
+        />
+      ),
     },
     {
       label: "Acciones",
