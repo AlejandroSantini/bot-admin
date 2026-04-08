@@ -94,7 +94,6 @@ export default function Clients() {
       render: (c: Cliente) => c.nombre_completo || c.profile_name || "-",
     },
     { label: "Origen", render: (c: Cliente) => c.origen_cliente || "-" },
-    { label: "Tenant", render: (c: Cliente) => c.tenant_id || "-" },
     {
       label: "Acciones",
       render: (c: Cliente) => (
