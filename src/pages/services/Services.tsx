@@ -100,21 +100,19 @@ export default function Services() {
         </Alert>
       )}
 
-      <CustomPaper>
-        {loading ? (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Table
-            columns={columns}
-            data={services}
-            getRowKey={(s: any) => s._id || s.id}
-            onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
-            emptyMessage="No hay servicios."
-          />
-        )}
-      </CustomPaper>
+      {loading ? (
+        <Box sx={{ p: 4, textAlign: "center" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Table
+          columns={columns}
+          data={services}
+          getRowKey={(s: any) => s._id || s.id}
+          onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
+          emptyMessage="No hay servicios."
+        />
+      )}
     </Box>
   );
 }

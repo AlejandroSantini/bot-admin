@@ -11,6 +11,8 @@ import Reservations from "../pages/reservations/Reservations";
 import ReservationForm from "../pages/reservations/ReservationForm";
 import Services from "../pages/services/Services";
 import ServiceForm from "../pages/services/ServiceForm";
+import Products from "../pages/products/Products";
+import ProductForm from "../pages/products/ProductForm";
 
 export default function AppRoutes() {
   return (
@@ -79,6 +81,30 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <ServiceForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos"
+          element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos/nuevo"
+          element={
+            <ProtectedRoute>
+              <ProductForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos/:id"
+          element={
+            <ProtectedRoute>
+              <ProductForm />
             </ProtectedRoute>
           }
         />
