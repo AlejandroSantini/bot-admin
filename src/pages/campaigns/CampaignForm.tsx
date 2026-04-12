@@ -1,0 +1,142 @@
+import { useState, useRef } from "react";
+import { Box, Typography, Alert, FormControlLabel, Switch, Button } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { createCampaign } from "../../services/campaignService";
+import { BackButton } from "../../components/common/BackButton";
+import { CustomPaper } from "../../components/common/CustomPaper";
+import { Input } from "../../components/common/Input";
+import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
+import ImageUploader from "../../components/common/ImageUploader";
+
+export default function CampaignForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [nombre, setNombre] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const isExecuteNowRef = useRef(false);
+
+  const dataURLtoFile = (dataurl: string, filename: string) => {
+    const arr = dataurl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) return null;
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("nombre", nombre);
+      formData.append("mensaje", mensaje);
+      formData.append("ejecutar_ahora", isExecuteNowRef.current ? "true" : "false");
+      if (images.length > 0) {
+        const file = dataURLtoFile(images[0], "campana_imagen.jpg");
+        if (file) {
+          formData.append("image", file);
+        }
+      }
+
+      await createCampaign(formData);
+      alert("Campaña creada correctamente");
+      navigate("/campanas");
+    } catch (err) {
+      setError("Error al crear la campaña");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ maxWidth: 600, mx: "auto", p: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+        <BackButton to="/campanas" state={location.state} />
+        <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
+          Nueva Campaña
+        </Typography>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      <CustomPaper sx={{ p: 3 }}>
+        <form onSubmit={handleSubmit}>
+          <Input
+            label="Nombre"
+            value={nombre}
+            variant="outlined"
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            sx={{ mb: 2 }}
+          />
+          <Input
+            label="Mensaje"
+            value={mensaje}
+            variant="outlined"
+            onChange={(e) => setMensaje(e.target.value)}
+            required
+            multiline
+            rows={4}
+            sx={{ mb: 2 }}
+          />
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Imagen (Opcional)
+            </Typography>
+            <ImageUploader
+              value={images}
+              onChange={setImages}
+              multiple={false}
+              placeholder="Subir Imagen de Campaña"
+              emptyText="Haz clic aquí o arrastra una imagen para subir"
+            />
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 1 }}>
+            <OutlinedButton
+              variant="outlined"
+              onClick={() => navigate("/campanas")}
+              disabled={loading}
+            >
+              Cancelar
+            </OutlinedButton>
+            <ContainedButton
+              type="submit"
+              onClick={() => { isExecuteNowRef.current = false; }}
+              loading={loading && !isExecuteNowRef.current}
+              disabled={loading}
+            >
+              Crear
+            </ContainedButton>
+            <ContainedButton
+              type="submit"
+              onClick={() => { isExecuteNowRef.current = true; }}
+              loading={loading && isExecuteNowRef.current}
+              disabled={loading}
+            >
+              Crear y Enviar
+            </ContainedButton>
+          </Box>
+        </form>
+      </CustomPaper>
+    </Box>
+  );
+}

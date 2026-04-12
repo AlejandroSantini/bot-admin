@@ -13,6 +13,8 @@ import Services from "../pages/services/Services";
 import ServiceForm from "../pages/services/ServiceForm";
 import Products from "../pages/products/Products";
 import ProductForm from "../pages/products/ProductForm";
+import Campaigns from "../pages/campaigns/Campaigns";
+import CampaignForm from "../pages/campaigns/CampaignForm";
 
 export default function AppRoutes() {
   return (
@@ -105,6 +107,22 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <ProductForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas"
+          element={
+            <ProtectedRoute>
+              <Campaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas/nueva"
+          element={
+            <ProtectedRoute>
+              <CampaignForm />
             </ProtectedRoute>
           }
         />

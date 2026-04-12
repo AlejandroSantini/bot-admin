@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ExitToApp as LogoutIcon,
   ShoppingBag as ProductoIcon,
+  Campaign as CampaignIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -36,6 +37,7 @@ const menuItems: SidebarItem[] = [
   { text: "Clientes", icon: <PeopleIcon />, path: "/clientes" },
   { text: "Servicios", icon: <InventoryIcon />, path: "/servicios" },
   { text: "Productos", icon: <ProductoIcon />, path: "/productos" },
+  { text: "Campañas", icon: <CampaignIcon />, path: "/campanas" },
 ];
 
 interface SidebarProps {
