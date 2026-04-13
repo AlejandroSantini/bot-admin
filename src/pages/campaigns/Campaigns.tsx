@@ -143,7 +143,7 @@ export default function Campaigns() {
           columns={columns}
           data={campaigns}
           getRowKey={(c: Campaign) => c.id!}
-          onRowClick={(c: Campaign) => navigate(`/campanas/${c.id}`)}
+          onRowClick={(c: Campaign) => navigate(`/campanas/${c.id}`, { state: { campaign: c } })}
           emptyMessage="No hay campañas registradas."
         />
       )}

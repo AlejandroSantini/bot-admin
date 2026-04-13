@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Box, Typography, Alert, CircularProgress } from "@mui/material";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { createCampaign, updateCampaign, getCampaignById } from "../../services/campaignService";
+import { createCampaign, updateCampaign } from "../../services/campaignService";
+import type { Campaign } from "../../services/campaignService";
 import { BackButton } from "../../components/common/BackButton";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
@@ -24,26 +25,23 @@ export default function CampaignForm() {
   
   const isExecuteNowRef = useRef(false);
 
+  const stateCampaign = location.state?.campaign as Campaign | undefined;
+
   useEffect(() => {
-    if (isEditing && id) {
-      const fetchCampaign = async () => {
-        try {
-          const res = await getCampaignById(id);
-          const data = res.data || res;
-          setNombre(data.nombre || "");
-          setMensaje(data.mensaje || "");
-          if (data.image_url) {
-            setImages([data.image_url]);
-          }
-        } catch (err) {
-          setError("Error al cargar la campaña para editar");
-        } finally {
-          setInitLoading(false);
+    if (isEditing) {
+      if (stateCampaign) {
+        setNombre(stateCampaign.nombre || "");
+        setMensaje(stateCampaign.mensaje || "");
+        if (stateCampaign.image_url) {
+          setImages([stateCampaign.image_url]);
         }
-      };
-      fetchCampaign();
+        setInitLoading(false);
+      } else {
+        setError("Error al cargar la campaña. Vuelve a la lista e intenta de nuevo.");
+        setInitLoading(false);
+      }
     }
-  }, [isEditing, id]);
+  }, [isEditing, stateCampaign]);
 
   const dataURLtoFile = (dataurl: string, filename: string) => {
     const arr = dataurl.split(",");

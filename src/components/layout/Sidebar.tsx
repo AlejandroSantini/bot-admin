@@ -24,20 +24,23 @@ import {
   ShoppingBag as ProductoIcon,
   Campaign as CampaignIcon,
 } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
+import api from "../../services/api";
 
 interface SidebarItem {
   text: string;
   icon: React.ReactNode;
   path: string;
+  configKey?: string;
 }
 
 const menuItems: SidebarItem[] = [
-  { text: "Reservas", icon: <VentaIcon />, path: "/reservas" },
-  { text: "Clientes", icon: <PeopleIcon />, path: "/clientes" },
-  { text: "Servicios", icon: <InventoryIcon />, path: "/servicios" },
-  { text: "Productos", icon: <ProductoIcon />, path: "/productos" },
-  { text: "Campañas", icon: <CampaignIcon />, path: "/campanas" },
+  { text: "Reservas", icon: <VentaIcon />, path: "/reservas", configKey: "reservas" },
+  { text: "Clientes", icon: <PeopleIcon />, path: "/clientes", configKey: "clientes" },
+  { text: "Servicios", icon: <InventoryIcon />, path: "/servicios", configKey: "servicios" },
+  { text: "Productos", icon: <ProductoIcon />, path: "/productos", configKey: "productos" },
+  { text: "Campañas", icon: <CampaignIcon />, path: "/campanas", configKey: "campanas" },
 ];
 
 interface SidebarProps {
@@ -56,10 +59,30 @@ export default function Sidebar({
   const drawerWidth = 210;
   const collapsedWidth = 64;
   const { logout } = useAuth();
+  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await api.get("/api/tenants/me");
+        if (res.data?.status && res.data?.data?.modules_config) {
+          setModulesConfig(res.data.data.modules_config);
+        }
+      } catch (err) {
+        console.error("Error fetching me for sidebar items", err);
+      }
+    };
+    fetchMe();
+  }, []);
 
   const handleLogout = () => {
     logout();
   };
+
+  const visibleMenuItems = menuItems.filter(item => {
+    if (!modulesConfig || !item.configKey) return true;
+    return modulesConfig[item.configKey] !== false;
+  });
 
   return (
     <Drawer
@@ -129,7 +152,7 @@ export default function Sidebar({
       </Toolbar>
       <Divider />
       <List sx={{ pt: 1, pb: 8 }}>
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <ListItemButton
             key={item.text}
             selected={selectedItem === item.path}

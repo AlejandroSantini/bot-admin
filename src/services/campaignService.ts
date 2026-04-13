@@ -19,10 +19,7 @@ export const getCampaigns = async () => {
   return response.data;
 };
 
-export const getCampaignById = async (id: string | number) => {
-  const response = await api.get(`/api/campanas/${id}`);
-  return response.data;
-};
+
 
 export const createCampaign = async (data: FormData) => {
   const response = await api.post("/api/campanas", data, {
@@ -34,7 +31,7 @@ export const createCampaign = async (data: FormData) => {
 };
 
 export const updateCampaign = async (id: string | number, data: FormData) => {
-  const response = await api.patch(`/api/campanas/${id}`, data, {
+  const response = await api.put(`/api/campaigns/${id}`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -48,6 +45,6 @@ export const runCampaign = async (id: string | number) => {
 };
 
 export const deleteCampaign = async (id: string | number) => {
-  const response = await api.delete(`/api/campanas/${id}`);
+  const response = await api.delete(`/api/campaigns/${id}`);
   return response.data;
 };
