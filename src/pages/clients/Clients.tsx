@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, Alert, CircularProgress, IconButton } from "@mui/material";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Table } from "../../components/common/Table"; // Assuming this exists
@@ -24,6 +25,7 @@ interface Cliente {
 }
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [clients, setClients] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,6 +172,7 @@ export default function Clients() {
           columns={columns}
           data={clients}
           getRowKey={(c: any) => c._id || c.id}
+          onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
           emptyMessage="No hay clientes registrados."
         />
       )}

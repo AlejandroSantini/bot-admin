@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
-import { Box, Typography, Alert, FormControlLabel, Switch, Button } from "@mui/material";
-import { useNavigate, useLocation } from "react-router-dom";
-import { createCampaign } from "../../services/campaignService";
+import { useState, useRef, useEffect } from "react";
+import { Box, Typography, Alert, CircularProgress } from "@mui/material";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { createCampaign, updateCampaign, getCampaignById } from "../../services/campaignService";
 import { BackButton } from "../../components/common/BackButton";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Input } from "../../components/common/Input";
@@ -12,14 +12,38 @@ import ImageUploader from "../../components/common/ImageUploader";
 export default function CampaignForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams<{ id: string }>();
+  const isEditing = !!id;
 
   const [nombre, setNombre] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initLoading, setInitLoading] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
   
   const isExecuteNowRef = useRef(false);
+
+  useEffect(() => {
+    if (isEditing && id) {
+      const fetchCampaign = async () => {
+        try {
+          const res = await getCampaignById(id);
+          const data = res.data || res;
+          setNombre(data.nombre || "");
+          setMensaje(data.mensaje || "");
+          if (data.image_url) {
+            setImages([data.image_url]);
+          }
+        } catch (err) {
+          setError("Error al cargar la campaña para editar");
+        } finally {
+          setInitLoading(false);
+        }
+      };
+      fetchCampaign();
+    }
+  }, [isEditing, id]);
 
   const dataURLtoFile = (dataurl: string, filename: string) => {
     const arr = dataurl.split(",");
@@ -44,18 +68,23 @@ export default function CampaignForm() {
       formData.append("nombre", nombre);
       formData.append("mensaje", mensaje);
       formData.append("ejecutar_ahora", isExecuteNowRef.current ? "true" : "false");
-      if (images.length > 0) {
+      if (images.length > 0 && !images[0].startsWith("http")) {
         const file = dataURLtoFile(images[0], "campana_imagen.jpg");
         if (file) {
           formData.append("image", file);
         }
       }
 
-      await createCampaign(formData);
-      alert("Campaña creada correctamente");
+      if (isEditing) {
+        await updateCampaign(id!, formData);
+        alert("Campaña actualizada correctamente");
+      } else {
+        await createCampaign(formData);
+        alert("Campaña creada correctamente");
+      }
       navigate("/campanas");
     } catch (err) {
-      setError("Error al crear la campaña");
+      setError(isEditing ? "Error al actualizar la campaña" : "Error al crear la campaña");
     } finally {
       setLoading(false);
     }
@@ -66,7 +95,7 @@ export default function CampaignForm() {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
         <BackButton to="/campanas" state={location.state} />
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
-          Nueva Campaña
+          {isEditing ? "Editar Campaña" : "Nueva Campaña"}
         </Typography>
       </Box>
 
@@ -76,7 +105,12 @@ export default function CampaignForm() {
         </Alert>
       )}
 
-      <CustomPaper sx={{ p: 3 }}>
+      {initLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
             label="Nombre"
@@ -124,7 +158,7 @@ export default function CampaignForm() {
               loading={loading && !isExecuteNowRef.current}
               disabled={loading}
             >
-              Crear
+              {isEditing ? "Guardar" : "Crear"}
             </ContainedButton>
             <ContainedButton
               type="submit"
@@ -132,11 +166,12 @@ export default function CampaignForm() {
               loading={loading && isExecuteNowRef.current}
               disabled={loading}
             >
-              Crear y Enviar
+              {isEditing ? "Guardar y Enviar" : "Crear y Enviar"}
             </ContainedButton>
           </Box>
         </form>
       </CustomPaper>
+      )}
     </Box>
   );
 }

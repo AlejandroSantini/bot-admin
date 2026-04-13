@@ -4,8 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { History as HistoryIcon, Close as CloseIcon } from "@mui/icons-material";
 import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
 import { getFichasCliente } from "../../services/clienteService";
-import { getProducts } from "../../services/productoService";
-import type { Product } from "../../services/productoService";
+import { getServices } from "../../services/serviceService";
 import { BackButton } from "../../components/common/BackButton";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 
@@ -15,6 +14,7 @@ import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import { OutlinedButton } from "../../components/common/OutlinedButton";
 import { DateInput } from "../../components/common/DateInput";
+import { ProductSelector } from "../../components/common/ProductSelector";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
@@ -32,26 +32,23 @@ export default function ReservationForm() {
     producto: "",
     monto_pago: "",
     observaciones: "",
-    items: [] as { producto: string; cantidad: number; precio: number }[],
+    items: [] as { id?: string | number; nombre: string; cantidad: number; precio: number }[],
   });
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [searchInput, setSearchInput] = useState("");
-  const [currentQty, setCurrentQty] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [fichaOpen, setFichaOpen] = useState(false);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [availableServices, setAvailableServices] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchAvailableProducts = async () => {
+    const fetchServices = async () => {
       try {
-        const res = await getProducts();
+        const res = await getServices();
         const list = Array.isArray(res) ? res : res.data || [];
-        setAvailableProducts(list);
+        setAvailableServices(list);
       } catch (err) {
-        console.error("Error fetching products", err);
+        console.error("Error fetching services", err);
       }
     };
-    fetchAvailableProducts();
+    fetchServices();
 
     if (isView && id) {
       const fetchReserva = async () => {
@@ -90,50 +87,27 @@ export default function ReservationForm() {
     setFichaOpen(true);
   };
 
-  const addItem = () => {
-    if (!currentProduct && !form.producto) return;
-
-    const name = currentProduct ? currentProduct.nombre : form.producto;
-    const price = currentProduct ? Number(currentProduct.precio) : 0;
-    const qty = Number(currentQty) || 1;
-
-    const newItem = { producto: name, cantidad: qty, precio: price * qty };
-    const newItems = [...form.items, newItem];
-    
-    const total = newItems.reduce((acc: number, curr: any) => acc + curr.precio, 0);
-    const joinedNames = newItems.map(i => `${i.producto} (x${i.cantidad})`).join(", ");
-
-    setForm({
-      ...form,
+  const updateItemsAndTotals = (newItems: typeof form.items) => {
+    const total = newItems.reduce((acc, curr) => acc + curr.precio, 0);
+    const joinedNames = newItems.map(i => `${i.nombre} (x${i.cantidad})`).join(", ");
+    setForm((prev) => ({
+      ...prev,
       items: newItems,
       monto_pago: total.toString(),
       producto: joinedNames
-    });
-    
-    setCurrentProduct(null);
-    setSearchInput("");
-    setCurrentQty(1);
-  };
-
-  const removeItem = (index: number) => {
-    const newItems = form.items.filter((_, i) => i !== index);
-    const total = newItems.reduce((acc: number, curr: any) => acc + curr.precio, 0);
-    const joinedNames = newItems.map(i => `${i.producto} (x${i.cantidad})`).join(", ");
-    
-    setForm({
-      ...form,
-      items: newItems,
-      monto_pago: total.toString(),
-      producto: joinedNames
-    });
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = { ...form };
-      delete (payload as any).items;
+      const payload: any = { ...form };
+      delete payload.items;
+      
+      payload.productos = form.items
+        .filter(i => i.id !== undefined)
+        .map(i => ({ cantidad: i.cantidad, producto: i.id }));
 
       if (isView && id) {
         await actualizarReserva(id, payload);
@@ -182,12 +156,17 @@ export default function ReservationForm() {
             onChange={(e: any) => setForm({ ...form, nombre: e.target.value })}
             sx={{ mb: 2 }}
           />
-          <Input
+          <Select
             label="Rubro / Servicio"
             value={form.rubro}
-            variant="outlined"
             onChange={(e: any) => setForm({ ...form, rubro: e.target.value })}
-            sx={{ mb: 2 }}
+            options={[
+              { value: "", label: "Seleccionar servicio..." },
+              ...availableServices.map((s: any) => ({
+                value: s.title,
+                label: s.title
+              }))
+            ]}
           />
           <DateInput
             label="Fecha"
@@ -208,100 +187,10 @@ export default function ReservationForm() {
             required
           />
 
-          <Box sx={{ p: 2, border: "1px dashed #ccc", borderRadius: 2, mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              Agregar Productos
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
-              <Autocomplete
-                sx={{ flex: 1 }}
-                options={availableProducts}
-                getOptionLabel={(option) => {
-                  if (typeof option === "string") return option;
-                  return option.nombre || "";
-                }}
-                renderOption={(props, option) => (
-                  <Box component="li" {...props} key={option.id}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {option.nombre}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {option.codigo} • ${option.precio}
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
-                value={currentProduct}
-                onChange={(_event: any, newValue: any) => {
-                  setCurrentProduct(newValue);
-                }}
-                inputValue={searchInput}
-                onInputChange={(_event, newInputValue) => {
-                  setSearchInput(newInputValue);
-                }}
-                renderInput={(params) => (
-                  <TextField 
-                    {...params} 
-                    label="Buscar Producto" 
-                    variant="outlined" 
-                    size="small"
-                    sx={{
-                      "& .MuiInputBase-root": {
-                        backgroundColor: "white",
-                      }
-                    }}
-                  />
-                )}
-              />
-              <TextField
-                label="Cant."
-                type="number"
-                size="small"
-                sx={{ 
-                  width: 80,
-                  "& .MuiInputBase-root": {
-                    backgroundColor: "white",
-                  }
-                }}
-                value={currentQty}
-                onChange={(e) => setCurrentQty(Number(e.target.value))}
-              />
-              <ContainedButton 
-                onClick={addItem} 
-                sx={{ minWidth: 40, p: 1.1 }}
-                disabled={!currentProduct && !searchInput}
-              >
-                +
-              </ContainedButton>
-            </Box>
-
-            {form.items.length > 0 && (
-              <Box sx={{ mt: 1 }}>
-                {form.items.map((item, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      p: 1,
-                      mb: 1,
-                      backgroundColor: "rgba(0,0,0,0.03)",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography variant="body2">
-                      {item.producto} x{item.cantidad} - <strong>${item.precio}</strong>
-                    </Typography>
-                    <IconButton size="small" color="error" onClick={() => removeItem(idx)}>
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Box>
+          <ProductSelector 
+            items={form.items}
+            onChange={updateItemsAndTotals}
+          />
 
           <Input
             label="Monto Total Pago ($)"

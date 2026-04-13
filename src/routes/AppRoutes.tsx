@@ -67,6 +67,14 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/clientes/:id"
+          element={
+            <ProtectedRoute>
+              <ClientForm />
+            </ProtectedRoute>
+          }
+        />
         {/* If we had edit for clients, add here */}
 
         {/* Servicios */}
@@ -120,6 +128,14 @@ export default function AppRoutes() {
         />
         <Route
           path="/campanas/nueva"
+          element={
+            <ProtectedRoute>
+              <CampaignForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas/:id"
           element={
             <ProtectedRoute>
               <CampaignForm />

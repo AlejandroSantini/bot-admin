@@ -10,7 +10,7 @@ export interface Product {
   created_at?: string;
 }
 
-export const getProducts = async (params?: { search?: string }) => {
+export const getProducts = async (params?: { search?: string; page?: number; limit?: number }) => {
   const response = await api.get("/api/productos", { params });
   return response.data;
 };

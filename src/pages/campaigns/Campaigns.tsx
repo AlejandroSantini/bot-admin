@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -6,14 +6,16 @@ import {
   CircularProgress,
   Button,
 } from "@mui/material";
-import { Add as AddIcon, PlayArrow as PlayIcon } from "@mui/icons-material";
+import { Add as AddIcon, PlayArrow as PlayIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { Table } from "../../components/common/Table";
 import { ContainedButton } from "../../components/common/ContainedButton";
 
-import { getCampaigns, runCampaign } from "../../services/campaignService";
+import { getCampaigns, runCampaign, deleteCampaign } from "../../services/campaignService";
 import type { Campaign } from "../../services/campaignService";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
+import { IconButton } from "@mui/material";
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -42,7 +44,11 @@ export default function Campaigns() {
   }, []);
 
   const handleRun = async (id: string | number) => {
-    if (!window.confirm("¿Estás seguro de que deseas ejecutar esta campaña ahora?"))
+    if (
+      !window.confirm(
+        "¿Estás seguro de que deseas ejecutar esta campaña ahora?",
+      )
+    )
       return;
     try {
       await runCampaign(id);
@@ -53,31 +59,61 @@ export default function Campaigns() {
     }
   };
 
+  const handleDelete = async (id: string | number) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar esta campaña?"))
+      return;
+    try {
+      await deleteCampaign(id);
+      alert("Campaña eliminada correctamente");
+      loadCampaigns();
+    } catch (err) {
+      alert("Error al eliminar la campaña");
+    }
+  };
+
   const columns = [
     { label: "Nombre", render: (c: Campaign) => c.nombre || "-" },
     { label: "Mensaje", render: (c: Campaign) => c.mensaje || "-" },
-    { label: "Estado", render: (c: Campaign) => c.status || "-" },
+    { label: "Estado", render: (c: Campaign) => c.estado || "-" },
     {
       label: "Acciones",
       render: (c: Campaign) => (
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<PlayIcon />}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleRun(c.id!);
-          }}
-        >
-          Ejecutar
-        </Button>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <OutlinedButton
+            size="small"
+            startIcon={<PlayIcon />}
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handleRun(c.id!);
+            }}
+          >
+            Difundir
+          </OutlinedButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handleDelete(c.id!);
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </Box>
       ),
     },
   ];
 
   return (
     <Box sx={{ mx: "auto", p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Campañas
         </Typography>
@@ -107,7 +143,7 @@ export default function Campaigns() {
           columns={columns}
           data={campaigns}
           getRowKey={(c: Campaign) => c.id!}
-          onRowClick={() => {}}
+          onRowClick={(c: Campaign) => navigate(`/campanas/${c.id}`)}
           emptyMessage="No hay campañas registradas."
         />
       )}

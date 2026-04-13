@@ -14,6 +14,7 @@ import { Input } from "../../components/common/Input";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import DeleteButton from "../../components/common/DeleteButton";
 import { CustomPaper } from "../../components/common/CustomPaper";
+import { Paginator } from "../../components/common/Paginator";
 
 import { getProducts, deleteProduct } from "../../services/productoService";
 import type { Product } from "../../services/productoService";
@@ -24,14 +25,24 @@ export default function Products() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  const loadProducts = async (searchStr?: string) => {
+  const loadProducts = async (searchStr?: string, pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getProducts({ search: searchStr });
+      const res = await getProducts({ search: searchStr, page: pageNum, limit: 10 });
       const list = Array.isArray(res) ? res : res.data || [];
       setProducts(list);
+      if (res.pagination) {
+        setTotalPages(res.pagination.totalPages);
+        setTotalItems(res.pagination.total);
+      } else {
+        setTotalPages(1);
+        setTotalItems(list.length);
+      }
     } catch (err: any) {
       console.error(err);
       setError("Error cargando productos");
@@ -42,22 +53,26 @@ export default function Products() {
   };
 
   useEffect(() => {
-    if (!search) {
-      loadProducts();
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (!search && search !== undefined) {
+      loadProducts(undefined, page);
       return;
     }
     const timer = setTimeout(() => {
-      loadProducts(search);
+      loadProducts(search, page);
     }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, page]);
 
   const handleDelete = async (id: string | number) => {
     if (!window.confirm("¿Estás seguro de que deseas eliminar este producto?"))
       return;
     try {
       await deleteProduct(id);
-      loadProducts(search);
+      loadProducts(search, page);
     } catch (err) {
       alert("Error al eliminar el producto");
     }
@@ -123,13 +138,21 @@ export default function Products() {
           <CircularProgress />
         </Box>
       ) : (
-        <Table
-          columns={columns}
-          data={products}
-          getRowKey={(p: Product) => p.id!}
-          onRowClick={(p: Product) => navigate(`/productos/${p.id}`)}
-          emptyMessage="No hay productos registrados."
-        />
+        <>
+          <Table
+            columns={columns}
+            data={products}
+            getRowKey={(p: Product) => p.id!}
+            onRowClick={(p: Product) => navigate(`/productos/${p.id}`)}
+            emptyMessage="No hay productos registrados."
+          />
+          <Paginator
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={(_, newPage) => setPage(newPage)}
+          />
+        </>
       )}
     </Box>
   );
