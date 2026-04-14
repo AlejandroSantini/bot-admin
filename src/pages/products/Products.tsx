@@ -145,12 +145,14 @@ export default function Products() {
             getRowKey={(p: Product) => p.id!}
             onRowClick={(p: Product) => navigate(`/productos/${p.id}`)}
             emptyMessage="No hay productos registrados."
-          />
-          <Paginator
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={(_, newPage) => setPage(newPage)}
+            pagination={
+              <Paginator
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                onPageChange={(_, newPage) => setPage(newPage)}
+              />
+            }
           />
         </>
       )}

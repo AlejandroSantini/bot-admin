@@ -1,18 +1,35 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Alert, CircularProgress, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Alert,
+  CircularProgress,
+  IconButton,
+  Chip,
+} from "@mui/material";
 import { CustomPaper } from "../../components/common/CustomPaper";
 import { Table } from "../../components/common/Table"; // Assuming this exists
 import DeleteButton from "../../components/common/DeleteButton";
-import { getClientes, deleteCliente, getFichasCliente, pauseCliente } from "../../services/clienteService";
+import {
+  getClientes,
+  deleteCliente,
+  getFichasCliente,
+  pauseCliente,
+} from "../../services/clienteService";
 import { Input } from "../../components/common/Input";
 import { Paginator } from "../../components/common/Paginator";
-import { History as HistoryIcon, PlayArrow as PlayIcon, Pause as PauseIcon, Search as SearchIcon } from "@mui/icons-material";
+import {
+  History as HistoryIcon,
+  PlayArrow as PlayIcon,
+  Pause as PauseIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 import { InputAdornment } from "@mui/material";
 import api from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
 
-// Simple interface based on use case
 interface Cliente {
   id: string | number;
   wa_id?: string;
@@ -36,30 +53,20 @@ export default function Clients() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const res = await api.get("/api/tenants/me");
-        if (res.data?.status && res.data?.data?.modules_config) {
-          setModulesConfig(res.data.data.modules_config);
-        }
-      } catch (err) {
-        console.error("Error fetching config", err);
-      }
-    };
-    fetchConfig();
-  }, []);
+  const { modulesConfig } = useAuth();
 
   const loadClients = async (searchStr?: string, pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getClientes({ search: searchStr, page: pageNum, limit: 10 });
+      const data = await getClientes({
+        search: searchStr,
+        page: pageNum,
+        limit: 10,
+      });
       const list = Array.isArray(data) ? data : (data as any).data || [];
       setClients(list);
-      
+
       const pData = data as any;
       if (pData.pagination) {
         setTotalPages(pData.pagination.totalPages);
@@ -88,7 +95,7 @@ export default function Clients() {
 
     const timer = setTimeout(() => {
       loadClients(search, page);
-    }, 400); 
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [search, page]);
@@ -109,7 +116,10 @@ export default function Clients() {
     setFichaOpen(true);
   };
 
-  const handleTogglePause = async (id: string | number, currentPaused: boolean) => {
+  const handleTogglePause = async (
+    id: string | number,
+    currentPaused: boolean,
+  ) => {
     try {
       await pauseCliente(id, !currentPaused);
       loadClients(search);
@@ -125,9 +135,27 @@ export default function Clients() {
     },
     {
       label: "Nombre",
-      render: (c: Cliente) => c.nombre_completo || c.profile_name || "-",
+      render: (c: Cliente) => c.nombre_completo || "-",
     },
-    { label: "Origen", render: (c: Cliente) => c.origen_cliente || "-" },
+    {
+      label: "Origen",
+      render: (c: Cliente) => (
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 600,
+            color:
+              c.origen_cliente === "manual_admin"
+                ? "primary.main"
+                : "text.secondary",
+            textTransform: "uppercase",
+            fontSize: "0.7rem",
+          }}
+        >
+          {c.origen_cliente === "manual_admin" ? "Editado" : "WhatsApp"}
+        </Typography>
+      ),
+    },
     {
       label: "Acciones",
       render: (c: Cliente) => (
@@ -135,7 +163,11 @@ export default function Clients() {
           <IconButton
             size="small"
             color={c.bot_paused ? "error" : "success"}
-            title={c.bot_paused ? "Reanudar Bot (Click para activar)" : "Pausar Bot (Click para desactivar)"}
+            title={
+              c.bot_paused
+                ? "Reanudar Bot (Click para activar)"
+                : "Pausar Bot (Click para desactivar)"
+            }
             onClick={(e) => {
               e.stopPropagation();
               handleTogglePause(c._id || c.id, !!c.bot_paused);
@@ -143,7 +175,7 @@ export default function Clients() {
           >
             {c.bot_paused ? <PlayIcon /> : <PauseIcon />}
           </IconButton>
-          {(!modulesConfig || modulesConfig.reservas !== false) && (
+          {modulesConfig?.reservas !== false && (
             <IconButton
               size="small"
               color="primary"
@@ -168,8 +200,24 @@ export default function Clients() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
+    <Box
+      sx={{
+        mx: "auto",
+        p: { xs: 1, sm: 2 },
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Clientes (Bot)
         </Typography>
@@ -209,12 +257,14 @@ export default function Clients() {
             getRowKey={(c: any) => c._id || c.id}
             onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
             emptyMessage="No hay clientes registrados."
-          />
-          <Paginator
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={(_, newPage) => setPage(newPage)}
+            pagination={
+              <Paginator
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                onPageChange={(_, newPage) => setPage(newPage)}
+              />
+            }
           />
         </>
       )}
@@ -222,8 +272,8 @@ export default function Clients() {
       <FichaClienteModal
         open={fichaOpen}
         onClose={() => setFichaOpen(false)}
-        clientName={selectedClient?.nombre_completo || selectedClient?.profile_name || ''}
-        phone={selectedClient?.phone_number || selectedClient?.wa_id || ''}
+        clientName={selectedClient?.nombre_completo || ""}
+        phone={selectedClient?.phone_number || selectedClient?.wa_id || ""}
       />
     </Box>
   );

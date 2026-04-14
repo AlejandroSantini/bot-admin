@@ -13,26 +13,23 @@ import { OutlinedButton } from "../../components/common/OutlinedButton";
 export default function ClientForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditing = !!id;
   const [form, setForm] = useState({
     phone_number: "",
     nombre_completo: "",
-    profile_name: "Manual",
     origen_cliente: "manual_admin",
   });
   const [loading, setLoading] = useState(false);
-  const [initLoading, setInitLoading] = useState(isEditing);
+  const [initLoading, setInitLoading] = useState(true);
 
   useEffect(() => {
-    if (isEditing && id) {
+    if (id) {
       const loadCliente = async () => {
         try {
-          const data = await getClienteById(id);
-          const c = data.data || data;
+          const res = await getClienteById(id);
+          const c = res.data || res;
           setForm({
             phone_number: c.phone_number || "",
-            nombre_completo: c.nombre_completo || c.profile_name || "",
-            profile_name: c.profile_name || "Manual",
+            nombre_completo: c.nombre_completo || "",
             origen_cliente: c.origen_cliente || "manual_admin",
           });
         } catch (err) {
@@ -42,21 +39,19 @@ export default function ClientForm() {
         }
       };
       loadCliente();
+    } else {
+      navigate("/clientes");
     }
-  }, [isEditing, id]);
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isEditing) {
-        await updateCliente(id!, form);
-      } else {
-        await createCliente(form);
-      }
+      await updateCliente(id!, form);
       navigate("/clientes");
     } catch (err) {
-      alert(isEditing ? "Error actualizando cliente" : "Error creando cliente");
+      alert("Error actualizando cliente");
     } finally {
       setLoading(false);
     }
@@ -67,7 +62,7 @@ export default function ClientForm() {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
         <BackButton to="/clientes" />
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {isEditing ? "Editar Cliente" : "Nuevo Cliente"}
+          Editar Cliente
         </Typography>
       </Box>
 
@@ -79,15 +74,16 @@ export default function ClientForm() {
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
-            label="Teléfono (con código país, ej 549...)"
+            label="Teléfono"
             value={form.phone_number}
             variant="outlined"
             onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
             sx={{ mb: 2 }}
             required
+            helperText="Ej: 5493446532255"
           />
           <Input
-            label="Nombre Completo"
+            label="Nombre"
             value={form.nombre_completo}
             variant="outlined"
             onChange={(e) =>
@@ -102,7 +98,7 @@ export default function ClientForm() {
             loading={loading}
             fullWidth
           >
-            {isEditing ? "Guardar Cambios" : "Guardar"}
+            Guardar
           </ContainedButton>
         </form>
       </CustomPaper>

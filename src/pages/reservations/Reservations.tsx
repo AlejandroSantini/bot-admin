@@ -146,13 +146,14 @@ export default function Reservations() {
               navigate(`/reservas/${r._id || r.id}`, { state: { tab: 0 } })
             }
             emptyMessage="No hay reservas."
-            // loading handled in parent
-          />
-          <Paginator
-            page={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            onPageChange={(_, newPage) => setPage(newPage)}
+            pagination={
+              <Paginator
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                onPageChange={(_, newPage) => setPage(newPage)}
+              />
+            }
           />
         </>
       ),

@@ -18,15 +18,35 @@ export interface TableProps<T> {
   emptyMessage?: string;
   sx?: object;
   getRowSx?: (row: T) => object;
+  pagination?: ReactNode;
 }
 
-export function Table<T>({ columns, data, getRowKey, onRowClick, emptyMessage = 'Sin datos', sx, getRowSx }: TableProps<T>) {
+export function Table<T>({ 
+  columns, 
+  data, 
+  getRowKey, 
+  onRowClick, 
+  emptyMessage = 'Sin datos', 
+  sx, 
+  getRowSx,
+  pagination
+}: TableProps<T>) {
   return (
-    <Box sx={{ width: '100%', maxWidth: '100%', mb: 2 }}>
+    <CustomPaper 
+      sx={{ 
+        width: '100%', 
+        p: 0, 
+        mb: 2, 
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)',
+        border: '1px solid #e0e0e0',
+        ...sx 
+      }}
+    >
       <TableContainer
-        component={CustomPaper}
         sx={{
-          p: 0,
           maxWidth: '100%',
           overflowX: 'auto',
           WebkitOverflowScrolling: 'touch',
@@ -41,7 +61,6 @@ export function Table<T>({ columns, data, getRowKey, onRowClick, emptyMessage = 
             backgroundColor: 'rgba(0,0,0,0.2)',
             borderRadius: '4px',
           },
-          ...sx,
         }}
       >
         <MuiTable size="small">
@@ -109,6 +128,11 @@ export function Table<T>({ columns, data, getRowKey, onRowClick, emptyMessage = 
           </TableBody>
         </MuiTable>
       </TableContainer>
-    </Box>
+      {pagination && (
+        <Box sx={{ borderTop: '1px solid #e0e0e0', p: 1 }}>
+          {pagination}
+        </Box>
+      )}
+    </CustomPaper>
   );
 }

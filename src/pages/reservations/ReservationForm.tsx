@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Autocomplete, TextField, IconButton } from "@mui/material";
+import { Box, Typography, Autocomplete, TextField, IconButton, Snackbar, Alert } from "@mui/material";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { History as HistoryIcon, Close as CloseIcon } from "@mui/icons-material";
 import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
 import { getFichasCliente } from "../../services/clienteService";
 import { getServices } from "../../services/serviceService";
 import api from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
 import { BackButton } from "../../components/common/BackButton";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 
@@ -38,20 +39,15 @@ export default function ReservationForm() {
   const [loading, setLoading] = useState(false);
   const [fichaOpen, setFichaOpen] = useState(false);
   const [availableServices, setAvailableServices] = useState<any[]>([]);
-  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
+  const { modulesConfig } = useAuth();
+  const [notification, setNotification] = useState<{ open: boolean; message: string; severity: "success" | "warning" | "error" }>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const res = await api.get("/api/tenants/me");
-        if (res.data?.status && res.data?.data?.modules_config) {
-          setModulesConfig(res.data.data.modules_config);
-        }
-      } catch (err) {
-        console.error("Error fetching config", err);
-      }
-    };
-    fetchConfig();
+
     
     const fetchServices = async () => {
       try {
@@ -124,11 +120,29 @@ export default function ReservationForm() {
         .map(i => ({ cantidad: i.cantidad, producto: i.id }));
 
       if (isView && id) {
-        await actualizarReserva(id, payload);
-        alert("Reserva actualizada correctamente");
+        const res = await actualizarReserva(id, payload);
+        if (res.notificacion_enviada === false) {
+          setNotification({
+            open: true,
+            message: `Actualizado. ${res.notificacion_error || "No se pudo enviar notificación."}`,
+            severity: "warning",
+          });
+        } else {
+          alert("Reserva actualizada correctamente");
+        }
       } else {
-        await crearReserva(payload);
-        navigate("/reservas");
+        const res = await crearReserva(payload);
+        if (res.notificacion_enviada === false) {
+          setNotification({
+            open: true,
+            message: `Creado. ${res.notificacion_error || "No se pudo enviar notificación por falta de interacción previa."}`,
+            severity: "warning",
+          });
+          setTimeout(() => navigate("/reservas"), 3000);
+        } else {
+          alert("Reserva creada correctamente");
+          navigate("/reservas");
+        }
       }
     } catch (err) {
       alert(isView ? "Error actualizando reserva" : "Error creando reserva");
@@ -144,7 +158,7 @@ export default function ReservationForm() {
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           {isView ? "Editar Reserva" : "Nueva Reserva"}
         </Typography>
-        {isView && form.phone && (!modulesConfig || modulesConfig.reservas !== false) && (
+        {isView && form.phone && modulesConfig?.clientes !== false && (
           <OutlinedButton
             startIcon={<HistoryIcon />}
             onClick={handleOpenFicha}
@@ -241,6 +255,21 @@ export default function ReservationForm() {
         clientName={form.nombre}
         phone={form.phone}
       />
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
