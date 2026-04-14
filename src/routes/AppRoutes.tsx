@@ -5,6 +5,7 @@ import AuthPage from "../pages/auth/Auth";
 import Layout from "../components/layout/Layout";
 
 // New Pages
+import Home from "../pages/Home";
 import Clients from "../pages/clients/Clients";
 import ClientForm from "../pages/clients/ClientForm";
 import Reservations from "../pages/reservations/Reservations";
@@ -30,13 +31,13 @@ export default function AppRoutes() {
 
       <Route element={<Layout />}>
         {/* Default redirect */}
-        <Route path="/inicio" element={<Navigate to="/reservas" replace />} />
+        <Route path="/inicio" element={<Home />} />
 
         {/* Reservas */}
         <Route
           path="/reservas"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <Reservations />
             </ProtectedRoute>
           }
@@ -44,7 +45,7 @@ export default function AppRoutes() {
         <Route
           path="/reservas/nueva"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
             </ProtectedRoute>
           }
@@ -54,7 +55,7 @@ export default function AppRoutes() {
         <Route
           path="/clientes"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="clientes">
               <Clients />
             </ProtectedRoute>
           }
@@ -62,7 +63,7 @@ export default function AppRoutes() {
         <Route
           path="/clientes/nuevo"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="clientes">
               <ClientForm />
             </ProtectedRoute>
           }
@@ -70,7 +71,7 @@ export default function AppRoutes() {
         <Route
           path="/clientes/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="clientes">
               <ClientForm />
             </ProtectedRoute>
           }
@@ -81,7 +82,7 @@ export default function AppRoutes() {
         <Route
           path="/servicios"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <Services />
             </ProtectedRoute>
           }
@@ -89,7 +90,7 @@ export default function AppRoutes() {
         <Route
           path="/servicios/nuevo"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <ServiceForm />
             </ProtectedRoute>
           }
@@ -97,7 +98,7 @@ export default function AppRoutes() {
         <Route
           path="/productos"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="productos">
               <Products />
             </ProtectedRoute>
           }
@@ -105,7 +106,7 @@ export default function AppRoutes() {
         <Route
           path="/productos/nuevo"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="productos">
               <ProductForm />
             </ProtectedRoute>
           }
@@ -113,7 +114,7 @@ export default function AppRoutes() {
         <Route
           path="/productos/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="productos">
               <ProductForm />
             </ProtectedRoute>
           }
@@ -121,7 +122,7 @@ export default function AppRoutes() {
         <Route
           path="/campanas"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="campanas">
               <Campaigns />
             </ProtectedRoute>
           }
@@ -129,7 +130,7 @@ export default function AppRoutes() {
         <Route
           path="/campanas/nueva"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="campanas">
               <CampaignForm />
             </ProtectedRoute>
           }
@@ -137,7 +138,7 @@ export default function AppRoutes() {
         <Route
           path="/campanas/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="campanas">
               <CampaignForm />
             </ProtectedRoute>
           }
@@ -145,7 +146,7 @@ export default function AppRoutes() {
         <Route
           path="/servicios/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <ServiceForm />
             </ProtectedRoute>
           }
@@ -153,15 +154,15 @@ export default function AppRoutes() {
         <Route
           path="/reservas/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
             </ProtectedRoute>
           }
         />
       </Route>
 
-      <Route path="/" element={<Navigate to="/reservas" replace />} />
-      <Route path="*" element={<Navigate to="/reservas" replace />} />
+      <Route path="/" element={<Home />} />
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }

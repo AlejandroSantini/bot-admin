@@ -6,6 +6,7 @@ import {
   type AuthContextType,
 } from "../context/AuthContext";
 import authService from "../services/auth";
+import api from "../services/api";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -14,20 +15,32 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Login real: guarda cliente y token
-  // Login: solo actualiza el estado en memoria, la persistencia la maneja el servicio
+  const fetchModulesConfig = async () => {
+    try {
+      const res = await api.get("/api/tenants/me");
+      if (res.data?.status && res.data?.data?.modules_config) {
+        setModulesConfig(res.data.data.modules_config);
+        return res.data.data.modules_config;
+      }
+    } catch (err) {
+      console.error("Error fetching modules config:", err);
+    }
+    return null;
+  };
+
   const login = async (phone_number_id: string, password: string) => {
     setIsLoading(true);
     try {
       const res = await authService.login({ phone_number_id, password });
       setUser(res.user);
       setToken(res.token);
+      await fetchModulesConfig();
       navigate("/inicio");
     } catch (err) {
-      setIsLoading(false);
       console.error("Error en login:", err);
       throw err;
     } finally {
@@ -35,40 +48,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Logout: solo limpia el estado en memoria, la persistencia la maneja el servicio
   const logout = async () => {
     await authService.logout();
     setUser(null);
     setToken(null);
+    setModulesConfig(null);
     navigate("/iniciar-sesion");
   };
 
-  // Al montar, inicializa el estado desde localStorage solo una vez
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-      } catch {
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+      
+      if (storedUser && storedToken) {
+        try {
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+          await fetchModulesConfig();
+        } catch {
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+        }
       }
-    } else {
-      setUser(null);
-      setToken(null);
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  const value: AuthContextType & { token: string | null } = {
+  const value: AuthContextType = {
     user,
     token,
     isAuthenticated: !!user,
     isLoading,
+    modulesConfig,
     login,
     logout,
   };

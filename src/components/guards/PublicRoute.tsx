@@ -9,7 +9,7 @@ export default function PublicRoute({ children }: PublicRouteProps) {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/reservas" replace />;
+    return <Navigate to="/inicio" replace />;
   }
 
   return <>{children}</>;

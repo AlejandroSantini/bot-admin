@@ -60,26 +60,12 @@ export default function Sidebar({
 }: SidebarProps) {
   const drawerWidth = 210;
   const collapsedWidth = 64;
-  const { logout } = useAuth();
-  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
-
-  useEffect(() => {
-    const fetchMe = async () => {
-      try {
-        const res = await api.get("/api/tenants/me");
-        if (res.data?.status && res.data?.data?.modules_config) {
-          setModulesConfig(res.data.data.modules_config);
-        }
-      } catch (err) {
-        console.error("Error fetching me for sidebar items", err);
-      }
-    };
-    fetchMe();
-  }, []);
+  const { logout, modulesConfig } = useAuth();
 
   const handleLogout = () => {
     logout();
   };
+
 
   const visibleMenuItems = menuItems.filter(item => {
     if (!modulesConfig || !item.configKey) return true;
