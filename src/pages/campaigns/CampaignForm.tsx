@@ -22,7 +22,7 @@ export default function CampaignForm() {
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
-  
+
   const isExecuteNowRef = useRef(false);
 
   const stateCampaign = location.state?.campaign as Campaign | undefined;
@@ -37,7 +37,9 @@ export default function CampaignForm() {
         }
         setInitLoading(false);
       } else {
-        setError("Error al cargar la campaña. Vuelve a la lista e intenta de nuevo.");
+        setError(
+          "Error al cargar la campaña. Vuelve a la lista e intenta de nuevo.",
+        );
         setInitLoading(false);
       }
     }
@@ -65,7 +67,10 @@ export default function CampaignForm() {
       const formData = new FormData();
       formData.append("nombre", nombre);
       formData.append("mensaje", mensaje);
-      formData.append("ejecutar_ahora", isExecuteNowRef.current ? "true" : "false");
+      formData.append(
+        "ejecutar_ahora",
+        isExecuteNowRef.current ? "true" : "false",
+      );
       if (images.length > 0 && !images[0].startsWith("http")) {
         const file = dataURLtoFile(images[0], "campana_imagen.jpg");
         if (file) {
@@ -82,7 +87,11 @@ export default function CampaignForm() {
       }
       navigate("/campanas");
     } catch (err) {
-      setError(isEditing ? "Error al actualizar la campaña" : "Error al crear la campaña");
+      setError(
+        isEditing
+          ? "Error al actualizar la campaña"
+          : "Error al crear la campaña",
+      );
     } finally {
       setLoading(false);
     }
@@ -109,66 +118,79 @@ export default function CampaignForm() {
         </Box>
       ) : (
         <CustomPaper sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="Nombre"
-            value={nombre}
-            variant="outlined"
-            onChange={(e) => setNombre(e.target.value)}
-            required
-            sx={{ mb: 2 }}
-          />
-          <Input
-            label="Mensaje"
-            value={mensaje}
-            variant="outlined"
-            onChange={(e) => setMensaje(e.target.value)}
-            required
-            multiline
-            rows={4}
-            sx={{ mb: 2 }}
-          />
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Imagen (Opcional)
-            </Typography>
-            <ImageUploader
-              value={images}
-              onChange={setImages}
-              multiple={false}
-              placeholder="Subir Imagen de Campaña"
-              emptyText="Haz clic aquí o arrastra una imagen para subir"
-            />
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 1 }}>
-            <OutlinedButton
+          <form onSubmit={handleSubmit}>
+            <Input
+              label="Nombre"
+              value={nombre}
               variant="outlined"
-              onClick={() => navigate("/campanas")}
-              disabled={loading}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              sx={{ mb: 2 }}
+            />
+            <Input
+              label="Mensaje"
+              value={mensaje}
+              variant="outlined"
+              onChange={(e) => setMensaje(e.target.value)}
+              required
+              multiline
+              rows={4}
+              sx={{ mb: 2 }}
+            />
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Imagen (Opcional)
+              </Typography>
+              <ImageUploader
+                value={images}
+                onChange={setImages}
+                multiple={false}
+                placeholder="Subir Imagen de Campaña"
+                emptyText="Haz clic aquí o arrastra una imagen para subir"
+              />
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                justifyContent: "flex-end",
+                mt: 1,
+              }}
             >
-              Cancelar
-            </OutlinedButton>
-            <ContainedButton
-              type="submit"
-              onClick={() => { isExecuteNowRef.current = false; }}
-              loading={loading && !isExecuteNowRef.current}
-              disabled={loading}
-            >
-              {isEditing ? "Guardar" : "Crear"}
-            </ContainedButton>
-            <ContainedButton
-              type="submit"
-              onClick={() => { isExecuteNowRef.current = true; }}
-              loading={loading && isExecuteNowRef.current}
-              disabled={loading}
-            >
-              {isEditing ? "Guardar y Enviar" : "Crear y Enviar"}
-            </ContainedButton>
-          </Box>
-        </form>
-      </CustomPaper>
+              <OutlinedButton
+                variant="outlined"
+                onClick={() => navigate("/campanas")}
+                disabled={loading}
+              >
+                Cancelar
+              </OutlinedButton>
+              <ContainedButton
+                type="submit"
+                onClick={() => {
+                  isExecuteNowRef.current = false;
+                }}
+                loading={loading && !isExecuteNowRef.current}
+                disabled={loading}
+              >
+                {isEditing ? "Guardar" : "Crear"}
+              </ContainedButton>
+              {!isEditing && (
+                <ContainedButton
+                  type="submit"
+                  onClick={() => {
+                    isExecuteNowRef.current = true;
+                  }}
+                  loading={loading && isExecuteNowRef.current}
+                  disabled={loading}
+                >
+                  Crear y Enviar
+                </ContainedButton>
+              )}
+            </Box>
+          </form>
+        </CustomPaper>
       )}
     </Box>
   );

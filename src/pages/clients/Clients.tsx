@@ -10,6 +10,7 @@ import { Paginator } from "../../components/common/Paginator";
 import { History as HistoryIcon, PlayArrow as PlayIcon, Pause as PauseIcon, Search as SearchIcon } from "@mui/icons-material";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 import { InputAdornment } from "@mui/material";
+import api from "../../services/api";
 
 // Simple interface based on use case
 interface Cliente {
@@ -32,6 +33,21 @@ export default function Clients() {
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [fichaOpen, setFichaOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get("/api/tenants/me");
+        if (res.data?.status && res.data?.data?.modules_config) {
+          setModulesConfig(res.data.data.modules_config);
+        }
+      } catch (err) {
+        console.error("Error fetching config", err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const loadClients = async (searchStr?: string) => {
     setLoading(true);
@@ -111,17 +127,19 @@ export default function Clients() {
           >
             {c.bot_paused ? <PlayIcon /> : <PauseIcon />}
           </IconButton>
-          <IconButton
-            size="small"
-            color="primary"
-            title="Ver Historial (Ficha)"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpenFicha(c);
-            }}
-          >
-            <HistoryIcon />
-          </IconButton>
+          {(!modulesConfig || modulesConfig.reservas !== false) && (
+            <IconButton
+              size="small"
+              color="primary"
+              title="Ver Historial (Ficha)"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenFicha(c);
+              }}
+            >
+              <HistoryIcon />
+            </IconButton>
+          )}
           <DeleteButton
             onClick={(e) => {
               e?.stopPropagation();

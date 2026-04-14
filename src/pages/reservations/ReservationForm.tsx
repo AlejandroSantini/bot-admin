@@ -5,6 +5,7 @@ import { History as HistoryIcon, Close as CloseIcon } from "@mui/icons-material"
 import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
 import { getFichasCliente } from "../../services/clienteService";
 import { getServices } from "../../services/serviceService";
+import api from "../../services/api";
 import { BackButton } from "../../components/common/BackButton";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 
@@ -37,8 +38,21 @@ export default function ReservationForm() {
   const [loading, setLoading] = useState(false);
   const [fichaOpen, setFichaOpen] = useState(false);
   const [availableServices, setAvailableServices] = useState<any[]>([]);
+  const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
 
   useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get("/api/tenants/me");
+        if (res.data?.status && res.data?.data?.modules_config) {
+          setModulesConfig(res.data.data.modules_config);
+        }
+      } catch (err) {
+        console.error("Error fetching config", err);
+      }
+    };
+    fetchConfig();
+    
     const fetchServices = async () => {
       try {
         const res = await getServices();
@@ -130,7 +144,7 @@ export default function ReservationForm() {
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           {isView ? "Editar Reserva" : "Nueva Reserva"}
         </Typography>
-        {isView && form.phone && (
+        {isView && form.phone && (!modulesConfig || modulesConfig.reservas !== false) && (
           <OutlinedButton
             startIcon={<HistoryIcon />}
             onClick={handleOpenFicha}
