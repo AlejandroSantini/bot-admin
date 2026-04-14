@@ -33,6 +33,9 @@ export default function Clients() {
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [fichaOpen, setFichaOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
 
   useEffect(() => {
@@ -49,13 +52,22 @@ export default function Clients() {
     fetchConfig();
   }, []);
 
-  const loadClients = async (searchStr?: string) => {
+  const loadClients = async (searchStr?: string, pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getClientes({ search: searchStr });
+      const data = await getClientes({ search: searchStr, page: pageNum, limit: 10 });
       const list = Array.isArray(data) ? data : (data as any).data || [];
       setClients(list);
+      
+      const pData = data as any;
+      if (pData.pagination) {
+        setTotalPages(pData.pagination.totalPages);
+        setTotalItems(pData.pagination.total);
+      } else {
+        setTotalPages(1);
+        setTotalItems(list.length);
+      }
     } catch (err: any) {
       console.error(err);
       setError("Error cargando clientes");
@@ -65,17 +77,21 @@ export default function Clients() {
   };
 
   useEffect(() => {
-    if (!search) {
-      loadClients();
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (!search && search !== undefined) {
+      loadClients(undefined, page);
       return;
     }
 
     const timer = setTimeout(() => {
-      loadClients(search);
+      loadClients(search, page);
     }, 400); 
 
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, page]);
 
   const handleDelete = async (id: string | number) => {
     if (!window.confirm("¿Seguro de eliminar este cliente?")) return;
@@ -152,13 +168,13 @@ export default function Clients() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Clientes (Bot)
         </Typography>
 
-        <Box sx={{ width: 350 }}>
+        <Box sx={{ width: { xs: "100%", sm: 350 } }}>
           <Input
             label="Buscar por Nombre o Teléfono"
             value={search}
@@ -186,13 +202,21 @@ export default function Clients() {
           <CircularProgress />
         </Box>
       ) : (
-        <Table
-          columns={columns}
-          data={clients}
-          getRowKey={(c: any) => c._id || c.id}
-          onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
-          emptyMessage="No hay clientes registrados."
-        />
+        <>
+          <Table
+            columns={columns}
+            data={clients}
+            getRowKey={(c: any) => c._id || c.id}
+            onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
+            emptyMessage="No hay clientes registrados."
+          />
+          <Paginator
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={(_, newPage) => setPage(newPage)}
+          />
+        </>
       )}
 
       <FichaClienteModal

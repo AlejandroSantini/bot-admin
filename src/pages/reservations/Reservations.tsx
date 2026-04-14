@@ -171,14 +171,14 @@ export default function Reservations() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Reservas
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Box sx={{ width: 350 }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: { xs: "stretch", sm: "center" } }}>
+          <Box sx={{ width: { xs: "100%", sm: 350 } }}>
             <Input
               label="Buscar por Nombre o Teléfono"
               value={search}

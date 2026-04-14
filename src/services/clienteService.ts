@@ -1,6 +1,6 @@
 import api from "./api";
 
-export const getClientes = async (params?: { search?: string }) => {
+export const getClientes = async (params?: { search?: string; page?: number; limit?: number }) => {
   const response = await api.get("/api/clientes", { params });
   return response.data;
 };

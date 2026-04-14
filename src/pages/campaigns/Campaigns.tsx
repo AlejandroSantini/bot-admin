@@ -105,27 +105,18 @@ export default function Campaigns() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
+    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Campañas
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <ContainedButton
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/campanas/nueva")}
-          >
-            Nueva Campaña
-          </ContainedButton>
-        </Box>
+        <ContainedButton
+          startIcon={<AddIcon />}
+          onClick={() => navigate("/campanas/nueva")}
+        >
+          Nueva Campaña
+        </ContainedButton>
       </Box>
 
       {error && (
