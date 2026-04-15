@@ -33,6 +33,7 @@ export function Select({ label, options, value, onChange, helperText, sx, ...pro
         mb: helperText ? 0.5 : 2,
         '& .MuiInputBase-root': {
           borderRadius: 2,
+          backgroundColor: 'background.paper',
         },
         ...(sx || {}),
       }}

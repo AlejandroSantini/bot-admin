@@ -52,6 +52,7 @@ export function SearchInput({ onClear, showClear, InputProps, disabled, ...props
         mt: 0,
         '& .MuiInputBase-root': {
           borderRadius: 2,
+          backgroundColor: 'background.paper',
           cursor: disabled ? 'default' : 'pointer',
         },
         '& .MuiInputBase-input': {

@@ -3,8 +3,14 @@ import {
   Toolbar,
   Typography,
   IconButton,
+  Box,
 } from "@mui/material";
-import { Menu as MenuIcon } from "@mui/icons-material";
+import {
+  Menu as MenuIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
+} from "@mui/icons-material";
+import { useThemeMode } from "../../providers/ThemeModeProvider";
 
 interface TopBarProps {
   title?: string;
@@ -19,6 +25,8 @@ export default function TopBar({
   isMobile = false,
   onMenuClick,
 }: TopBarProps) {
+  const { mode, toggleColorMode } = useThemeMode();
+
   return (
     <AppBar
       position="fixed"
@@ -27,7 +35,7 @@ export default function TopBar({
         ml: isMobile ? 0 : `${drawerWidth}px`,
         backgroundColor: "background.paper",
         color: "text.primary",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        boxShadow: (theme) => theme.palette.mode === 'light' ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
         borderBottom: "1px solid",
         borderColor: "divider",
         transition: "width 0.3s cubic-bezier(.4,0,.2,1), margin-left 0.3s cubic-bezier(.4,0,.2,1)",
@@ -56,6 +64,11 @@ export default function TopBar({
         >
           {title}
         </Typography>
+        <Box>
+          <IconButton onClick={toggleColorMode} color="inherit">
+            {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+        </Box>
       </Toolbar>
     </AppBar>
   );

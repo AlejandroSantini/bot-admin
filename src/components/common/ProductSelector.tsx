@@ -55,7 +55,7 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
   };
 
   return (
-    <Box sx={{ p: 2, border: "1px dashed #ccc", borderRadius: 2, mb: 3 }}>
+    <Box sx={{ p: 2, border: "1px dashed", borderColor: "divider", borderRadius: 2, mb: 3 }}>
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
         Agregar Productos
       </Typography>
@@ -107,7 +107,7 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
                 alignItems: "center",
                 p: 1,
                 mb: 1,
-                backgroundColor: "rgba(0,0,0,0.03)",
+                backgroundColor: "action.hover",
                 borderRadius: 1,
               }}
             >

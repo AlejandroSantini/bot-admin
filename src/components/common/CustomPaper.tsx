@@ -13,9 +13,13 @@ export function CustomPaper({ children, sx, ...props }: CustomPaperProps) {
       sx={{
         p: 3,
         borderRadius: 3,
-        border: '1px solid #e0e0e0',
-        background: '#fff',
-        boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)',
+        border: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
+        boxShadow: (theme) => 
+          theme.palette.mode === 'light' 
+            ? '0 2px 8px 0 rgba(0,0,0,0.04)' 
+            : '0 4px 12px 0 rgba(0,0,0,0.4)',
         ...sx,
       }}
       {...props}

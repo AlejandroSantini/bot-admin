@@ -32,11 +32,36 @@ interface SidebarItem {
 }
 
 const menuItems: SidebarItem[] = [
-  { text: "Reservas", icon: <VentaIcon />, path: "/reservas", configKey: "reservas" },
-  { text: "Clientes", icon: <PeopleIcon />, path: "/clientes", configKey: "clientes" },
-  { text: "Servicios", icon: <InventoryIcon />, path: "/servicios", configKey: "servicios" },
-  { text: "Productos", icon: <ProductoIcon />, path: "/productos", configKey: "productos" },
-  { text: "Campañas", icon: <CampaignIcon />, path: "/campanas", configKey: "campanas" },
+  {
+    text: "Reservas",
+    icon: <VentaIcon />,
+    path: "/reservas",
+    configKey: "reservas",
+  },
+  {
+    text: "Clientes",
+    icon: <PeopleIcon />,
+    path: "/clientes",
+    configKey: "clientes",
+  },
+  {
+    text: "Servicios",
+    icon: <InventoryIcon />,
+    path: "/servicios",
+    configKey: "servicios",
+  },
+  {
+    text: "Productos",
+    icon: <ProductoIcon />,
+    path: "/productos",
+    configKey: "productos",
+  },
+  {
+    text: "Campañas",
+    icon: <CampaignIcon />,
+    path: "/campanas",
+    configKey: "campanas",
+  },
 ];
 
 interface SidebarProps {
@@ -66,8 +91,7 @@ export default function Sidebar({
     logout();
   };
 
-
-  const visibleMenuItems = menuItems.filter(item => {
+  const visibleMenuItems = menuItems.filter((item) => {
     if (!modulesConfig || !item.configKey) return true;
     return modulesConfig[item.configKey] !== false;
   });
@@ -76,12 +100,16 @@ export default function Sidebar({
     mx: 1,
     borderRadius: 2,
     minHeight: 48,
-    justifyContent: isMobile ? "flex-start" : collapsed ? "center" : "flex-start",
+    justifyContent: isMobile
+      ? "flex-start"
+      : collapsed
+        ? "center"
+        : "flex-start",
     px: 2,
     transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
     "&.Mui-selected": {
-      backgroundColor: "#ccccccff",
-      "&:hover": { backgroundColor: "#f5f5f5" },
+      backgroundColor: "action.selected",
+      "&:hover": { backgroundColor: "action.hover" },
     },
   });
 
@@ -91,7 +119,11 @@ export default function Sidebar({
     width: 40,
     display: "flex",
     alignItems: "center",
-    justifyContent: isMobile ? "flex-start" : collapsed ? "center" : "flex-start",
+    justifyContent: isMobile
+      ? "flex-start"
+      : collapsed
+        ? "center"
+        : "flex-start",
     mr: 0,
     transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
   });
@@ -163,9 +195,7 @@ export default function Sidebar({
             onClick={() => onItemClick?.(item.path)}
             sx={itemButtonSx(item.path)}
           >
-            <ListItemIcon sx={itemIconSx(item.path)}>
-              {item.icon}
-            </ListItemIcon>
+            <ListItemIcon sx={itemIconSx(item.path)}>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} sx={itemTextSx} />
           </ListItemButton>
         ))}

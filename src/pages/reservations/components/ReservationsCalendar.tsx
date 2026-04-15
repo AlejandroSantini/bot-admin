@@ -61,7 +61,7 @@ export default function ReservationsCalendar({
     <Box
       sx={{
         height: 650,
-        backgroundColor: "white",
+        backgroundColor: "background.paper",
         p: 0,
         borderRadius: 3,
         overflow: "hidden",
@@ -84,7 +84,7 @@ export default function ReservationsCalendar({
             backgroundColor: "transparent",
             transition: "all 0.2s",
             "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.08)",
+              backgroundColor: "action.hover",
             },
             "&:active": {
               transform: "scale(0.98)",
@@ -92,7 +92,7 @@ export default function ReservationsCalendar({
             "&.rbc-active": {
               backgroundColor: "#1976d2",
               color: "white",
-              boxShadow: "0 2px 4px rgba(25, 118, 210, 0.3)",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
               "&:hover": {
                 backgroundColor: "#1565c0",
               },
@@ -111,21 +111,23 @@ export default function ReservationsCalendar({
           padding: "12px 0",
           fontWeight: 600,
           color: "text.secondary",
-          borderBottom: "1px solid #e0e0e0",
+          borderBottom: "1px solid",
+          borderColor: "divider",
           fontSize: "0.875rem",
           textTransform: "uppercase",
           letterSpacing: "0.5px",
         },
         "& .rbc-month-view": {
-          border: "1px solid #e0e0e0",
+          border: "1px solid",
+          borderColor: "divider",
           borderRadius: 2,
           overflow: "hidden",
         },
         "& .rbc-day-bg": {
-          borderColor: "#f0f0f0",
+          borderColor: "divider",
         },
         "& .rbc-off-range-bg": {
-          backgroundColor: "#fafafa",
+          backgroundColor: "action.hover",
         },
         "& .rbc-today": {
           backgroundColor: "rgba(25, 118, 210, 0.04)",
@@ -150,18 +152,22 @@ export default function ReservationsCalendar({
           },
         },
         "& .rbc-day-slot .rbc-time-column": {
-          borderRight: "1px solid #f0f0f0",
+          borderRight: "1px solid",
+          borderColor: "divider",
         },
         "& .rbc-time-view": {
-          border: "1px solid #e0e0e0",
+          border: "1px solid",
+          borderColor: "divider",
           borderRadius: 2,
           overflow: "hidden",
         },
         "& .rbc-time-header-content": {
-          borderLeft: "1px solid #f0f0f0",
+          borderLeft: "1px solid",
+          borderColor: "divider",
         },
         "& .rbc-time-content": {
-          borderTop: "1px solid #f0f0f0",
+          borderTop: "1px solid",
+          borderColor: "divider",
         },
       }}
     >

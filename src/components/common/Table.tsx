@@ -41,7 +41,8 @@ export function Table<T>({
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 2px 8px 0 rgba(0,0,0,0.04)',
-        border: '1px solid #e0e0e0',
+        border: '1px solid',
+        borderColor: 'divider',
         ...sx 
       }}
     >
@@ -65,7 +66,7 @@ export function Table<T>({
       >
         <MuiTable size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f7f7f7' }}>
+            <TableRow sx={{ backgroundColor: 'action.hover' }}>
               {columns.map((col, idx) => (
                 <TableCell
                   key={col.label + idx}
@@ -73,7 +74,8 @@ export function Table<T>({
                   sx={{
                     fontWeight: 500,
                     color: 'text.secondary',
-                    borderBottom: '1px solid #e0e0e0',
+                    borderBottom: '1px solid',
+                    borderBottomColor: 'divider',
                     width: col.width,
                     whiteSpace: 'nowrap',
                     fontSize: { xs: '0.8rem', sm: '0.875rem' },
@@ -102,7 +104,7 @@ export function Table<T>({
                   sx={{
                     transition: 'background 0.2s',
                     ...(getRowSx ? getRowSx(row) : {}),
-                    '&:hover': { backgroundColor: '#f0f0f0', cursor: onRowClick ? 'pointer' : 'default' }
+                    '&:hover': { backgroundColor: 'action.selected', cursor: onRowClick ? 'pointer' : 'default' }
                   }}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
@@ -111,7 +113,8 @@ export function Table<T>({
                       key={col.label + idx}
                       align={col.align || 'left'}
                       sx={{
-                        borderBottom: '1px solid #e0e0e0',
+                        borderBottom: '1px solid',
+                        borderBottomColor: 'divider',
                         fontSize: { xs: '0.8rem', sm: '0.875rem' },
                         px: { xs: 1.5, sm: 2 },
                         py: 1,
@@ -129,7 +132,7 @@ export function Table<T>({
         </MuiTable>
       </TableContainer>
       {pagination && (
-        <Box sx={{ borderTop: '1px solid #e0e0e0', p: 1 }}>
+        <Box sx={{ borderTop: '1px solid', borderTopColor: 'divider', p: 1 }}>
           {pagination}
         </Box>
       )}

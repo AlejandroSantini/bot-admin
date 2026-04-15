@@ -51,7 +51,7 @@ export default function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#f7f7f7",
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -60,9 +60,13 @@ export default function Login() {
           maxWidth: 400,
           width: "100%",
           borderRadius: 3,
-          boxShadow: "0 2px 8px 0 rgba(0,0,0,0.04)",
-          border: "1px solid #e0e0e0",
-          background: "#fff",
+          boxShadow: (theme) => 
+            theme.palette.mode === 'light' 
+              ? '0 2px 8px 0 rgba(0,0,0,0.04)' 
+              : '0 4px 12px 0 rgba(0,0,0,0.4)',
+          border: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "background.paper",
         }}
       >
         <CardContent sx={{ p: 4 }}>

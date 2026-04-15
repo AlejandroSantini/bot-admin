@@ -15,8 +15,8 @@ export function BackButton({ to, state }: BackButtonProps) {
       title="Volver"
       onClick={() => navigate(to, { state })}
       sx={{
-        backgroundColor: "#f5f5f5",
-        "&:hover": { backgroundColor: "#eeeeee" },
+        backgroundColor: "action.hover",
+        "&:hover": { backgroundColor: "action.selected" },
         mr: 1,
       }}
     >
