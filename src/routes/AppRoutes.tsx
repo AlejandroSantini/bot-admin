@@ -17,6 +17,7 @@ import ProductForm from "../pages/products/ProductForm";
 import Campaigns from "../pages/campaigns/Campaigns";
 import CampaignForm from "../pages/campaigns/CampaignForm";
 import Settings from "../pages/settings/Settings";
+import Dashboard from "../pages/dashboard/Dashboard";
 
 export default function AppRoutes() {
   return (
@@ -34,6 +35,14 @@ export default function AppRoutes() {
         {/* Default redirect */}
         <Route path="/inicio" element={<Home />} />
 
+        <Route
+          path="/estadisticas"
+          element={
+            <ProtectedRoute moduleKey="reservas">
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         {/* Reservas */}
         <Route
           path="/reservas"

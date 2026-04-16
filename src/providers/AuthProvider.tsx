@@ -7,6 +7,7 @@ import {
 } from "../context/AuthContext";
 import authService from "../services/auth";
 import api from "../services/api";
+import { settingsService } from "../services/settingsService";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -58,15 +59,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedUser = localStorage.getItem("user");
-      const storedToken = localStorage.getItem("token");
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
       
-      if (storedUser && storedToken) {
+      if (urlToken) {
+        localStorage.setItem("token", urlToken);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+      
+      if (storedToken) {
         try {
-          setUser(JSON.parse(storedUser));
+          let currentUser = storedUser ? JSON.parse(storedUser) : null;
+          
+          if (!currentUser || urlToken) {
+            const userData = await settingsService.getMe();
+            currentUser = userData;
+            localStorage.setItem("user", JSON.stringify(userData));
+          }
+
+          setUser(currentUser);
           setToken(storedToken);
           await fetchModulesConfig();
-        } catch {
+        } catch (error) {
+          console.error("Auth initialization failed:", error);
           setUser(null);
           setToken(null);
           localStorage.removeItem("user");

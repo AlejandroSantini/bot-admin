@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -9,7 +10,7 @@ import {
   CircularProgress,
   Chip,
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { Close as CloseIcon, History as HistoryIcon } from "@mui/icons-material";
 import { Table } from "./common/Table";
 import { Paginator } from "./common/Paginator";
 import { getFichasCliente } from "../services/clienteService";
@@ -22,6 +23,7 @@ interface FichaClienteModalProps {
 }
 
 export function FichaClienteModal({ open, onClose, clientName, phone }: FichaClienteModalProps) {
+  const navigate = useNavigate();
   const [fichaData, setFichaData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalVisitas, setTotalVisitas] = useState<string | number | null>(null);
@@ -77,6 +79,14 @@ export function FichaClienteModal({ open, onClose, clientName, phone }: FichaCli
             <Table
               data={fichaData.slice((page - 1) * itemsPerPage, page * itemsPerPage)}
               getRowKey={(item: any) => item.id || Math.random()}
+              onRowClick={(item: any) => {
+                const reservationId = item.id || item._id;
+                console.log("Visit selected:", { id: item.id, _id: item._id, result: reservationId });
+                if (reservationId) {
+                  navigate(`/reservas/${reservationId}`);
+                  onClose();
+                }
+              }}
               columns={[
                 { label: "Fecha", render: (item: any) => item.fecha },
                 { label: "Servicio", render: (item: any) => item.rubro || item.motivo || "-" },
@@ -105,8 +115,8 @@ export function FichaClienteModal({ open, onClose, clientName, phone }: FichaCli
                 { 
                   label: "Observaciones", 
                   render: (item: any) => item.observaciones || "-",
-                  width: '25%'
-                },
+                  width: '20%'
+                }
               ]}
               emptyMessage="No hay registros previos para este cliente."
             />

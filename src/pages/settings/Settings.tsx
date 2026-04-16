@@ -3,6 +3,7 @@ import { Box, Typography, CircularProgress, Alert, Tabs, Tab } from "@mui/materi
 import { settingsService, type TenantInfo } from "../../services/settingsService";
 import ScheduleTab from "./ScheduleTab";
 import PaymentsTab from "./PaymentsTab";
+import BlockedDatesTab from "./BlockedDatesTab";
 import SystemTab from "./SystemTab";
 import ProfileSection from "./ProfileSection";
 import { CustomPaper } from "../../components/common/CustomPaper";
@@ -88,6 +89,9 @@ export default function Settings() {
             {showReservationsConfig && (
               <Tab label="Pagos y Señas" value="payments" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
+            {showReservationsConfig && (
+              <Tab label="Bloqueos" value="blocks" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
+            )}
             <Tab label="Sistema" value="system" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             <Tab label="Mi Perfil" value="profile" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
           </Tabs>
@@ -96,6 +100,7 @@ export default function Settings() {
         <Box sx={{ p: { xs: 2, sm: 4 } }}>
           {activeTab === "schedule" && showReservationsConfig && <ScheduleTab />}
           {activeTab === "payments" && showReservationsConfig && <PaymentsTab />}
+          {activeTab === "blocks" && showReservationsConfig && <BlockedDatesTab />}
           {activeTab === "system" && (
             <SystemTab 
               initialReminders={tenant.reminder_config} 

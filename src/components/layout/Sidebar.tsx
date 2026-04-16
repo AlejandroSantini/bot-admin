@@ -20,6 +20,7 @@ import {
   ShoppingBag as ProductoIcon,
   Campaign as CampaignIcon,
   Settings as SettingsIcon,
+  BarChart as BarChartIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -33,6 +34,12 @@ interface SidebarItem {
 }
 
 const menuItems: SidebarItem[] = [
+  {
+    text: "Estadísticas",
+    icon: <BarChartIcon />,
+    path: "/estadisticas",
+    configKey: "reservas",
+  },
   {
     text: "Reservas",
     icon: <VentaIcon />,

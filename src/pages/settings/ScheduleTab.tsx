@@ -296,9 +296,6 @@ export default function ScheduleTab() {
                           </OutlinedButton>
                         </Box>
                       </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                        Útil para agregar horarios específicos que no encajan en el intervalo automático.
-                      </Typography>
                     </Box>
                   </Box>
                 )}
