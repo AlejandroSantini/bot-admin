@@ -13,6 +13,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  modulesConfig: Record<string, boolean> | null;
   login: (phone_number_id: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }

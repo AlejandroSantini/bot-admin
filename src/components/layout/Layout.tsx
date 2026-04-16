@@ -1,32 +1,33 @@
-
-
-import { Box, Toolbar } from "@mui/material";
+import { Box, Toolbar, useMediaQuery, useTheme } from "@mui/material";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import { useState } from "react";
 
-
-
 const drawerWidth = 210;
 const collapsedWidth = 64;
-
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const path = location.pathname;
-  
-  const mainPath = '/' + path.split('/')[1];
-  
+  const mainPath = "/" + path.split("/")[1];
   const selectedMenuItem = path === mainPath ? path : mainPath;
+
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleMenuItemClick = (path: string) => {
     if (location.pathname !== path) {
       navigate(path);
     }
+    if (isMobile) setMobileOpen(false);
   };
+
+  const sidebarWidth = isMobile ? 0 : collapsed ? collapsedWidth : drawerWidth;
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -34,19 +35,33 @@ export default function Layout() {
         selectedItem={selectedMenuItem}
         onItemClick={handleMenuItemClick}
         collapsed={collapsed}
-        onToggle={() => setCollapsed((prev) => !prev)}
+        onToggle={() => {
+          if (isMobile) {
+            setMobileOpen((prev) => !prev);
+          } else {
+            setCollapsed((prev) => !prev);
+          }
+        }}
+        isMobile={isMobile}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
       />
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, width: { xs: "100%", md: `calc(100% - ${sidebarWidth}px)` }, maxWidth: "100vw", overflowX: "hidden" }}>
         <TopBar
-          drawerWidth={collapsed ? collapsedWidth : drawerWidth}
+          drawerWidth={sidebarWidth}
+          isMobile={isMobile}
+          onMenuClick={() => setMobileOpen(true)}
         />
         <Toolbar />
         <Box
           component="main"
           sx={{
-            p: 3,
+            p: { xs: 1, sm: 2, md: 3 },
             backgroundColor: "background.default",
             minHeight: "calc(100vh - 64px)",
+            maxWidth: "100%",
+            overflowX: "hidden",
+            boxSizing: "border-box"
           }}
         >
           <Outlet />
@@ -55,4 +70,3 @@ export default function Layout() {
     </Box>
   );
 }
-

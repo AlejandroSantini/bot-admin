@@ -5,12 +5,19 @@ import AuthPage from "../pages/auth/Auth";
 import Layout from "../components/layout/Layout";
 
 // New Pages
+import Home from "../pages/Home";
 import Clients from "../pages/clients/Clients";
 import ClientForm from "../pages/clients/ClientForm";
 import Reservations from "../pages/reservations/Reservations";
 import ReservationForm from "../pages/reservations/ReservationForm";
 import Services from "../pages/services/Services";
 import ServiceForm from "../pages/services/ServiceForm";
+import Products from "../pages/products/Products";
+import ProductForm from "../pages/products/ProductForm";
+import Campaigns from "../pages/campaigns/Campaigns";
+import CampaignForm from "../pages/campaigns/CampaignForm";
+import Settings from "../pages/settings/Settings";
+import Dashboard from "../pages/dashboard/Dashboard";
 
 export default function AppRoutes() {
   return (
@@ -26,13 +33,21 @@ export default function AppRoutes() {
 
       <Route element={<Layout />}>
         {/* Default redirect */}
-        <Route path="/inicio" element={<Navigate to="/reservas" replace />} />
+        <Route path="/inicio" element={<Home />} />
 
+        <Route
+          path="/estadisticas"
+          element={
+            <ProtectedRoute moduleKey="reservas">
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         {/* Reservas */}
         <Route
           path="/reservas"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <Reservations />
             </ProtectedRoute>
           }
@@ -40,7 +55,7 @@ export default function AppRoutes() {
         <Route
           path="/reservas/nueva"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
             </ProtectedRoute>
           }
@@ -50,7 +65,7 @@ export default function AppRoutes() {
         <Route
           path="/clientes"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="clientes">
               <Clients />
             </ProtectedRoute>
           }
@@ -58,7 +73,15 @@ export default function AppRoutes() {
         <Route
           path="/clientes/nuevo"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="clientes">
+              <ClientForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clientes/:id"
+          element={
+            <ProtectedRoute moduleKey="clientes">
               <ClientForm />
             </ProtectedRoute>
           }
@@ -69,7 +92,7 @@ export default function AppRoutes() {
         <Route
           path="/servicios"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <Services />
             </ProtectedRoute>
           }
@@ -77,15 +100,63 @@ export default function AppRoutes() {
         <Route
           path="/servicios/nuevo"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <ServiceForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos"
+          element={
+            <ProtectedRoute moduleKey="productos">
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos/nuevo"
+          element={
+            <ProtectedRoute moduleKey="productos">
+              <ProductForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/productos/:id"
+          element={
+            <ProtectedRoute moduleKey="productos">
+              <ProductForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas"
+          element={
+            <ProtectedRoute moduleKey="campanas">
+              <Campaigns />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas/nueva"
+          element={
+            <ProtectedRoute moduleKey="campanas">
+              <CampaignForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/campanas/:id"
+          element={
+            <ProtectedRoute moduleKey="campanas">
+              <CampaignForm />
             </ProtectedRoute>
           }
         />
         <Route
           path="/servicios/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="servicios">
               <ServiceForm />
             </ProtectedRoute>
           }
@@ -93,15 +164,23 @@ export default function AppRoutes() {
         <Route
           path="/reservas/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuracion"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />
       </Route>
 
-      <Route path="/" element={<Navigate to="/reservas" replace />} />
-      <Route path="*" element={<Navigate to="/reservas" replace />} />
+      <Route path="/" element={<Home />} />
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }

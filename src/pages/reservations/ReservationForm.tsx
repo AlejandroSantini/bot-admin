@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Autocomplete, TextField, IconButton, Snackbar, Alert } from "@mui/material";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { History as HistoryIcon } from "@mui/icons-material";
+import { History as HistoryIcon, Close as CloseIcon } from "@mui/icons-material";
 import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
 import { getFichasCliente } from "../../services/clienteService";
+import { getServices } from "../../services/serviceService";
+import api from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
 import { BackButton } from "../../components/common/BackButton";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 
@@ -13,6 +16,7 @@ import { Select } from "../../components/common/Select";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import { OutlinedButton } from "../../components/common/OutlinedButton";
 import { DateInput } from "../../components/common/DateInput";
+import { ProductSelector } from "../../components/common/ProductSelector";
 
 export default function ReservationForm() {
   const navigate = useNavigate();
@@ -30,11 +34,32 @@ export default function ReservationForm() {
     producto: "",
     monto_pago: "",
     observaciones: "",
+    items: [] as { id?: string | number; nombre: string; cantidad: number; precio: number }[],
   });
   const [loading, setLoading] = useState(false);
   const [fichaOpen, setFichaOpen] = useState(false);
+  const [availableServices, setAvailableServices] = useState<any[]>([]);
+  const { modulesConfig } = useAuth();
+  const [notification, setNotification] = useState<{ open: boolean; message: string; severity: "success" | "warning" | "error" }>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
+
+    
+    const fetchServices = async () => {
+      try {
+        const res = await getServices();
+        const list = Array.isArray(res) ? res : res.data || [];
+        setAvailableServices(list);
+      } catch (err) {
+        console.error("Error fetching services", err);
+      }
+    };
+    fetchServices();
+
     if (isView && id) {
       const fetchReserva = async () => {
         setLoading(true);
@@ -53,6 +78,7 @@ export default function ReservationForm() {
               producto: data.producto || "",
               monto_pago: data.monto_pago || "",
               observaciones: data.observaciones || "",
+              items: [],
             });
           }
         } catch (err) {
@@ -71,16 +97,52 @@ export default function ReservationForm() {
     setFichaOpen(true);
   };
 
+  const updateItemsAndTotals = (newItems: typeof form.items) => {
+    const total = newItems.reduce((acc, curr) => acc + curr.precio, 0);
+    const joinedNames = newItems.map(i => `${i.nombre} (x${i.cantidad})`).join(", ");
+    setForm((prev) => ({
+      ...prev,
+      items: newItems,
+      monto_pago: total.toString(),
+      producto: joinedNames
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const payload: any = { ...form };
+      delete payload.items;
+      
+      payload.productos = form.items
+        .filter(i => i.id !== undefined)
+        .map(i => ({ cantidad: i.cantidad, producto: i.id }));
+
       if (isView && id) {
-        await actualizarReserva(id, form);
-        alert("Reserva actualizada correctamente");
+        const res = await actualizarReserva(id, payload);
+        if (res.notificacion_enviada === false) {
+          setNotification({
+            open: true,
+            message: `Actualizado. ${res.notificacion_error || "No se pudo enviar notificación."}`,
+            severity: "warning",
+          });
+        } else {
+          alert("Reserva actualizada correctamente");
+        }
       } else {
-        await crearReserva(form);
-        navigate("/reservas");
+        const res = await crearReserva(payload);
+        if (res.notificacion_enviada === false) {
+          setNotification({
+            open: true,
+            message: `Creado. ${res.notificacion_error || "No se pudo enviar notificación por falta de interacción previa."}`,
+            severity: "warning",
+          });
+          setTimeout(() => navigate("/reservas"), 3000);
+        } else {
+          alert("Reserva creada correctamente");
+          navigate("/reservas");
+        }
       }
     } catch (err) {
       alert(isView ? "Error actualizando reserva" : "Error creando reserva");
@@ -96,7 +158,7 @@ export default function ReservationForm() {
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>
           {isView ? "Editar Reserva" : "Nueva Reserva"}
         </Typography>
-        {isView && form.phone && (
+        {isView && form.phone && modulesConfig?.clientes !== false && (
           <OutlinedButton
             startIcon={<HistoryIcon />}
             onClick={handleOpenFicha}
@@ -111,7 +173,7 @@ export default function ReservationForm() {
             label="Teléfono"
             value={form.phone}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, phone: e.target.value })}
             required
             sx={{ mb: 2 }}
           />
@@ -119,21 +181,26 @@ export default function ReservationForm() {
             label="Nombre Cliente"
             value={form.nombre}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, nombre: e.target.value })}
             sx={{ mb: 2 }}
           />
-          <Input
+          <Select
             label="Rubro / Servicio"
             value={form.rubro}
-            variant="outlined"
-            onChange={(e) => setForm({ ...form, rubro: e.target.value })}
-            sx={{ mb: 2 }}
+            onChange={(e: any) => setForm({ ...form, rubro: e.target.value })}
+            options={[
+              { value: "", label: "Seleccionar servicio..." },
+              ...availableServices.map((s: any) => ({
+                value: s.title,
+                label: s.title
+              }))
+            ]}
           />
           <DateInput
             label="Fecha"
             value={form.fecha}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, fecha: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, fecha: e.target.value })}
             sx={{ mb: 2 }}
             required
           />
@@ -143,25 +210,22 @@ export default function ReservationForm() {
             variant="outlined"
             InputLabelProps={{ shrink: true }}
             value={form.horario}
-            onChange={(e) => setForm({ ...form, horario: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, horario: e.target.value })}
             sx={{ mb: 2 }}
             required
           />
 
-          <Input
-            label="Producto"
-            value={form.producto}
-            variant="outlined"
-            onChange={(e) => setForm({ ...form, producto: e.target.value })}
-            sx={{ mb: 2 }}
+          <ProductSelector 
+            items={form.items}
+            onChange={updateItemsAndTotals}
           />
 
           <Input
-            label="Monto Pago"
+            label="Monto Total Pago ($)"
             type="number"
             value={form.monto_pago}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, monto_pago: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, monto_pago: e.target.value })}
             sx={{ mb: 2 }}
           />
 
@@ -171,7 +235,7 @@ export default function ReservationForm() {
             rows={3}
             value={form.observaciones}
             variant="outlined"
-            onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, observaciones: e.target.value })}
             sx={{ mb: 3 }}
           />
 
@@ -191,6 +255,21 @@ export default function ReservationForm() {
         clientName={form.nombre}
         phone={form.phone}
       />
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -72,7 +72,8 @@ export default function ImageUploader({
 
       <Box
         sx={{
-          border: '2px dashed #ddd',
+          border: '2px dashed',
+          borderColor: 'divider',
           borderRadius: 2,
           minHeight: 200,
           p: 2,
@@ -120,10 +121,11 @@ export default function ImageUploader({
                     position: 'relative',
                     width: 120,
                     height: 120,
-                    border: '1px solid #e0e0e0',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     borderRadius: 2,
                     overflow: 'hidden',
-                    bgcolor: 'white',
+                    backgroundColor: 'background.paper',
                   }}
                 >
                   <img
@@ -142,9 +144,9 @@ export default function ImageUploader({
                       top: 4,
                       right: 4,
                       borderRadius: 2,
-                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                      bgcolor: 'background.paper',
                       '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 1)',
+                        bgcolor: 'action.hover',
                       },
                       color: 'error.main',
                     }}
@@ -163,15 +165,16 @@ export default function ImageUploader({
                   sx={{
                     width: 120,
                     height: 120,
-                    border: '2px dashed #bbb',
+                    border: '2px dashed',
+                    borderColor: 'divider',
                     borderRadius: 2,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    bgcolor: 'rgba(0, 0, 0, 0.02)',
+                    backgroundColor: 'action.hover',
                     '&:hover': {
                       borderColor: 'primary.main',
-                      bgcolor: 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: 'action.selected',
                     },
                   }}
                 >

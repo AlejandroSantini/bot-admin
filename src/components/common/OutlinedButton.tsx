@@ -23,9 +23,11 @@ export function OutlinedButton({ icon, children, loading, disabled, ...props }: 
         letterSpacing: 0,
         fontSize: '1rem',
         borderWidth: 1,
+        height: 40,
+        whiteSpace: 'nowrap',
         minWidth: loading ? 140 : undefined,
         '&:hover': {
-          background: '#f5f5f5',
+          backgroundColor: 'action.hover',
           borderWidth: 1,
           boxShadow: 'none',
         },

@@ -24,6 +24,7 @@ import {
   obtenerReservas,
   cancelarReserva,
 } from "../../services/reservaService";
+import { Paginator } from "../../components/common/Paginator";
 
 export default function Reservations() {
   const navigate = useNavigate();
@@ -33,14 +34,24 @@ export default function Reservations() {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-  const loadReservas = async (searchStr?: string) => {
+  const loadReservas = async (searchStr?: string, pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await obtenerReservas({ search: searchStr });
+      const res = await obtenerReservas({ search: searchStr, page: pageNum, limit: 10 });
       const list = Array.isArray(res) ? res : res.data || [];
       setReservas(list);
+      if (res.pagination) {
+        setTotalPages(res.pagination.totalPages);
+        setTotalItems(res.pagination.total);
+      } else {
+        setTotalPages(1);
+        setTotalItems(list.length);
+      }
     } catch (err: any) {
       console.error(err);
       setError("Error cargando reservas");
@@ -51,22 +62,26 @@ export default function Reservations() {
   };
 
   useEffect(() => {
-    if (!search) {
-      loadReservas();
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (!search && search !== undefined) {
+      loadReservas(undefined, page);
       return;
     }
     const timer = setTimeout(() => {
-      loadReservas(search);
+      loadReservas(search, page);
     }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, page]);
 
   const handleCancel = async (id: string | number) => {
     if (!window.confirm("¿Estás seguro de que deseas cancelar esta reserva?"))
       return;
     try {
       await cancelarReserva(id);
-      loadReservas();
+      loadReservas(search, page);
     } catch (err) {
       alert("Error al cancelar la reserva");
     }
@@ -122,16 +137,25 @@ export default function Reservations() {
     {
       label: "Lista",
       content: content || (
-        <Table
-          columns={columns}
-          data={reservas}
-          getRowKey={(r: any) => r._id || r.id}
-          onRowClick={(r: any) =>
-            navigate(`/reservas/${r._id || r.id}`, { state: { tab: 0 } })
-          }
-          emptyMessage="No hay reservas."
-          // loading handled in parent
-        />
+        <>
+          <Table
+            columns={columns}
+            data={reservas}
+            getRowKey={(r: any) => r._id || r.id}
+            onRowClick={(r: any) =>
+              navigate(`/reservas/${r._id || r.id}`, { state: { tab: 0 } })
+            }
+            emptyMessage="No hay reservas."
+            pagination={
+              <Paginator
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                onPageChange={(_, newPage) => setPage(newPage)}
+              />
+            }
+          />
+        </>
       ),
     },
     {
@@ -148,14 +172,14 @@ export default function Reservations() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Reservas
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <Box sx={{ width: 350 }}>
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, alignItems: { xs: "stretch", sm: "center" } }}>
+          <Box sx={{ width: { xs: "100%", sm: 350 } }}>
             <Input
               label="Buscar por Nombre o Teléfono"
               value={search}

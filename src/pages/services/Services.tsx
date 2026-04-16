@@ -73,25 +73,16 @@ export default function Services() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mb: 2,
-          alignItems: "center",
-        }}
-      >
+    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 2 }}>
         <Typography variant="h5">Servicios</Typography>
 
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <ContainedButton
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/servicios/nuevo")}
-          >
-            Nuevo Servicio
-          </ContainedButton>
-        </Box>
+        <ContainedButton
+          startIcon={<AddIcon />}
+          onClick={() => navigate("/servicios/nuevo")}
+        >
+          Nuevo Servicio
+        </ContainedButton>
       </Box>
 
       {error && (
@@ -100,21 +91,19 @@ export default function Services() {
         </Alert>
       )}
 
-      <CustomPaper>
-        {loading ? (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Table
-            columns={columns}
-            data={services}
-            getRowKey={(s: any) => s._id || s.id}
-            onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
-            emptyMessage="No hay servicios."
-          />
-        )}
-      </CustomPaper>
+      {loading ? (
+        <Box sx={{ p: 4, textAlign: "center" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Table
+          columns={columns}
+          data={services}
+          getRowKey={(s: any) => s._id || s.id}
+          onRowClick={(s: any) => navigate(`/servicios/${s.id || s._id}`)}
+          emptyMessage="No hay servicios."
+        />
+      )}
     </Box>
   );
 }

@@ -21,6 +21,7 @@ export function DateInput({ label, sx, variant = 'outlined', ...props }: DateInp
         mt: 0,
         '& .MuiInputBase-root': {
           borderRadius: 2,
+          backgroundColor: 'background.paper',
         },
         ...(sx || {}),
       }}

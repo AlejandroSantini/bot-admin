@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Box, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { createCliente } from "../../services/clienteService";
+import { useState, useEffect } from "react";
+import { Box, Typography, CircularProgress } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import { createCliente, getClienteById, updateCliente } from "../../services/clienteService";
 import { BackButton } from "../../components/common/BackButton";
 
 import { CustomPaper } from "../../components/common/CustomPaper";
@@ -12,22 +12,46 @@ import { OutlinedButton } from "../../components/common/OutlinedButton";
 
 export default function ClientForm() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [form, setForm] = useState({
     phone_number: "",
     nombre_completo: "",
-    profile_name: "Manual",
     origen_cliente: "manual_admin",
   });
   const [loading, setLoading] = useState(false);
+  const [initLoading, setInitLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      const loadCliente = async () => {
+        try {
+          const res = await getClienteById(id);
+          const c = res.data || res;
+          setForm({
+            phone_number: c.phone_number || "",
+            nombre_completo: c.nombre_completo || "",
+            origen_cliente: c.origen_cliente || "manual_admin",
+          });
+        } catch (err) {
+          alert("Error cargando el cliente");
+        } finally {
+          setInitLoading(false);
+        }
+      };
+      loadCliente();
+    } else {
+      navigate("/clientes");
+    }
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await createCliente(form);
+      await updateCliente(id!, form);
       navigate("/clientes");
     } catch (err) {
-      alert("Error creando cliente");
+      alert("Error actualizando cliente");
     } finally {
       setLoading(false);
     }
@@ -38,21 +62,28 @@ export default function ClientForm() {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
         <BackButton to="/clientes" />
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Nuevo Cliente
+          Editar Cliente
         </Typography>
       </Box>
+
+      {initLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
           <Input
-            label="Teléfono (con código país, ej 549...)"
+            label="Teléfono"
             value={form.phone_number}
             variant="outlined"
             onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
             sx={{ mb: 2 }}
             required
+            helperText="Ej: 5493446532255"
           />
           <Input
-            label="Nombre Completo"
+            label="Nombre"
             value={form.nombre_completo}
             variant="outlined"
             onChange={(e) =>
@@ -71,6 +102,7 @@ export default function ClientForm() {
           </ContainedButton>
         </form>
       </CustomPaper>
+      )}
     </Box>
   );
 }
