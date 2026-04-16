@@ -36,3 +36,8 @@ export const pauseCliente = async (id: string | number, paused: boolean) => {
   const response = await api.patch(`/api/clientes/${id}/pause`, { paused });
   return response.data;
 };
+
+export const blockCliente = async (id: string | number, blocked: boolean) => {
+  const response = await api.patch(`/api/clientes/${id}/block`, { blocked });
+  return response.data;
+};

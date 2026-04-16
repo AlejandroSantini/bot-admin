@@ -64,11 +64,6 @@ export default function TopBar({
         >
           {title}
         </Typography>
-        <Box>
-          <IconButton onClick={toggleColorMode} color="inherit">
-            {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        </Box>
       </Toolbar>
     </AppBar>
   );

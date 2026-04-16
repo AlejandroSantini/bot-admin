@@ -95,7 +95,7 @@ export default function Login() {
               {...register("phone_number_id", {
                 required: "El ID del número de teléfono es requerido",
               })}
-              label="Phone Number ID"
+              label="Usuario"
               type="text"
               error={!!errors.phone_number_id}
               helperText={errors.phone_number_id?.message}

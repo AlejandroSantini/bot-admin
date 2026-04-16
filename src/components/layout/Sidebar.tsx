@@ -19,6 +19,7 @@ import {
   ExitToApp as LogoutIcon,
   ShoppingBag as ProductoIcon,
   Campaign as CampaignIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -61,6 +62,11 @@ const menuItems: SidebarItem[] = [
     icon: <CampaignIcon />,
     path: "/campanas",
     configKey: "campanas",
+  },
+  {
+    text: "Configuración",
+    icon: <SettingsIcon />,
+    path: "/configuracion",
   },
 ];
 

@@ -1,8 +1,8 @@
 import { TextField } from '@mui/material';
-import type { OutlinedTextFieldProps } from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
 import type { ChangeEvent, ReactNode } from 'react';
 
-export interface InputProps extends Omit<OutlinedTextFieldProps, 'value'> {
+export interface InputProps extends Omit<TextFieldProps, 'value'> {
   label: string;
   icon?: ReactNode;
   type?: string;
@@ -27,6 +27,14 @@ export function Input({ label, icon, type, sx, variant = 'outlined', endAdornmen
         '& .MuiInputBase-root': {
           borderRadius: 2,
           backgroundColor: 'background.paper',
+          '& input': {
+            color: 'text.primary',
+          }
+        },
+        '& input:-webkit-autofill': {
+          WebkitBoxShadow: (theme: any) => `0 0 0 100px ${theme.palette.background.paper} inset !important`,
+          WebkitTextFillColor: (theme: any) => `${theme.palette.text.primary} !important`,
+          transition: 'background-color 5000s ease-in-out 0s !important',
         },
         ...(sx || {}),
       }}

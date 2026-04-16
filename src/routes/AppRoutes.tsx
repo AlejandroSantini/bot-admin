@@ -16,6 +16,7 @@ import Products from "../pages/products/Products";
 import ProductForm from "../pages/products/ProductForm";
 import Campaigns from "../pages/campaigns/Campaigns";
 import CampaignForm from "../pages/campaigns/CampaignForm";
+import Settings from "../pages/settings/Settings";
 
 export default function AppRoutes() {
   return (
@@ -156,6 +157,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuracion"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />

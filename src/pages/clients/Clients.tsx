@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -6,16 +6,15 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Chip,
 } from "@mui/material";
-import { CustomPaper } from "../../components/common/CustomPaper";
-import { Table } from "../../components/common/Table"; // Assuming this exists
+import { Table } from "../../components/common/Table";
 import DeleteButton from "../../components/common/DeleteButton";
 import {
   getClientes,
   deleteCliente,
   getFichasCliente,
   pauseCliente,
+  blockCliente,
 } from "../../services/clienteService";
 import { Input } from "../../components/common/Input";
 import { Paginator } from "../../components/common/Paginator";
@@ -24,10 +23,10 @@ import {
   PlayArrow as PlayIcon,
   Pause as PauseIcon,
   Search as SearchIcon,
+  Block as BlockIcon,
 } from "@mui/icons-material";
 import { FichaClienteModal } from "../../components/FichaClienteModal";
 import { InputAdornment } from "@mui/material";
-import api from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 
 interface Cliente {
@@ -39,6 +38,7 @@ interface Cliente {
   origen_cliente?: string;
   tenant_id?: string;
   bot_paused?: boolean;
+  blocked?: boolean;
   [key: string]: any;
 }
 
@@ -104,8 +104,8 @@ export default function Clients() {
     if (!window.confirm("¿Seguro de eliminar este cliente?")) return;
     try {
       await deleteCliente(id);
-      setClients((prev) => prev.filter((c) => c._id !== id && c.id !== id)); // Handle _id vs id
-      loadClients(); // Reload to be sure
+      setClients((prev) => prev.filter((c) => c._id !== id && c.id !== id));
+      loadClients();
     } catch (err) {
       alert("Error eliminando");
     }
@@ -125,6 +125,18 @@ export default function Clients() {
       loadClients(search);
     } catch (err) {
       alert("Error al cambiar estado de pausa");
+    }
+  };
+
+  const handleToggleBlock = async (
+    id: string | number,
+    currentBlocked: boolean,
+  ) => {
+    try {
+      await blockCliente(id, !currentBlocked);
+      loadClients(search);
+    } catch (err) {
+      alert("Error al cambiar estado de bloqueo");
     }
   };
 
@@ -188,6 +200,17 @@ export default function Clients() {
               <HistoryIcon />
             </IconButton>
           )}
+          <IconButton
+            size="small"
+            color={c.blocked ? "error" : "default"}
+            title={c.blocked ? "Desbloquear Cliente" : "Bloquear Cliente"}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleBlock(c._id || c.id, !!c.blocked);
+            }}
+          >
+            <BlockIcon />
+          </IconButton>
           <DeleteButton
             onClick={(e) => {
               e?.stopPropagation();
@@ -250,23 +273,21 @@ export default function Clients() {
           <CircularProgress />
         </Box>
       ) : (
-        <>
-          <Table
-            columns={columns}
-            data={clients}
-            getRowKey={(c: any) => c._id || c.id}
-            onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
-            emptyMessage="No hay clientes registrados."
-            pagination={
-              <Paginator
-                page={page}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                onPageChange={(_, newPage) => setPage(newPage)}
-              />
-            }
-          />
-        </>
+        <Table
+          columns={columns}
+          data={clients}
+          getRowKey={(c: any) => c._id || c.id}
+          onRowClick={(c: Cliente) => navigate(`/clientes/${c._id || c.id}`)}
+          emptyMessage="No hay clientes registrados."
+          pagination={
+            <Paginator
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              onPageChange={(_, newPage) => setPage(newPage)}
+            />
+          }
+        />
       )}
 
       <FichaClienteModal
