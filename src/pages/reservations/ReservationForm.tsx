@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Autocomplete, TextField, IconButton, Snackbar, Alert } from "@mui/material";
+import { Box, Typography, IconButton, Snackbar, Alert, CircularProgress } from "@mui/material";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { History as HistoryIcon, Close as CloseIcon } from "@mui/icons-material";
+import { ClientSearch } from "../../components/common/ClientSearch";
 import { crearReserva, obtenerReserva, actualizarReserva } from "../../services/reservaService";
-import { getFichasCliente } from "../../services/clienteService";
+import { getClientes, getFichasCliente } from "../../services/clienteService";
 import { getServices } from "../../services/serviceService";
 import api from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
@@ -169,6 +170,20 @@ export default function ReservationForm() {
       </Box>
       <CustomPaper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
+          <ClientSearch 
+            value={form.nombre}
+            onTextChange={(val) => setForm(prev => ({ ...prev, nombre: val }))}
+            onChange={(client) => {
+              setForm(prev => ({
+                ...prev,
+                nombre: client.nombre_completo || "",
+                phone: client.phone_number || client.wa_id || "",
+                mail: client.email || client.mail || "",
+              }));
+            }}
+            required
+          />
+
           <Input
             label="Teléfono"
             value={form.phone}
@@ -177,11 +192,12 @@ export default function ReservationForm() {
             required
             sx={{ mb: 2 }}
           />
+
           <Input
-            label="Nombre Cliente"
-            value={form.nombre}
+            label="Email (Opcional)"
+            value={form.mail}
             variant="outlined"
-            onChange={(e: any) => setForm({ ...form, nombre: e.target.value })}
+            onChange={(e: any) => setForm({ ...form, mail: e.target.value })}
             sx={{ mb: 2 }}
           />
           <Select
