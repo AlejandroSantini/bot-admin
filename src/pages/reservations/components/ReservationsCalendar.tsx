@@ -191,6 +191,7 @@ export default function ReservationsCalendar({
           noEventsInRange: "No hay reservas en este rango.",
         }}
         defaultView={Views.MONTH}
+        popup={true}
         onSelectEvent={(e: any) => onSelectEvent && onSelectEvent(e.resource)}
         views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
         // Custom event styling if we wanted colors based on status/type

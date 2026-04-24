@@ -8,8 +8,9 @@ import {
   CircularProgress,
   Tooltip,
   Chip,
+  IconButton,
 } from "@mui/material"; // Keep basic layout/feedback
-import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
+import { Search as SearchIcon, Add as AddIcon, Check as CheckIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { Table } from "../../components/common/Table";
@@ -23,6 +24,7 @@ import ReservationsCalendar from "./components/ReservationsCalendar";
 import {
   obtenerReservas,
   cancelarReserva,
+  actualizarReserva,
 } from "../../services/reservaService";
 import { Paginator } from "../../components/common/Paginator";
 
@@ -30,6 +32,7 @@ export default function Reservations() {
   const navigate = useNavigate();
   const location = useLocation();
   const [reservas, setReservas] = useState<any[]>([]);
+  const [allReservas, setAllReservas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +40,16 @@ export default function Reservations() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+
+  const loadAllReservas = async () => {
+    try {
+      const res = await obtenerReservas({ page: 1, limit: 999999 });
+      const list = Array.isArray(res) ? res : res.data || [];
+      setAllReservas(list);
+    } catch (err) {
+      console.error("Error loading all reservations for calendar", err);
+    }
+  };
 
   const loadReservas = async (searchStr?: string, pageNum = 1) => {
     setLoading(true);
@@ -62,6 +75,10 @@ export default function Reservations() {
   };
 
   useEffect(() => {
+    loadAllReservas();
+  }, []);
+
+  useEffect(() => {
     setPage(1);
   }, [search]);
 
@@ -82,8 +99,19 @@ export default function Reservations() {
     try {
       await cancelarReserva(id);
       loadReservas(search, page);
+      loadAllReservas();
     } catch (err) {
       alert("Error al cancelar la reserva");
+    }
+  };
+
+  const handleConfirm = async (id: string | number) => {
+    try {
+      await actualizarReserva(id, { estado: "confirmado" });
+      loadReservas(search, page);
+      loadAllReservas();
+    } catch (err) {
+      alert("Error al confirmar la reserva");
     }
   };
 
@@ -116,13 +144,28 @@ export default function Reservations() {
     {
       label: "Acciones",
       render: (r: any) => (
-        <DeleteButton
-          variant="cancel"
-          onClick={(e) => {
-            e?.stopPropagation();
-            handleCancel(r._id || r.id);
-          }}
-        />
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {r.estado === "pendiente" && (
+            <IconButton
+              size="small"
+              color="success"
+              title="Confirmar Reserva"
+              onClick={(e) => {
+                e?.stopPropagation();
+                handleConfirm(r._id || r.id);
+              }}
+            >
+              <CheckIcon fontSize="small" />
+            </IconButton>
+          )}
+          <DeleteButton
+            variant="cancel"
+            onClick={(e) => {
+              e?.stopPropagation();
+              handleCancel(r._id || r.id);
+            }}
+          />
+        </Box>
       ),
     },
   ];
@@ -162,7 +205,7 @@ export default function Reservations() {
       label: "Calendario",
       content: content || (
         <ReservationsCalendar
-          reservas={reservas}
+          reservas={allReservas}
           onSelectEvent={(r) => {
             navigate(`/reservas/${r._id || r.id}`, { state: { tab: 1 } });
           }}
