@@ -28,3 +28,7 @@ export const actualizarReserva = async (id: string | number, data: any) => {
   const response = await api.patch(`/api/reservas/${id}`, data);
   return response.data;
 };
+export const syncCalendar = async () => {
+  const response = await api.post("/api/reservas/sync-calendar");
+  return response.data;
+};

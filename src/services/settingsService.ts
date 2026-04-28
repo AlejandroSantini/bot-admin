@@ -97,6 +97,17 @@ export const settingsService = {
   updateBlockedDates: async (config: { blocked_dates: BlockedDate[] }) => {
     const response = await api.put("/api/tenants/blocked-dates", config);
     return response.data;
+  },
+
+  // ADMIN NOTIFICATIONS
+  getConfig: async () => {
+    const response = await api.get("/api/tenants/config");
+    return response.data;
+  },
+  updateConfig: async (payload: { config: any }) => {
+    const response = await api.put("/api/tenants/config", payload);
+
+    return response.data;
   }
 };
 

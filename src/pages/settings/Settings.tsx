@@ -6,6 +6,7 @@ import PaymentsTab from "./PaymentsTab";
 import BlockedDatesTab from "./BlockedDatesTab";
 import SystemTab from "./SystemTab";
 import ProfileSection from "./ProfileSection";
+import NotificationsTab from "./NotificationsTab";
 import { CustomPaper } from "../../components/common/CustomPaper";
 
 export default function Settings() {
@@ -93,6 +94,7 @@ export default function Settings() {
               <Tab label="Bloqueos" value="blocks" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
             <Tab label="Sistema" value="system" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
+            <Tab label="Notificaciones" value="notifications" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             <Tab label="Mi Perfil" value="profile" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
           </Tabs>
         </Box>
@@ -105,6 +107,12 @@ export default function Settings() {
             <SystemTab 
               initialReminders={tenant.reminder_config} 
               initialModulesConfig={tenant.modules_config}
+              showReservations={showReservationsConfig}
+            />
+          )}
+          {activeTab === "notifications" && (
+            <NotificationsTab 
+              initialReminders={tenant.reminder_config} 
               showReservations={showReservationsConfig}
             />
           )}

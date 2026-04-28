@@ -9,6 +9,11 @@ import {
   Tooltip,
   Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material"; // Keep basic layout/feedback
 import { Search as SearchIcon, Add as AddIcon, Check as CheckIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +30,9 @@ import {
   obtenerReservas,
   cancelarReserva,
   actualizarReserva,
+  syncCalendar,
 } from "../../services/reservaService";
+import { settingsService } from "../../services/settingsService";
 import { Paginator } from "../../components/common/Paginator";
 
 export default function Reservations() {
@@ -35,6 +42,37 @@ export default function Reservations() {
   const [allReservas, setAllReservas] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [selectedReserva, setSelectedReserva] = useState<any | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const data = await settingsService.getConfig();
+        const config = data?.config || data;
+        if (config?.calendar_sync_enabled) {
+          setCalendarSyncEnabled(true);
+        }
+      } catch (err) {
+        console.error("Error fetching config in Reservations", err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const handleSyncCalendar = async () => {
+    try {
+      setSyncing(true);
+      await syncCalendar();
+      alert("Sincronización completada con éxito");
+    } catch (err) {
+      alert("Error al sincronizar con Google Calendar");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -207,7 +245,8 @@ export default function Reservations() {
         <ReservationsCalendar
           reservas={allReservas}
           onSelectEvent={(r) => {
-            navigate(`/reservas/${r._id || r.id}`, { state: { tab: 1 } });
+            setSelectedReserva(r);
+            setOpenDialog(true);
           }}
         />
       ),
@@ -236,6 +275,15 @@ export default function Reservations() {
               }
             />
           </Box>
+          {calendarSyncEnabled && (
+            <ContainedButton
+              onClick={handleSyncCalendar}
+              disabled={syncing}
+              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'secondary.dark' } }}
+            >
+              {syncing ? <CircularProgress size={20} color="inherit" /> : "🔄 Sincronizar desde Google Calendar"}
+            </ContainedButton>
+          )}
           <ContainedButton
             startIcon={<AddIcon />}
             onClick={() => navigate("/reservas/nueva")}
@@ -255,6 +303,78 @@ export default function Reservations() {
         tabs={tabs}
         defaultTab={location.state?.tab !== undefined ? location.state.tab : 0}
       />
+
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Detalles de la Reserva</DialogTitle>
+        <DialogContent dividers>
+          {selectedReserva && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Typography variant="body2"><strong>Cliente:</strong> {selectedReserva.nombre || selectedReserva.phone || "-"}</Typography>
+              <Typography variant="body2"><strong>Teléfono:</strong> {selectedReserva.phone || "-"}</Typography>
+              <Typography variant="body2"><strong>Fecha:</strong> {selectedReserva.fecha || "-"}</Typography>
+              <Typography variant="body2"><strong>Horario:</strong> {selectedReserva.horario || "-"}</Typography>
+              <Typography variant="body2"><strong>Servicio:</strong> {selectedReserva.rubro || selectedReserva.motivo || "-"}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                <Typography variant="body2"><strong>Estado:</strong></Typography>
+                <Chip
+                  label={selectedReserva.estado?.toUpperCase() || "PENDIENTE"}
+                  size="small"
+                  color={
+                    selectedReserva.estado === "confirmado"
+                      ? "success"
+                      : selectedReserva.estado === "cancelado"
+                      ? "error"
+                      : "warning"
+                  }
+                  sx={{ fontWeight: 600, fontSize: "0.65rem" }}
+                />
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setOpenDialog(false)} variant="outlined" size="small">
+            Cerrar
+          </Button>
+          <Button 
+            onClick={() => {
+              setOpenDialog(false);
+              navigate(`/reservas/${selectedReserva._id || selectedReserva.id}`, { state: { tab: 1 } });
+            }}
+            variant="outlined" 
+            color="primary"
+            size="small"
+          >
+            Ver Detalles
+          </Button>
+          {selectedReserva && selectedReserva.estado === "pendiente" && (
+            <Button
+              onClick={() => {
+                handleConfirm(selectedReserva._id || selectedReserva.id);
+                setOpenDialog(false);
+              }}
+              variant="contained"
+              color="success"
+              size="small"
+            >
+              Confirmar
+            </Button>
+          )}
+          {selectedReserva && selectedReserva.estado !== "cancelado" && (
+            <Button
+              onClick={() => {
+                handleCancel(selectedReserva._id || selectedReserva.id);
+                setOpenDialog(false);
+              }}
+              variant="contained"
+              color="error"
+              size="small"
+            >
+              Eliminar
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
