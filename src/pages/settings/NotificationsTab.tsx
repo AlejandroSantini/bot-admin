@@ -51,7 +51,8 @@ export default function NotificationsTab({
     const fetchConfig = async () => {
       try {
         const data = await settingsService.getConfig();
-        const config = data?.config || data;
+        const config = data?.data || data?.config || data;
+
         if (config?.admin_notifications) {
           setAdminNotifications({
             CREAR: !!config.admin_notifications.CREAR,

@@ -51,7 +51,8 @@ export default function Reservations() {
     const fetchConfig = async () => {
       try {
         const data = await settingsService.getConfig();
-        const config = data?.config || data;
+        const config = data?.data || data?.config || data;
+
         if (config?.calendar_sync_enabled) {
           setCalendarSyncEnabled(true);
         }
