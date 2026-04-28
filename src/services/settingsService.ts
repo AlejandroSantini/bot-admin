@@ -112,6 +112,30 @@ export const settingsService = {
   getBilling: async () => {
     const response = await api.get("/api/tenants/billing");
     return response.data;
+  },
+  
+  // ONBOARDING PIPELINE
+  uploadOnboardingFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await api.post("/api/onboarding/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+  getOnboardingData: async () => {
+    const response = await api.get("/api/onboarding/data");
+    return response.data;
+  },
+  updateOnboardingData: async (structuredData: any) => {
+    const response = await api.put("/api/onboarding/data", { structured_data: structuredData });
+    return response.data;
+  },
+  approveOnboarding: async () => {
+    const response = await api.post("/api/onboarding/approve");
+    return response.data;
   }
 };
 

@@ -22,6 +22,7 @@ import {
   Settings as SettingsIcon,
   BarChart as BarChartIcon,
   Receipt as ReceiptIcon,
+  SmartToy as AssistantIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -76,6 +77,12 @@ const menuItems: SidebarItem[] = [
     icon: <ReceiptIcon />,
     path: "/facturacion",
     configKey: "facturacion",
+  },
+  {
+    text: "Flujo del bot",
+    icon: <AssistantIcon />,
+    path: "/asistente",
+    configKey: "asistente",
   },
   {
     text: "Configuración",

@@ -19,6 +19,7 @@ import CampaignForm from "../pages/campaigns/CampaignForm";
 import Settings from "../pages/settings/Settings";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Billing from "../pages/billing/Billing";
+import Onboarding from "../pages/onboarding/Onboarding";
 
 export default function AppRoutes() {
   return (
@@ -175,6 +176,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <Billing />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/asistente"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
             </ProtectedRoute>
           }
         />
