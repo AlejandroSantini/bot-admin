@@ -43,6 +43,7 @@ export default function NotificationsTab({
 
   const [saving, setSaving] = useState(false);
   const [savingAdmin, setSavingAdmin] = useState(false);
+  const [savingCalendar, setSavingCalendar] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -89,18 +90,25 @@ export default function NotificationsTab({
     setAdminNotifications((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleToggleCalendarSync = async (value: boolean) => {
+  const handleToggleCalendarSync = (value: boolean) => {
+    setCalendarSyncEnabled(value);
+  };
+
+  const handleSaveCalendarSync = async () => {
     try {
-      setCalendarSyncEnabled(value);
+      setSavingCalendar(true);
+      setError(null);
       await settingsService.updateConfig({
         config: {
-          calendar_sync_enabled: value,
+          calendar_sync_enabled: !!calendarSyncEnabled,
         },
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError("Error al actualizar la configuración de Google Calendar");
+      setError("Error al guardar la configuración de Google Calendar");
+    } finally {
+      setSavingCalendar(false);
     }
   };
 
@@ -352,6 +360,28 @@ export default function NotificationsTab({
                 color="primary"
                 size="small"
               />
+            </Box>
+
+            <Box
+              sx={{
+                mt: 3,
+                pt: 1,
+                borderTop: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <ContainedButton
+                onClick={handleSaveCalendarSync}
+                disabled={savingCalendar}
+              >
+                {savingCalendar ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "Guardar"
+                )}
+              </ContainedButton>
             </Box>
           </CardContent>
         </Card>
