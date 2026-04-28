@@ -1,4 +1,6 @@
+// Cambio mínimo para forzar deploy
 import React, { useState, useEffect } from "react";
+
 import {
   Box,
   Typography,
