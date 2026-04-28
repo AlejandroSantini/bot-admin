@@ -108,6 +108,10 @@ export const settingsService = {
     const response = await api.put("/api/tenants/config", payload);
 
     return response.data;
+  },
+  getBilling: async () => {
+    const response = await api.get("/api/tenants/billing");
+    return response.data;
   }
 };
 

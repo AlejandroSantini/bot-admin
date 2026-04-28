@@ -18,6 +18,7 @@ import Campaigns from "../pages/campaigns/Campaigns";
 import CampaignForm from "../pages/campaigns/CampaignForm";
 import Settings from "../pages/settings/Settings";
 import Dashboard from "../pages/dashboard/Dashboard";
+import Billing from "../pages/billing/Billing";
 
 export default function AppRoutes() {
   return (
@@ -166,6 +167,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute moduleKey="reservas">
               <ReservationForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/facturacion"
+          element={
+            <ProtectedRoute>
+              <Billing />
             </ProtectedRoute>
           }
         />

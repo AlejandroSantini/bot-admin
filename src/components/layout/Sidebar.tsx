@@ -21,6 +21,7 @@ import {
   Campaign as CampaignIcon,
   Settings as SettingsIcon,
   BarChart as BarChartIcon,
+  Receipt as ReceiptIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -69,6 +70,12 @@ const menuItems: SidebarItem[] = [
     icon: <CampaignIcon />,
     path: "/campanas",
     configKey: "campanas",
+  },
+  {
+    text: "Facturación",
+    icon: <ReceiptIcon />,
+    path: "/facturacion",
+    configKey: "facturacion",
   },
   {
     text: "Configuración",
