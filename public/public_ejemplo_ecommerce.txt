@@ -1,0 +1,37 @@
+--- DOCUMENTO DE CONFIGURACIÓN DEL BOT DE VENTAS ---
+Usa este formato como guía. Sube un documento similar con la información real de tu negocio para que nuestra IA pueda programar tu bot de WhatsApp automáticamente.
+
+[INFORMACIÓN GENERAL]
+Nombre del Negocio: Tienda Tech
+Ubicación / Dirección: Sólo envíos online. Depósito en Palermo, CABA.
+Redes Sociales: Instagram @tiendatech
+Tono de voz: Profesional, directo y servicial. No uses emojis excesivos.
+
+[FLUJO DEL BOT]
+Quiero que el bot salude, muestre el menú principal con opciones de "Comprar", "Seguimiento de Envío" y "Hablar con un asesor". Si eligen comprar, quiero que muestre nuestras categorías principales (Celulares, Accesorios, Computación). Si eligen seguimiento, que les pida su número de tracking.
+
+[CATÁLOGO DE PRODUCTOS / CATEGORÍAS]
+1. Celulares
+   - iPhone 15: $1.200.000
+   - Samsung S24: $1.150.000
+2. Accesorios
+   - Fundas Silicona: $15.000
+   - Cargadores Rápidos: $35.000
+
+[MERCADO PAGO & COBROS]
+Configuración de pagos:
+- Alias de Mercado Pago: tiendatech.mp
+- Requerir pago previo al envío: Todos los clientes
+- Monto mínimo de compra: $5000
+
+[POLÍTICAS Y REGLAS DEL LOCAL]
+Envíos: Hacemos envíos a todo el país por Correo Argentino. Demoran 3 a 5 días hábiles.
+Garantía: Todos los productos tienen 6 meses de garantía directa de fábrica.
+Horas de anticipación para cancelar pedido: 4 (Horas antes de que se despache el paquete).
+
+[PREGUNTAS FRECUENTES - FAQs]
+P: ¿Tienen local al público?
+R: No, somos una tienda 100% online, hacemos envíos a todo el país de forma segura.
+
+P: ¿Qué medios de pago aceptan?
+R: Aceptamos transferencias bancarias (15% de descuento) y tarjetas en hasta 3 cuotas sin interés mediante Mercado Pago.

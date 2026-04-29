@@ -136,7 +136,11 @@ export const settingsService = {
   approveOnboarding: async () => {
     const response = await api.post("/api/onboarding/approve");
     return response.data;
-  }
+  },
+  saveFlowDefinition: async (nodes: any[], edges: any[]) => {
+    const response = await api.put("/api/onboarding/flow", { nodes, edges });
+    return response.data;
+  },
 };
 
 export interface BlockedDate {

@@ -35,8 +35,15 @@ Duración aproximada por turno: 60 minutos.
 
 [POLÍTICAS Y REGLAS DEL LOCAL]
 Tolerancia de llegada tarde: Te esperamos hasta 15 minutos máximo. Pasado ese tiempo se cancela el turno.
-Política de Seña: Para confirmar el turno pedimos una seña obligatoria de $2000 por transferencia al alias: barberia.mp.
 Estacionamiento: Contamos con estacionamiento gratuito para clientes en la puerta.
+
+[MERCADO PAGO & COBROS (SEÑAS)]
+Configuración para cobro de señas:
+- Activar cobro de seña: Sí
+- Monto de la seña: $3000
+- Alias de Mercado Pago: barberia.mp
+- Requerir pago para: "Solo clientes nuevos" (El bot detecta si el WhatsApp ya está registrado) o "Todos los clientes".
+- Horas de anticipación para cancelar: 4 (Horas antes que tiene el cliente para cancelar sin perder la seña).
 
 [PREGUNTAS FRECUENTES - FAQs]
 (Redacta las preguntas típicas que te hacen tus clientes en el día a día).

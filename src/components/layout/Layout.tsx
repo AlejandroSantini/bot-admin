@@ -17,6 +17,18 @@ export default function Layout() {
   const mainPath = "/" + path.split("/")[1];
   const selectedMenuItem = path === mainPath ? path : mainPath;
 
+  const SECTION_LABELS: Record<string, string> = {
+    "/":            "Estadísticas",
+    "/estadisticas":"Estadísticas",
+    "/reservas":    "Reservas",
+    "/clientes":    "Clientes",
+    "/servicios":   "Servicios",
+    "/productos":   "Productos",
+    "/asistente":   "Flujo del Bot",
+    "/configuracion": "Configuración",
+  };
+  const pageTitle = SECTION_LABELS[mainPath] ?? "Panel Admin";
+
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -48,6 +60,7 @@ export default function Layout() {
       />
       <Box sx={{ flexGrow: 1, width: { xs: "100%", md: `calc(100% - ${sidebarWidth}px)` }, maxWidth: "100vw", overflowX: "hidden" }}>
         <TopBar
+          title={pageTitle}
           drawerWidth={sidebarWidth}
           isMobile={isMobile}
           onMenuClick={() => setMobileOpen(true)}
