@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Typography, Tooltip, IconButton, CircularProgress, Alert,
@@ -6,14 +6,20 @@ import {
 import {
   ReactFlow, Controls, Background, addEdge,
   applyNodeChanges, applyEdgeChanges, MarkerType,
+  ReactFlowProvider, useReactFlow
 } from '@xyflow/react';
 import type { Node, Edge, Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
   Add as AddIcon, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon,
   Delete as DeleteIcon, Close as CloseIcon, AutoAwesome as AutoAwesomeIcon,
+  ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon,
+  Settings as SettingsIcon, Code as CodeIcon,
+  Schema as SchemaIcon, Extension as ExtensionIcon,
+  Save as SaveIcon, AutoFixHigh as AIActionIcon
 } from '@mui/icons-material';
 import MessageNode from './MessageNode';
+import NoteNode from './NoteNode';
 import FlowEdge from './FlowEdge';
 import { settingsService } from '../../services/settingsService';
 import { aiService } from '../../services/aiService';
@@ -27,7 +33,7 @@ interface BotFlowPreviewProps {
   viewMode?: boolean; // true = viewing existing bot, false/undefined = wizard step
 }
 
-const nodeTypes = { message: MessageNode };
+const nodeTypes = { message: MessageNode, note: NoteNode };
 const edgeTypes = { flow: FlowEdge };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -282,7 +288,16 @@ function buildInitialFlow(botType: string, structuredData: any): { n: Node[]; e:
 // ─── Component ───────────────────────────────────────────────────────────────
 
 
-export default function BotFlowPreview({ botType, structuredData, setStructuredData, onNext, onBack, viewMode }: BotFlowPreviewProps) {
+export default function BotFlowPreview(props: BotFlowPreviewProps) {
+  return (
+    <ReactFlowProvider>
+      <BotFlowPreviewInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNext, onBack, viewMode }: BotFlowPreviewProps) {
+  const { screenToFlowPosition } = useReactFlow();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
@@ -290,10 +305,12 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
 
-  // Chat panel resizing state
-  const [chatWidth, setChatWidth] = useState(320);
-  const [isResizing, setIsResizing] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  // Sidebar and Layout state
+  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState<'tools' | 'ai' | 'vars' | 'modules'>('tools');
+  const [isChatOpen, setIsChatOpen] = useState(true); // Always open in sidebar context
 
   // AI Chat state
   const [aiPrompt, setAiPrompt] = useState('');
@@ -301,23 +318,30 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
   const [aiMessages, setAiMessages] = useState<{role: string, content: string}[]>([
     { role: 'assistant', content: '¡Hola! Soy tu asistente de configuración. Decime qué querés cambiar o agregar al bot y lo hago por vos.' }
   ]);
+  const [systemModules, setSystemModules] = useState<{ id: string; label: string; category: string }[]>([]);
+
+  useEffect(() => {
+    import('../../services/systemService').then(({ systemService }) => {
+      systemService.getModules().then(mods => setSystemModules(mods as any));
+    });
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      setChatWidth(prev => {
-        const newWidth = prev - e.movementX;
+      if (!isResizingSidebar) return;
+      setSidebarWidth(prev => {
+        const newWidth = e.clientX;
         if (newWidth < 250) return 250;
-        if (newWidth > 800) return 800;
+        if (newWidth > 600) return 600;
         return newWidth;
       });
     };
 
     const handleMouseUp = () => {
-      setIsResizing(false);
+      setIsResizingSidebar(false);
     };
 
-    if (isResizing) {
+    if (isResizingSidebar) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = 'ew-resize';
@@ -333,7 +357,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-  }, [isResizing]);
+  }, [isResizingSidebar]);
 
   // ── Build callbacks injected into every node's data ──
   const buildNodeData = useCallback((rawData: any, nodeId: string) => ({
@@ -373,7 +397,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         if (!original) return nds;
         const cloneId = `clone_${Date.now()}`;
         // Strip callbacks from data before cloning, then re-inject
-        const { onUpdateText, onUpdateOption, onDeleteOption, onAddOption, onDeleteNode, onDuplicateNode, onSelectType, ...cleanData } = original.data as any;
+        const { onUpdateText, onUpdateOption, onDeleteOption, onAddOption, onDeleteNode, onDuplicateNode, onSelectType, onUpdateModule, ...cleanData } = original.data as any;
         // Deep-clone options with fresh IDs to avoid handle conflicts
         const freshOpts = (cleanData.options || []).map((o: any) => ({ ...o, id: `opt_${Date.now()}_${Math.random().toString(36).slice(2,6)}` }));
         const cloneRaw = { ...cleanData, options: freshOpts };
@@ -408,6 +432,12 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         };
         return { ...n, data: buildNodeData(newData, n.id) };
       }));
+    },
+    onUpdateModule: (moduleId: string) => {
+      setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, moduleId } } : n));
+    },
+    onUpdateColor: (nodeColor: string) => {
+      setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, nodeColor } } : n));
     },
   }), []);
 
@@ -444,7 +474,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
   }, [nodes]);
 
   // Drop a fresh "isNew" node at a visible center position
-  const handleDropNewNode = () => {
+  const addNode = () => {
     const newId = `node_${Date.now()}`;
     // Offset slightly each time so nodes don't stack perfectly
     const offset = nodes.length * 30;
@@ -457,6 +487,57 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
     setNodes(nds => [...nds, newNode]);
   };
 
+  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+
+    const type = event.dataTransfer.getData('application/reactflow');
+    if (!type) return;
+
+    const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+    
+    const newId = `node_${Date.now()}`;
+    const defaultText: Record<string, string> = {
+      text:    'Escribí la respuesta del bot aquí.',
+      buttons: '¿Qué opción preferís?',
+      list:    'Elegí una opción de la lista:',
+      action:  'Módulo Interno',
+      form:    'Pedir datos personales...',
+    };
+    const defaultOpts: Record<string, any[]> = {
+      buttons: [{ id: `opt_${Date.now()}`, label: 'Opción 1' }],
+      list:    [{ id: `opt_${Date.now()}`, label: 'Opción 1' }],
+    };
+
+    const newNode: Node = {
+      id: newId,
+      type: type === 'note' ? 'note' : 'message',
+      position,
+      data: buildNodeData(
+        type === 'note' 
+          ? { text: '' } 
+          : {
+            type,
+            text: defaultText[type] || '',
+            isNew: false,
+            ...(defaultOpts[type] ? { options: defaultOpts[type] } : {}),
+          }, 
+        newId
+      ),
+    };
+
+    setNodes((nds) => nds.concat(newNode));
+  }, [screenToFlowPosition, buildNodeData]);
+
   const handleConfirmFlow = async () => {
     setSaving(true);
     setSaveResult(null);
@@ -465,7 +546,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
       const cleanNodes = nodes
         .filter(n => !n.data?.isNew)  // skip placeholder nodes
         .map(n => {
-          const { onUpdateText, onUpdateOption, onDeleteOption, onAddOption, onDeleteNode, onDuplicateNode, onSelectType, ...cleanData } = n.data as any;
+          const { onUpdateText, onUpdateOption, onDeleteOption, onAddOption, onDeleteNode, onDuplicateNode, onSelectType, onUpdateModule, onUpdateColor, ...cleanData } = n.data as any;
           return { ...n, data: cleanData };
         });
 
@@ -584,7 +665,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
   };
 
   // ── Canvas JSX ──
-  const canvasContent = (
+  const canvasContent = useMemo(() => (
     <Box sx={{
       width: '100%', height: '100%', position: 'relative',
       '& .react-flow__controls button': { bgcolor: '#1e1e2f', fill: '#aaa', border: '1px solid #333', '&:hover': { bgcolor: '#2d2d44' } },
@@ -597,6 +678,8 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
         fitView
         minZoom={0.1}
         maxZoom={2}
@@ -610,7 +693,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         <Button
           variant="contained" size="small"
           startIcon={<AddIcon />}
-          onClick={() => handleDropNewNode()}
+          onClick={() => addNode()}
           sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
         >
           Agregar Nodo
@@ -742,119 +825,277 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         </DialogActions>
       </Dialog>
     </Box>
-  );
+  ), [nodes, edges, fullscreen, saving, saveResult, confirmDialogOpen, viewMode, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop]);
 
-  const chatPanel = (
-    <>
-      {/* Resizer Handle */}
-      <Box
-        onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
-        sx={{
-          width: 4,
-          cursor: 'ew-resize',
-          bgcolor: isResizing ? '#7c3aed' : '#222',
-          '&:hover': { bgcolor: '#7c3aed' },
-          zIndex: 20,
-          transition: 'background-color 0.2s',
-        }}
-      />
-      {/* Chat Content */}
-      <Box sx={{ width: chatWidth, bgcolor: '#161622', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
-      {/* Header */}
-      <Box sx={{ p: 2, borderBottom: '1px solid #333', bgcolor: '#1e1e2f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AutoAwesomeIcon fontSize="small" sx={{ color: '#a78bfa' }} /> Asistente IA
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#aaa' }}>
-            Pedime que modifique el flujo del bot
-          </Typography>
-        </Box>
-        <IconButton onClick={() => setIsChatOpen(false)} size="small" sx={{ color: '#aaa', '&:hover': { color: '#fff' } }}>
-          <CloseIcon fontSize="small" />
+  const sidebarContent = useMemo(() => (
+    <Box sx={{ display: 'flex', height: '100%' }}>
+      <Box sx={{
+        width: sidebarOpen ? sidebarWidth : 40,
+        height: '100%',
+        bgcolor: '#1e1e2f',
+        borderRight: '1px solid #333',
+        transition: 'width 0.1s linear',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Toggle button */}
+        <IconButton 
+          size="small" 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          sx={{ 
+            position: 'absolute', top: 10, right: sidebarOpen ? 10 : 5, 
+            color: '#fff', bgcolor: '#333', '&:hover': { bgcolor: '#444' },
+            zIndex: 100 
+          }}
+        >
+          {sidebarOpen ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
         </IconButton>
-      </Box>
 
-      {/* Messages */}
-      <Box sx={{ flex: 1, p: 2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {aiMessages.map((msg, i) => (
-          <Box key={i} sx={{ 
-            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-            bgcolor: msg.role === 'user' ? '#7c3aed' : '#2d2d44', 
-            p: 1.5, 
-            borderRadius: 2, 
-            maxWidth: '85%' 
-          }}>
-            <Typography variant="body2" color="#fff" sx={{ whiteSpace: 'pre-wrap' }}>
-              {msg.content}
-            </Typography>
-          </Box>
-        ))}
-        {aiLoading && (
-          <Box sx={{ alignSelf: 'flex-start', bgcolor: '#2d2d44', p: 1.5, borderRadius: 2 }}>
-            <CircularProgress size={16} sx={{ color: '#a78bfa' }} />
-          </Box>
+        {sidebarOpen && (
+          <>
+            {/* Sidebar Header */}
+            <Box sx={{ p: 2, borderBottom: '1px solid #333', mt: 4 }}>
+              <Typography variant="h6" sx={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>Flow Studio</Typography>
+              <Typography variant="caption" sx={{ color: '#aaa' }}>Gestioná el flujo de tu bot</Typography>
+            </Box>
+
+            {/* Navigation Tabs */}
+            <Box sx={{ display: 'flex', borderBottom: '1px solid #333' }}>
+               {[
+                 { id: 'tools', icon: <SchemaIcon />, label: 'Herramientas' },
+                 { id: 'ai', icon: <AutoAwesomeIcon />, label: 'IA' },
+                 { id: 'vars', icon: <CodeIcon />, label: 'Variables' },
+                 { id: 'modules', icon: <ExtensionIcon />, label: 'Módulos' }
+               ].map(tab => (
+                 <Tooltip key={tab.id} title={tab.label}>
+                   <IconButton 
+                    onClick={() => setActiveSection(tab.id as any)}
+                    sx={{ 
+                      flex: 1, borderRadius: 0, 
+                      color: activeSection === tab.id ? '#7c3aed' : '#888',
+                      borderBottom: activeSection === tab.id ? '2px solid #7c3aed' : 'none',
+                      py: 1.5
+                    }}
+                   >
+                     {tab.icon}
+                   </IconButton>
+                 </Tooltip>
+               ))}
+            </Box>
+
+            {/* Section Content */}
+            <Box sx={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              p: 2,
+              '&::-webkit-scrollbar': { width: '6px' },
+              '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: '#444', borderRadius: '10px' },
+              '&::-webkit-scrollbar-thumb:hover': { bgcolor: '#7c3aed' },
+            }}>
+              {activeSection === 'tools' && (
+                <Box>
+                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Constructor</Typography>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={addNode}
+                    sx={{ mt: 1, mb: 3, bgcolor: '#7c3aed', color: '#fff', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
+                  >
+                    Agregar Nuevo Nodo
+                  </Button>
+
+                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Tipos de Nodo</Typography>
+                  <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                     {[
+                       { id: 'text', label: 'Texto Simple', icon: '📝', desc: 'Respuesta directa de texto' },
+                       { id: 'buttons', label: 'Botones Interactivos', icon: '🔘', desc: 'Hasta 3 opciones rápidas' },
+                       { id: 'list', label: 'Lista de Opciones', icon: '📋', desc: 'Menú desplegable de opciones' },
+                       { id: 'action', label: 'Módulo de Acción', icon: '⚙️', desc: 'Lógica interna del sistema' },
+                       { id: 'form', label: 'Formulario IA', icon: '🧠', desc: 'Recolección inteligente de datos' },
+                       { id: 'note', label: 'Nota Adhesiva', icon: '📌', desc: 'Anotaciones en el lienzo' }
+                     ].map((t) => (
+                       <Box 
+                        key={t.id} 
+                        draggable
+                        onDragStart={(e) => onDragStart(e, t.id)}
+                        sx={{ 
+                          p: 1.5, bgcolor: '#2d2d44', borderRadius: 2, border: '1px solid #3d3d5a',
+                          cursor: 'grab',
+                          transition: 'all 0.2s',
+                          '&:hover': { bgcolor: '#3d3d5a', borderColor: '#7c3aed', transform: 'translateX(5px)' },
+                          '&:active': { cursor: 'grabbing' }
+                        }}
+                       >
+                          <Typography sx={{ color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{t.icon}</span> {t.label}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#aaa', fontSize: 11 }}>{t.desc}</Typography>
+                       </Box>
+                     ))}
+                  </Box>
+                </Box>
+              )}
+
+              {activeSection === 'ai' && (
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700, mb: 1 }}>Asistente Inteligente</Typography>
+                  
+                  {/* AI Messages List */}
+                  <Box sx={{ 
+                    flex: 1, 
+                    bgcolor: '#0f0f1a', 
+                    borderRadius: 2, 
+                    p: 1.5, 
+                    mb: 2, 
+                    overflowY: 'auto', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 1.5,
+                    maxHeight: 'calc(100% - 150px)',
+                    border: '1px solid #333'
+                  }}>
+                    {aiMessages.map((msg, i) => (
+                      <Box key={i} sx={{ 
+                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                        bgcolor: msg.role === 'user' ? '#7c3aed' : '#2d2d44', 
+                        p: 1.2, 
+                        borderRadius: 2, 
+                        maxWidth: '90%' 
+                      }}>
+                        <Typography variant="body2" color="#fff" sx={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>
+                          {msg.content}
+                        </Typography>
+                      </Box>
+                    ))}
+                    {aiLoading && (
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: '#2d2d44', p: 1.2, borderRadius: 2 }}>
+                        <CircularProgress size={14} sx={{ color: '#a78bfa' }} />
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* AI Input */}
+                  <Box sx={{ mt: 'auto' }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      multiline
+                      maxRows={4}
+                      placeholder="Ej: Agregá un menú de reclamos..."
+                      variant="outlined"
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAISubmit(); } }}
+                      disabled={aiLoading}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: '#fff',
+                          bgcolor: '#2d2d44',
+                          fontSize: 12,
+                          '& fieldset': { borderColor: '#444' },
+                          '&:hover fieldset': { borderColor: '#7c3aed' },
+                          '&.Mui-focused fieldset': { borderColor: '#7c3aed' },
+                        }
+                      }}
+                    />
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={handleAISubmit}
+                      disabled={aiLoading || !aiPrompt.trim()}
+                      sx={{ mt: 1, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700, fontSize: 13 }}
+                    >
+                      {aiLoading ? 'Procesando...' : 'Aplicar Cambios con IA'}
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+
+              {activeSection === 'vars' && (
+                <Box>
+                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Variables del Sistema</Typography>
+                  <Typography variant="body2" sx={{ color: '#aaa', fontSize: 11, mb: 2 }}>
+                    Usá estas etiquetas entre <code style={{ color: '#7c3aed' }}>{`{{}}`}</code> en cualquier texto.
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                     {[
+                       { var: 'perfil', label: 'Nombre del cliente' },
+                       { var: 'negocio', label: 'Nombre del negocio' },
+                       { var: 'hoy', label: 'Fecha actual' },
+                       { var: 'saludo', label: 'Saludo (Buen día/etc)' },
+                       { var: 'detalles_del_turno', label: 'Resumen del turno' }
+                     ].map(v => (
+                       <Box key={v.var} sx={{ p: 1, bgcolor: '#0f0f1a', borderRadius: 1, border: '1px solid #333' }}>
+                          <Typography variant="body2" sx={{ color: '#7c3aed', fontWeight: 700, fontSize: 12 }}>{`{{${v.var}}}`}</Typography>
+                          <Typography variant="caption" sx={{ color: '#888', fontSize: 10 }}>{v.label}</Typography>
+                       </Box>
+                     ))}
+                  </Box>
+                </Box>
+              )}
+
+              {activeSection === 'modules' && (
+                <Box>
+                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Módulos Disponibles</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                     {systemModules.map(m => (
+                       <Box key={m.id} sx={{ p: 1, bgcolor: '#2d2d44', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ExtensionIcon sx={{ fontSize: 14, color: m.category === 'data' ? '#ed6c02' : '#7c3aed' }} />
+                          <Box>
+                            <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, fontSize: 12 }}>{m.label}</Typography>
+                            <Typography variant="caption" sx={{ color: '#aaa', fontSize: 10, textTransform: 'capitalize' }}>{m.category || 'Acción'}</Typography>
+                          </Box>
+                       </Box>
+                     ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </>
+        )}
+
+        {/* Resizer Handle */}
+        {sidebarOpen && (
+          <Box
+            onMouseDown={(e) => { e.preventDefault(); setIsResizingSidebar(true); }}
+            sx={{
+              width: 4,
+              cursor: 'ew-resize',
+              bgcolor: isResizingSidebar ? '#7c3aed' : '#222',
+              '&:hover': { bgcolor: '#7c3aed' },
+              zIndex: 20,
+              transition: 'background-color 0.2s',
+            }}
+          />
         )}
       </Box>
-
-      {/* Input */}
-      <Box sx={{ p: 2, borderTop: '1px solid #333', bgcolor: '#1e1e2f' }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Ej: Agregá un menú de reclamos..."
-          variant="outlined"
-          value={aiPrompt}
-          onChange={(e) => setAiPrompt(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleAISubmit(); }}
-          disabled={aiLoading}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              color: '#fff',
-              bgcolor: '#0f0f1a',
-              '& fieldset': { borderColor: '#444' },
-              '&:hover fieldset': { borderColor: '#7c3aed' },
-              '&.Mui-focused fieldset': { borderColor: '#7c3aed' },
-            }
-          }}
-        />
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleAISubmit}
-          disabled={aiLoading || !aiPrompt.trim()}
-          sx={{ mt: 1, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
-        >
-          {aiLoading ? 'Enviando...' : 'Enviar'}
-        </Button>
-      </Box>
     </Box>
-    </>
-  );
+  ), [sidebarOpen, sidebarWidth, isResizingSidebar, activeSection, aiMessages, aiLoading, aiPrompt, systemModules, addNode, onDragStart]);
 
   return (
     <>
-      {/* Normal canvas */}
-      <Box sx={{ display: 'flex', width: '100%', height: '75vh', border: '1px solid #333', borderRadius: 2, overflow: 'hidden', bgcolor: '#0f0f1a' }}>
-        <Box sx={{ flex: 1, position: 'relative' }}>
-          {!fullscreen && canvasContent}
-        </Box>
-        {!fullscreen && isChatOpen && chatPanel}
-      </Box>
+      {/* Main Container */}
+      <Box sx={{ display: 'flex', width: '100%', height: '85vh', border: '1px solid #333', borderRadius: 2, overflow: 'hidden', bgcolor: '#0f0f1a' }}>
+        {/* Sidebar */}
+        {sidebarContent}
 
-      {/* Fullscreen overlay */}
-      {fullscreen && (
-        <Box sx={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          bgcolor: '#0f0f1a',
-          display: 'flex',
-        }}>
-          <Box sx={{ flex: 1, position: 'relative' }}>
-            {canvasContent}
-          </Box>
-          {isChatOpen && chatPanel}
+        {/* Canvas Area */}
+        <Box sx={{ flex: 1, position: 'relative' }}>
+          {canvasContent}
+          {fullscreen && (
+             <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, bgcolor: '#0f0f1a', display: 'flex' }}>
+                {sidebarContent}
+                <Box sx={{ flex: 1, position: 'relative' }}>
+                   {canvasContent}
+                </Box>
+             </Box>
+          )}
         </Box>
-      )}
+      </Box>
     </>
   );
 }

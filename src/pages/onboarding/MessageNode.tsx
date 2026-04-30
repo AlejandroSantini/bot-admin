@@ -25,6 +25,7 @@ export interface MessageNodeData {
   text: string;
   isNew?: boolean;
   options?: { id: string; label: string }[];
+  moduleId?: string; // For dynamic lists or actions
   onUpdateText?: (text: string) => void;
   onUpdateOption?: (id: string, label: string) => void;
   onDeleteOption?: (id: string) => void;
@@ -32,6 +33,9 @@ export interface MessageNodeData {
   onDeleteNode?: () => void;
   onDuplicateNode?: () => void;
   onSelectType?: (type: MessageNodeType) => void;
+  onUpdateModule?: (moduleId: string) => void;
+  nodeColor?: string;
+  onUpdateColor?: (color: string) => void;
 }
 
 const TYPE_META: Record<MessageNodeType, { label: string; color: string; borderColor: string; icon: React.ReactNode }> = {
@@ -48,21 +52,34 @@ interface MessageNodeProps {
   [key: string]: any;
 }
 
-// Removed static ACTION_LABELS
+const SUGGESTIONS = [
+  { var: 'perfil', label: 'Nombre del cliente', icon: '👤' },
+  { var: 'negocio', label: 'Nombre del negocio', icon: '🏠' },
+  { var: 'hoy', label: 'Fecha actual (DD/MM/AAAA)', icon: '📅' },
+  { var: 'hora_actual', label: 'Hora actual', icon: '🕒' },
+  { var: 'saludo', label: 'Saludo según horario', icon: '👋' },
+  { var: 'detalles_del_turno', label: 'Resumen del turno reservado', icon: '📋' },
+];
 
 export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
   const d = data as MessageNodeData;
   const meta = TYPE_META[d.type] || TYPE_META.text;
+  const nodeColor = d.nodeColor || meta.borderColor;
 
   const [editingText, setEditingText] = useState(false);
+  const [colorAnchor, setColorAnchor] = useState<HTMLElement | null>(null);
   const [textVal, setTextVal] = useState(d.text);
   const [editingOptId, setEditingOptId] = useState<string | null>(null);
   const [optVal, setOptVal] = useState('');
   const [typeAnchor, setTypeAnchor] = useState<HTMLElement | null>(null);
-  const [systemModules, setSystemModules] = useState<{id: string, label: string}[]>([]);
+  const [suggestionAnchor, setSuggestionAnchor] = useState<HTMLElement | null>(null);
+  const [suggestionFilter, setSuggestionFilter] = useState('');
+  const [cursorPos, setCursorPos] = useState<{ start: number, end: number } | null>(null);
+  const textFieldRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [systemModules, setSystemModules] = useState<{id: string, label: string, category: string}[]>([]);
 
   useEffect(() => {
-    systemService.getModules().then(mods => setSystemModules(mods));
+    systemService.getModules().then(mods => setSystemModules(mods as any));
   }, []);
 
   const getModuleLabel = (id: string) => {
@@ -128,6 +145,56 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
     setEditingOptId(null);
   };
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    const start = e.target.selectionStart || 0;
+    const lastTwo = val.slice(0, start).slice(-2);
+    
+    setTextVal(val);
+
+    if (lastTwo === '{{') {
+      setSuggestionAnchor(e.target as any);
+      setSuggestionFilter('');
+      setCursorPos({ start, end: e.target.selectionEnd || start });
+    } else if (suggestionAnchor) {
+      // Basic filter logic: find text after {{
+      const textBeforeCursor = val.slice(0, start);
+      const lastOpening = textBeforeCursor.lastIndexOf('{{');
+      if (lastOpening !== -1) {
+        setSuggestionFilter(textBeforeCursor.slice(lastOpening + 2));
+        setCursorPos({ start, end: e.target.selectionEnd || start });
+      } else {
+        setSuggestionAnchor(null);
+        setCursorPos(null);
+      }
+    }
+  };
+
+  const insertVariable = (variable: string) => {
+    if (!cursorPos) return;
+
+    const { start, end } = cursorPos;
+    
+    setTextVal(prev => {
+      const textBefore = prev.slice(0, start);
+      const lastOpening = textBefore.lastIndexOf('{{');
+      
+      if (lastOpening !== -1) {
+        const result = prev.slice(0, lastOpening) + `{{${variable}}}` + prev.slice(end);
+        return result;
+      }
+      return prev;
+    });
+
+    setSuggestionAnchor(null);
+    setCursorPos(null);
+    
+    // Return focus to text field
+    setTimeout(() => {
+      textFieldRef.current?.focus();
+    }, 10);
+  };
+
   return (
     <Paper
       elevation={4}
@@ -135,8 +202,8 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         width: 280,
         borderRadius: 2,
         overflow: 'visible',
-        border: `2px solid ${meta.borderColor}`,
-        bgcolor: meta.color,
+        border: `2px solid ${nodeColor}`,
+        bgcolor: d.nodeColor ? `${nodeColor}11` : meta.color,
         position: 'relative',
       }}
     >
@@ -145,15 +212,15 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        style={{ background: meta.borderColor, width: 12, height: 12, top: -6 }}
+        style={{ background: nodeColor, width: 12, height: 12, top: -6 }}
       />
 
       {/* Header */}
       <Box sx={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         px: 1.5, py: 0.75,
-        bgcolor: meta.borderColor + '22',
-        borderBottom: `1px solid ${meta.borderColor}44`,
+        bgcolor: nodeColor + '22',
+        borderBottom: `1px solid ${nodeColor}44`,
       }}>
         {/* Clickable type badge */}
         <Tooltip title="Clic para cambiar tipo de nodo">
@@ -163,14 +230,14 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
               display: 'flex', alignItems: 'center', gap: 0.5,
               cursor: 'pointer', borderRadius: 1,
               px: 0.5, py: 0.25,
-              '&:hover': { bgcolor: meta.borderColor + '33' },
+              '&:hover': { bgcolor: nodeColor + '33' },
             }}
           >
             {meta.icon}
-            <Typography variant="caption" fontWeight="bold" sx={{ color: meta.borderColor }}>
+            <Typography variant="caption" fontWeight="bold" sx={{ color: nodeColor }}>
               {meta.label}
             </Typography>
-            <Typography variant="caption" sx={{ color: meta.borderColor, opacity: 0.6, fontSize: 10 }}>▼</Typography>
+            <Typography variant="caption" sx={{ color: nodeColor, opacity: 0.6, fontSize: 10 }}>▼</Typography>
           </Box>
         </Tooltip>
 
@@ -204,13 +271,45 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
           </Box>
         </Popover>
 
-        {/* Duplicate + Delete buttons */}
+        {/* Duplicate + Color + Delete buttons */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+          <Tooltip title="Color del nodo">
+            <IconButton
+              size="small"
+              onClick={(e) => setColorAnchor(e.currentTarget)}
+              sx={{ color: nodeColor, '&:hover': { bgcolor: nodeColor + '22' } }}
+            >
+              <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: nodeColor, border: '1px solid #fff' }} />
+            </IconButton>
+          </Tooltip>
+          
+          <Popover
+            open={Boolean(colorAnchor)}
+            anchorEl={colorAnchor}
+            onClose={() => setColorAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Box sx={{ p: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0.5 }}>
+              {['#adb5bd', '#1976d2', '#2e7d32', '#ed6c02', '#d32f2f', '#7c3aed', '#9c27b0', '#c2185b'].map(c => (
+                <Box
+                  key={c}
+                  onClick={() => { d.onUpdateColor?.(c); setColorAnchor(null); }}
+                  sx={{ 
+                    width: 24, height: 24, borderRadius: '50%', bgcolor: c, cursor: 'pointer',
+                    border: nodeColor === c ? '2px solid #000' : '1px solid #eee',
+                    '&:hover': { transform: 'scale(1.1)' }
+                  }}
+                />
+              ))}
+            </Box>
+          </Popover>
+
           <Tooltip title="Duplicar nodo">
             <IconButton
               size="small"
               onClick={() => d.onDuplicateNode?.()}
-              sx={{ color: meta.borderColor, '&:hover': { bgcolor: meta.borderColor + '22' } }}
+              sx={{ color: nodeColor, '&:hover': { bgcolor: nodeColor + '22' } }}
             >
               <CopyIcon sx={{ fontSize: 15 }} />
             </IconButton>
@@ -232,12 +331,13 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         {editingText ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             {d.type === 'action' ? (
-              <FormControl size="small" fullWidth>
+              <FormControl size="small" fullWidth className="nodrag">
                 <Select
                   value={systemModules.some(m => m.id === textVal) ? textVal : (systemModules[0]?.id || '')}
-                  onChange={e => setTextVal(e.target.value)}
+                  onChange={e => setTextVal(e.target.value as string)}
                   sx={{ bgcolor: '#fff', fontSize: 13, '& .MuiSelect-select': { color: '#111', py: 1 } }}
                   displayEmpty
+                  MenuProps={{ style: { zIndex: 10001 } }}
                 >
                   {systemModules.map((m) => (
                     <MenuItem key={m.id} value={m.id}>{m.label}</MenuItem>
@@ -251,7 +351,8 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 rows={2}
                 fullWidth
                 value={textVal}
-                onChange={e => setTextVal(e.target.value)}
+                onChange={handleTextChange}
+                inputRef={textFieldRef}
                 autoFocus
                 placeholder="Ej: Pedir datos personales..."
                 helperText="El backend iterará sobre las variables"
@@ -268,8 +369,10 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 rows={3}
                 fullWidth
                 value={textVal}
-                onChange={e => setTextVal(e.target.value)}
+                onChange={handleTextChange}
+                inputRef={textFieldRef}
                 autoFocus
+                placeholder="Usá {{ para insertar variables"
                 sx={{
                   '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
                   '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
@@ -277,6 +380,75 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 }}
               />
             )}
+            
+            {/* Variables Suggestions Popover */}
+            <Popover
+              open={Boolean(suggestionAnchor)}
+              anchorEl={suggestionAnchor}
+              onClose={() => setSuggestionAnchor(null)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              disableAutoFocus
+              disableEnforceFocus
+              sx={{ 
+                pointerEvents: 'none', 
+                '& .MuiPaper-root': { 
+                  pointerEvents: 'auto', 
+                  mt: 1, 
+                  maxHeight: 280, 
+                  width: 300,
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                  border: '1px solid #e0e0e0',
+                  overflow: 'hidden',
+                  bgcolor: '#fff'
+                } 
+              }}
+            >
+              <Box sx={{ p: 1.5, bgcolor: '#f8f9fa', borderBottom: '1px solid #eee' }}>
+                <Typography variant="caption" fontWeight="bold" sx={{ color: '#1976d2', letterSpacing: 0.5, textTransform: 'uppercase', fontSize: 10 }}>
+                  Variables disponibles
+                </Typography>
+              </Box>
+              <Box sx={{ overflowY: 'auto', maxHeight: 240 }}>
+                {SUGGESTIONS.filter(s => s.var.includes(suggestionFilter.toLowerCase()) || s.label.toLowerCase().includes(suggestionFilter.toLowerCase())).map(s => (
+                  <MenuItem 
+                    key={s.var} 
+                    onClick={() => insertVariable(s.var)} 
+                    sx={{ 
+                      py: 1.5, 
+                      px: 2, 
+                      transition: 'all 0.2s',
+                      borderBottom: '1px solid #f9f9f9',
+                      '&:hover': { bgcolor: '#f0f4ff' },
+                      '&:last-child': { borderBottom: 'none' }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                      <Box sx={{ 
+                        width: 36, height: 36, borderRadius: '8px', bgcolor: '#f0f4ff', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 
+                      }}>
+                        {s.icon}
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2" fontWeight="700" sx={{ color: '#1a1a1a', fontSize: 13, mb: 0.2 }}>
+                          {`{{${s.var}}}`}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#666', fontSize: 11, display: 'block', lineHeight: 1.2 }}>
+                          {s.label}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Box>
+              {SUGGESTIONS.filter(s => s.var.includes(suggestionFilter.toLowerCase()) || s.label.toLowerCase().includes(suggestionFilter.toLowerCase())).length === 0 && (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: '#999', fontStyle: 'italic' }}>No se encontraron variables</Typography>
+                </Box>
+              )}
+            </Popover>
+
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
               <IconButton size="small" onClick={saveText} color="success"><CheckIcon fontSize="small" /></IconButton>
               <IconButton size="small" onClick={() => setEditingText(false)} color="error"><CloseIcon fontSize="small" /></IconButton>
@@ -284,9 +456,21 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
           </Box>
         ) : (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
-            <Typography variant="body2" sx={{ color: '#111', whiteSpace: 'pre-wrap', flex: 1, fontSize: 13, lineHeight: 1.5 }}>
-              {d.type === 'action' ? getModuleLabel(d.text) : d.text}
-            </Typography>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" sx={{ color: '#111', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5 }}>
+                {d.type === 'action' ? getModuleLabel(d.text) : d.text}
+              </Typography>
+              {d.type === 'list' && d.moduleId && (
+                <Box sx={{ mt: 1, p: 1, bgcolor: '#ed6c0211', border: '1px solid #ed6c0244', borderRadius: 1 }}>
+                  <Typography variant="caption" fontWeight="bold" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <ActionIcon sx={{ fontSize: 12 }} /> Módulo dinámico:
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#111', fontWeight: 600 }}>
+                    {getModuleLabel(d.moduleId)}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
             <Tooltip title={d.type === 'action' ? "Elegir Módulo" : "Editar texto"}>
               <IconButton size="small" onClick={() => { setTextVal(d.text); setEditingText(true); }} sx={{ color: '#1976d2', flexShrink: 0 }}>
                 <EditIcon fontSize="small" />
@@ -297,7 +481,22 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       </Box>
 
       {/* Options list */}
-      {d.options && d.options.length > 0 && (
+      {d.type === 'list' && d.moduleId ? (
+        <Box sx={{ p: 1.5, pt: 0 }}>
+           <Typography variant="caption" sx={{ color: '#666', fontStyle: 'italic' }}>
+             Las opciones se generarán automáticamente al ejecutar el flujo.
+           </Typography>
+           <Box sx={{ mt: 1 }}>
+              <ButtonIcon fontSize="small" sx={{ color: '#ed6c02', opacity: 0.6, cursor: 'pointer', '&:hover': { opacity: 1 } }} 
+                onClick={() => d.onUpdateModule?.('')}
+              />
+              <Typography variant="caption" onClick={() => d.onUpdateModule?.('')} sx={{ ml: 1, color: '#1976d2', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+                Volver a opciones manuales
+              </Typography>
+           </Box>
+           <Handle type="source" position={Position.Right} id="dynamic_out" isConnectable={isConnectable} style={{ background: meta.borderColor, width: 12, height: 12, right: -6 }} />
+        </Box>
+      ) : d.options && d.options.length > 0 && (
         <Box>
           {d.options.map((opt, idx) => (
             <Box
@@ -373,7 +572,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
 
       {/* Add option button (not for action/text) */}
       {(d.type === 'buttons' || d.type === 'list' || d.type === 'form') && (
-        <Box sx={{ borderTop: `1px dashed ${meta.borderColor}66`, px: 1.5, py: 0.5 }}>
+        <Box sx={{ borderTop: `1px dashed ${meta.borderColor}66`, px: 1.5, py: 0.5, display: 'flex', justifyContent: 'space-between' }}>
           <Tooltip title={d.type === 'form' ? "Agregar dato a solicitar" : "Agregar opción"}>
             <Box
               onClick={() => d.onAddOption?.()}
@@ -391,6 +590,47 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
               </Typography>
             </Box>
           </Tooltip>
+
+          {d.type === 'list' && !d.moduleId && (
+            <Tooltip title="Usar un módulo para obtener opciones dinámicamente">
+               <Box 
+                onClick={(e) => {
+                  // We can use a simple prompt or a popover for module selection.
+                  // For now, let's show a select below or something.
+                  // Let's just set a flag to show the module selector.
+                  setEditingOptId('DYNAMIC_SELECT');
+                }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
+               >
+                 <ActionIcon sx={{ fontSize: 14, color: '#ed6c02' }} />
+                 <Typography variant="caption" sx={{ color: '#ed6c02', fontSize: 11 }}>Dinámico</Typography>
+               </Box>
+            </Tooltip>
+          )}
+        </Box>
+      )}
+
+      {/* Dynamic Module Selector inside List node */}
+      {editingOptId === 'DYNAMIC_SELECT' && (
+        <Box sx={{ p: 1.5, borderTop: `1px solid ${meta.borderColor}22`, bgcolor: '#ed6c0208' }}>
+          <Typography variant="caption" fontWeight="bold" sx={{ color: '#ed6c02', mb: 0.5, display: 'block' }}>Elegí el módulo de datos:</Typography>
+          <FormControl size="small" fullWidth className="nodrag">
+            <Select
+              value={d.moduleId || ''}
+              onChange={e => { d.onUpdateModule?.(e.target.value as string); setEditingOptId(null); }}
+              sx={{ bgcolor: '#fff', fontSize: 12, '& .MuiSelect-select': { color: '#111', py: 0.5 } }}
+              displayEmpty
+              MenuProps={{ style: { zIndex: 10001 } }}
+            >
+              <MenuItem value="" disabled>Seleccionar módulo...</MenuItem>
+              {systemModules.filter(m => !m.category || m.category === 'data').map((m) => (
+                <MenuItem key={m.id} value={m.id}>{m.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
+             <IconButton size="small" onClick={() => setEditingOptId(null)} color="error"><CloseIcon fontSize="small" /></IconButton>
+          </Box>
         </Box>
       )}
 
@@ -400,7 +640,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
           type="source"
           position={Position.Bottom}
           isConnectable={isConnectable}
-          style={{ background: meta.borderColor, width: 12, height: 12, bottom: -6 }}
+          style={{ background: nodeColor, width: 12, height: 12, bottom: -6 }}
         />
       )}
     </Paper>
