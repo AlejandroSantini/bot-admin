@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { systemService } from '../../services/systemService';
 import {
-  Box, Typography, Paper, IconButton, Tooltip, TextField, Popover
+  Box, Typography, Paper, IconButton, Tooltip, TextField, Popover, Select, MenuItem, FormControl
 } from '@mui/material';
 import {
   SmartButton as ButtonIcon,
@@ -14,9 +15,10 @@ import {
   Check as CheckIcon,
   Close as CloseIcon,
   ContentCopy as CopyIcon,
+  DynamicForm as FormIcon,
 } from '@mui/icons-material';
 
-export type MessageNodeType = 'text' | 'buttons' | 'list' | 'action';
+export type MessageNodeType = 'text' | 'buttons' | 'list' | 'action' | 'form';
 
 export interface MessageNodeData {
   type: MessageNodeType;
@@ -37,6 +39,7 @@ const TYPE_META: Record<MessageNodeType, { label: string; color: string; borderC
   buttons: { label: 'Botones (Max 3)', color: '#e8f4fd', borderColor: '#1976d2', icon: <ButtonIcon  fontSize="small" sx={{ color: '#1976d2' }} /> },
   list:    { label: 'Lista',            color: '#e8f5e9', borderColor: '#2e7d32', icon: <ListIcon    fontSize="small" sx={{ color: '#2e7d32' }} /> },
   action:  { label: 'Módulo Interno',   color: '#fff3e0', borderColor: '#ed6c02', icon: <ActionIcon  fontSize="small" sx={{ color: '#ed6c02' }} /> },
+  form:    { label: 'Formulario IA',    color: '#f3e5f5', borderColor: '#9c27b0', icon: <FormIcon    fontSize="small" sx={{ color: '#9c27b0' }} /> },
 };
 
 interface MessageNodeProps {
@@ -44,6 +47,8 @@ interface MessageNodeProps {
   isConnectable?: boolean;
   [key: string]: any;
 }
+
+// Removed static ACTION_LABELS
 
 export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
   const d = data as MessageNodeData;
@@ -54,6 +59,16 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
   const [editingOptId, setEditingOptId] = useState<string | null>(null);
   const [optVal, setOptVal] = useState('');
   const [typeAnchor, setTypeAnchor] = useState<HTMLElement | null>(null);
+  const [systemModules, setSystemModules] = useState<{id: string, label: string}[]>([]);
+
+  useEffect(() => {
+    systemService.getModules().then(mods => setSystemModules(mods));
+  }, []);
+
+  const getModuleLabel = (id: string) => {
+    const mod = systemModules.find(m => m.id === id);
+    return mod ? mod.label : id;
+  };
 
   // ── NEW NODE: type picker ──
   if (d.isNew) {
@@ -62,6 +77,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       { t: 'buttons', emoji: '🔘', label: 'Botones' },
       { t: 'list',    emoji: '📋', label: 'Lista'   },
       { t: 'action',  emoji: '⚙️', label: 'Módulo'  },
+      { t: 'form',    emoji: '📝', label: 'Form IA' },
     ];
     return (
       <Paper elevation={6} sx={{ width: 280, borderRadius: 2, overflow: 'hidden', border: '2px dashed #7c3aed', bgcolor: '#1e1e2f' }}>
@@ -168,7 +184,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
           sx={{ zIndex: 99999 }}
         >
           <Box sx={{ p: 0.5, display: 'flex', flexDirection: 'column', minWidth: 160 }}>
-            {(['text', 'buttons', 'list', 'action'] as MessageNodeType[]).map(t => (
+            {(['text', 'buttons', 'list', 'action', 'form'] as MessageNodeType[]).map(t => (
               <Box
                 key={t}
                 onClick={() => { d.onSelectType?.(t); setTypeAnchor(null); }}
@@ -215,20 +231,52 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       <Box sx={{ p: 1.5, borderBottom: d.options?.length ? `1px solid ${meta.borderColor}33` : 'none' }}>
         {editingText ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <TextField
-              size="small"
-              multiline
-              rows={3}
-              fullWidth
-              value={textVal}
-              onChange={e => setTextVal(e.target.value)}
-              autoFocus
-              sx={{
-                '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
-                '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
-                '& .MuiFormHelperText-root': { color: '#555' },
-              }}
-            />
+            {d.type === 'action' ? (
+              <FormControl size="small" fullWidth>
+                <Select
+                  value={systemModules.some(m => m.id === textVal) ? textVal : (systemModules[0]?.id || '')}
+                  onChange={e => setTextVal(e.target.value)}
+                  sx={{ bgcolor: '#fff', fontSize: 13, '& .MuiSelect-select': { color: '#111', py: 1 } }}
+                  displayEmpty
+                >
+                  {systemModules.map((m) => (
+                    <MenuItem key={m.id} value={m.id}>{m.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : d.type === 'form' ? (
+              <TextField
+                size="small"
+                multiline
+                rows={2}
+                fullWidth
+                value={textVal}
+                onChange={e => setTextVal(e.target.value)}
+                autoFocus
+                placeholder="Ej: Pedir datos personales..."
+                helperText="El backend iterará sobre las variables"
+                sx={{
+                  '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
+                  '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
+                  '& .MuiFormHelperText-root': { color: '#555' },
+                }}
+              />
+            ) : (
+              <TextField
+                size="small"
+                multiline
+                rows={3}
+                fullWidth
+                value={textVal}
+                onChange={e => setTextVal(e.target.value)}
+                autoFocus
+                sx={{
+                  '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
+                  '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
+                  '& .MuiFormHelperText-root': { color: '#555' },
+                }}
+              />
+            )}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
               <IconButton size="small" onClick={saveText} color="success"><CheckIcon fontSize="small" /></IconButton>
               <IconButton size="small" onClick={() => setEditingText(false)} color="error"><CloseIcon fontSize="small" /></IconButton>
@@ -237,9 +285,9 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         ) : (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
             <Typography variant="body2" sx={{ color: '#111', whiteSpace: 'pre-wrap', flex: 1, fontSize: 13, lineHeight: 1.5 }}>
-              {d.text}
+              {d.type === 'action' ? getModuleLabel(d.text) : d.text}
             </Typography>
-            <Tooltip title="Editar texto">
+            <Tooltip title={d.type === 'action' ? "Elegir Módulo" : "Editar texto"}>
               <IconButton size="small" onClick={() => { setTextVal(d.text); setEditingText(true); }} sx={{ color: '#1976d2', flexShrink: 0 }}>
                 <EditIcon fontSize="small" />
               </IconButton>
@@ -324,9 +372,9 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       )}
 
       {/* Add option button (not for action/text) */}
-      {(d.type === 'buttons' || d.type === 'list') && (
+      {(d.type === 'buttons' || d.type === 'list' || d.type === 'form') && (
         <Box sx={{ borderTop: `1px dashed ${meta.borderColor}66`, px: 1.5, py: 0.5 }}>
-          <Tooltip title="Agregar opción">
+          <Tooltip title={d.type === 'form' ? "Agregar dato a solicitar" : "Agregar opción"}>
             <Box
               onClick={() => d.onAddOption?.()}
               sx={{
@@ -339,15 +387,15 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
               <Typography variant="caption" sx={{ color: meta.borderColor, fontSize: 11 }}>
                 {d.type === 'buttons' && (d.options?.length ?? 0) >= 3
                   ? 'Máx. 3 botones — usar Lista'
-                  : 'Agregar opción'}
+                  : d.type === 'form' ? 'Agregar variable a recolectar' : 'Agregar opción'}
               </Typography>
             </Box>
           </Tooltip>
         </Box>
       )}
 
-      {/* Default outgoing handle for text/action nodes */}
-      {(d.type === 'text' || d.type === 'action') && (
+      {/* Default outgoing handle for text/action/form nodes */}
+      {(d.type === 'text' || d.type === 'action' || d.type === 'form') && (
         <Handle
           type="source"
           position={Position.Bottom}

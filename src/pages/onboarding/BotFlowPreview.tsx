@@ -11,11 +11,12 @@ import type { Node, Edge, Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
   Add as AddIcon, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon,
-  Delete as DeleteIcon,
+  Delete as DeleteIcon, Close as CloseIcon, AutoAwesome as AutoAwesomeIcon,
 } from '@mui/icons-material';
 import MessageNode from './MessageNode';
 import FlowEdge from './FlowEdge';
 import { settingsService } from '../../services/settingsService';
+import { aiService } from '../../services/aiService';
 
 interface BotFlowPreviewProps {
   botType: string;
@@ -31,145 +32,255 @@ const edgeTypes = { flow: FlowEdge };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+// ─── Layout constants ────────────────────────────────────────────────────────
+const COL_RESERVAS  = 50;
+const COL_GESTION   = 520;
+const COL_PRODUCTOS = 1000;
+const COL_FAQ       = 1480;
+
+function mkEdge(id: string, source: string, target: string, label: string, handle?: string): Edge {
+  return {
+    id, source, target, label,
+    type: 'flow',
+    sourceHandle: handle,
+    markerEnd: { type: MarkerType.ArrowClosed },
+  };
+}
+
 function buildInitialFlow(botType: string, structuredData: any): { n: Node[]; e: Edge[] } {
   const n: Node[] = [];
   const e: Edge[] = [];
 
-  // ── Root menu ──
+  // ── Nodo de "cierre universal" ────────────────────────────────────────────
+  // Reutilizado por TODAS las ramas: evita que el bot muera en silencio
+  n.push({
+    id: 'cierre_universal', type: 'message', position: { x: 650, y: 1800 },
+    data: {
+      type: 'buttons',
+      text: '¿Puedo ayudarte con algo más? 😊',
+      options: [
+        { id: 'cu_si', label: '✅ Sí, volver al menú' },
+        { id: 'cu_agente', label: '🙋 Hablar con alguien' },
+      ],
+    },
+  });
+  // ↪ "Sí" → vuelve al root
+  e.push(mkEdge('e-cu-root', 'cierre_universal', 'root', 'Volver al menú', 'cu_si'));
+  // ↪ "Agente" → derivación humana
+  n.push({
+    id: 'accion_agente', type: 'message', position: { x: 650, y: 2020 },
+    data: { type: 'action', text: 'action_human_handoff' },
+  });
+  e.push(mkEdge('e-cu-agente', 'cierre_universal', 'accion_agente', 'Hablar con agente', 'cu_agente'));
+
+  // ── Root menu ────────────────────────────────────────────────────────────
   const mainOptions: { id: string; label: string }[] = [];
-  if (botType === 'reservas' || (structuredData.servicios?.length > 0)) {
-    mainOptions.push({ id: 'opt_agendar',    label: 'Agendar Turno' });
-    mainOptions.push({ id: 'opt_cancelar',   label: 'Cancelar Turno' });
-    mainOptions.push({ id: 'opt_ver_turnos', label: 'Ver Mis Turnos' });
+  const hasReservas  = botType === 'reservas' || (structuredData.servicios?.length > 0);
+  const hasProductos = structuredData.productos?.length > 0;
+  const hasFaq       = structuredData.faq?.length > 0;
+
+  if (hasReservas) {
+    mainOptions.push({ id: 'opt_agendar',    label: '📅 Agendar Turno' });
+    mainOptions.push({ id: 'opt_cancelar',   label: '❌ Cancelar Turno' });
+    mainOptions.push({ id: 'opt_ver_turnos', label: '🔎 Ver Mis Turnos' });
   }
-  if (structuredData.productos?.length > 0) mainOptions.push({ id: 'opt_productos', label: 'Ver Productos' });
-  if (structuredData.faq?.length > 0)       mainOptions.push({ id: 'opt_faq', label: 'Preguntas Frecuentes' });
+  if (hasProductos) mainOptions.push({ id: 'opt_productos', label: '🛍️ Ver Productos' });
+  if (hasFaq)       mainOptions.push({ id: 'opt_faq',       label: '❓ Preguntas Frecuentes' });
+  mainOptions.push({ id: 'opt_agente', label: '🙋 Hablar con alguien' });
 
   n.push({
-    id: 'root', type: 'message', position: { x: 500, y: 50 },
+    id: 'root', type: 'message', position: { x: 650, y: 50 },
     data: {
       type: mainOptions.length > 3 ? 'list' : 'buttons',
-      text: `¡Hola! Bienvenido a ${structuredData.nombre || 'nuestro negocio'}. ¿En qué te podemos ayudar hoy?`,
+      text: `¡Hola! Bienvenido a ${structuredData.nombre || 'nuestro negocio'} 👋\n¿En qué te puedo ayudar hoy?`,
       options: mainOptions,
     },
   });
+  // Siempre: "Hablar con alguien" desde el menú principal
+  e.push(mkEdge('e-root-agente', 'root', 'accion_agente', 'Hablar con alguien', 'opt_agente'));
 
-  // ── Booking flow ──
-  if (botType === 'reservas' || structuredData.servicios?.length > 0) {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RAMA RESERVAS
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (hasReservas) {
+
+    // 1) Menú de servicios
+    const serviciosOptions = (structuredData.servicios || [{ nombre: 'Servicio General' }])
+      .map((s: any, i: number) => ({ id: `serv_${i}`, label: s.nombre }));
+
     n.push({
-      id: 'menu_servicios', type: 'message', position: { x: 50, y: 280 },
-      data: {
-        type: 'list',
-        text: 'Elegí el servicio que buscás:',
-        options: (structuredData.servicios || []).map((s: any, i: number) => ({ id: `serv_${i}`, label: s.nombre })),
-      },
+      id: 'menu_servicios', type: 'message', position: { x: COL_RESERVAS, y: 300 },
+      data: { type: 'list', text: '¿Qué servicio buscás?', options: serviciosOptions },
     });
-    e.push({ id: 'e-root-agendar', source: 'root', sourceHandle: 'opt_agendar', target: 'menu_servicios', type: 'flow', label: 'Agendar Turno', markerEnd: { type: MarkerType.ArrowClosed } });
+    e.push(mkEdge('e-root-agendar', 'root', 'menu_servicios', 'Agendar Turno', 'opt_agendar'));
 
-    // Cancelar/Ver → same module
+    // 2) Módulo: Consultar horarios disponibles
     n.push({
-      id: 'accion_gestion', type: 'message', position: { x: 550, y: 280 },
-      data: { type: 'action', text: 'Módulo: Gestión de Turnos (Cancelar / Ver reservas)' },
+      id: 'accion_horarios', type: 'message', position: { x: COL_RESERVAS, y: 520 },
+      data: { type: 'action', text: 'action_generate_dates' },
     });
-    e.push({ id: 'e-cancelar', source: 'root', sourceHandle: 'opt_cancelar', target: 'accion_gestion', type: 'flow', label: 'Cancelar Turno', markerEnd: { type: MarkerType.ArrowClosed } });
-    e.push({ id: 'e-ver',      source: 'root', sourceHandle: 'opt_ver_turnos', target: 'accion_gestion', type: 'flow', label: 'Ver Mis Turnos', markerEnd: { type: MarkerType.ArrowClosed } });
+    serviciosOptions.forEach((_: any, idx: number) => {
+      e.push(mkEdge(`e-serv-${idx}`, 'menu_servicios', 'accion_horarios', structuredData.servicios?.[idx]?.nombre || `Servicio ${idx+1}`, `serv_${idx}`));
+    });
 
-    // Date picker
+    // 3) Formulario de datos del cliente
     n.push({
-      id: 'menu_fechas', type: 'message', position: { x: 50, y: 520 },
+      id: 'form_datos', type: 'message', position: { x: COL_RESERVAS, y: 700 },
       data: {
-        type: 'list',
-        text: 'Estos son los horarios disponibles más próximos:',
+        type: 'form',
+        text: 'Nombre completo',
         options: [
-          { id: 'f_1',      label: 'Miércoles 29/04 - 10:00h' },
-          { id: 'f_2',      label: 'Miércoles 29/04 - 10:30h' },
-          { id: 'f_3',      label: 'Miércoles 29/04 - 11:00h' },
-          { id: 'f_4',      label: 'Miércoles 29/04 - 11:30h' },
-          { id: 'f_5',      label: 'Jueves 30/04 - 09:00h' },
-          { id: 'f_more',   label: '🔄 Ver más horarios' },
-          { id: 'f_manual', label: '✍️ Ingresar Manualmente' },
+          { id: 'campo_nombre',   label: 'Nombre completo' },
+          { id: 'campo_telefono', label: 'Teléfono de contacto' },
         ],
       },
     });
-    (structuredData.servicios || []).forEach((s: any, idx: number) => {
-      e.push({ id: `e-serv-${idx}`, source: 'menu_servicios', sourceHandle: `serv_${idx}`, target: 'menu_fechas', type: 'flow', label: s.nombre, markerEnd: { type: MarkerType.ArrowClosed } });
-    });
-    // Self-loop "ver más"
-    e.push({ id: 'e-more', source: 'menu_fechas', sourceHandle: 'f_more', target: 'menu_fechas', type: 'flow', label: 'Ver más horarios', markerEnd: { type: MarkerType.ArrowClosed } });
+    e.push(mkEdge('e-horarios-form', 'accion_horarios', 'form_datos', 'Al elegir horario'));
 
-    // Manual entry
+    // 4) Módulo: Confirmar reserva → guarda en DB
     n.push({
-      id: 'ingreso_manual', type: 'message', position: { x: -350, y: 720 },
-      data: { type: 'text', text: 'Por favor ingresá la fecha y hora que buscás\n(Ej: 30 de abril a las 15hs)' },
+      id: 'accion_confirmar', type: 'message', position: { x: COL_RESERVAS, y: 900 },
+      data: { type: 'action', text: 'action_confirm_booking' },
     });
-    e.push({ id: 'e-manual-in', source: 'menu_fechas', sourceHandle: 'f_manual', target: 'ingreso_manual', type: 'flow', label: 'Ingresar Manualmente', markerEnd: { type: MarkerType.ArrowClosed } });
+    e.push(mkEdge('e-form-confirmar', 'form_datos', 'accion_confirmar', 'Al completar datos'));
 
-    // Confirm
+    // 5) Confirmación final
     n.push({
-      id: 'accion_confirmar', type: 'message', position: { x: 50, y: 800 },
-      data: { type: 'action', text: 'Módulo: Confirmar Reserva y/o Seña' },
-    });
-    const fechaLabels: Record<string,string> = {
-      f_1: 'Miércoles 29/04 - 10:00h', f_2: 'Miércoles 29/04 - 10:30h',
-      f_3: 'Miércoles 29/04 - 11:00h', f_4: 'Miércoles 29/04 - 11:30h',
-      f_5: 'Jueves 30/04 - 09:00h',
-    };
-    ['f_1','f_2','f_3','f_4','f_5'].forEach(opt => {
-      e.push({ id: `e-fecha-${opt}`, source: 'menu_fechas', sourceHandle: opt, target: 'accion_confirmar', type: 'flow', label: fechaLabels[opt], markerEnd: { type: MarkerType.ArrowClosed } });
-    });
-    e.push({ id: 'e-manual-ok', source: 'ingreso_manual', target: 'accion_confirmar', type: 'flow', label: 'Si está libre', markerEnd: { type: MarkerType.ArrowClosed } });
-
-    // Error loop
-    n.push({
-      id: 'error_manual', type: 'message', position: { x: -350, y: 950 },
+      id: 'msg_confirmado', type: 'message', position: { x: COL_RESERVAS, y: 1050 },
       data: {
         type: 'buttons',
-        text: 'Ese horario está ocupado o el formato no es válido. Intentá de nuevo.',
-        options: [{ id: 'opt_reintentar', label: 'Intentar otra vez' }],
+        text: '¡Listo! Tu turno ha sido agendado. Te esperamos.',
+        options: [{ id: 'volver_inicio', label: 'Volver al Menú' }]
       },
     });
-    e.push({ id: 'e-manual-err', source: 'ingreso_manual', target: 'error_manual', type: 'flow', label: 'Si está ocupado', markerEnd: { type: MarkerType.ArrowClosed } });
-    e.push({ id: 'e-retry', source: 'error_manual', sourceHandle: 'opt_reintentar', target: 'ingreso_manual', type: 'flow', label: 'Intentar otra vez', markerEnd: { type: MarkerType.ArrowClosed } });
-  }
+    e.push(mkEdge('e-confirmar-final', 'accion_confirmar', 'msg_confirmado', 'Al guardar'));
+    e.push(mkEdge('e-final-volver', 'msg_confirmado', 'root', 'Volver al Menú', 'volver_inicio'));
 
-  // ── Products ──
-  if (structuredData.productos?.length > 0) {
+    // ── Sub-rama: Cancelar turno ────────────────────────────────────────────
     n.push({
-      id: 'menu_productos', type: 'message', position: { x: 950, y: 280 },
-      data: {
-        type: 'list',
-        text: 'Acá tenés nuestros productos disponibles:',
-        options: (structuredData.productos || []).map((p: any, i: number) => ({ id: `prod_${i}`, label: p.nombre })),
-      },
+      id: 'accion_cancelar', type: 'message', position: { x: COL_GESTION, y: 300 },
+      data: { type: 'action', text: 'action_cancel_booking' },
     });
-    e.push({ id: 'e-productos', source: 'root', sourceHandle: 'opt_productos', target: 'menu_productos', type: 'flow', label: 'Ver Productos', markerEnd: { type: MarkerType.ArrowClosed } });
+    e.push(mkEdge('e-root-cancelar', 'root', 'accion_cancelar', 'Cancelar Turno', 'opt_cancelar'));
+
+    n.push({
+      id: 'msg_cancelar_ok', type: 'message', position: { x: COL_GESTION, y: 480 },
+      data: { type: 'text', text: '✅ Tu turno fue cancelado correctamente. Podés agendar uno nuevo cuando quieras.' },
+    });
+    e.push(mkEdge('e-cancelar-ok', 'accion_cancelar', 'msg_cancelar_ok', 'Cancelación exitosa'));
+    e.push(mkEdge('e-cancelar-cierre', 'msg_cancelar_ok', 'cierre_universal', '¿Algo más?'));
+
+    // ── Sub-rama: Ver mis turnos ────────────────────────────────────────────
+    n.push({
+      id: 'accion_ver_turnos', type: 'message', position: { x: COL_GESTION, y: 660 },
+      data: { type: 'action', text: 'action_view_bookings' },
+    });
+    e.push(mkEdge('e-root-ver', 'root', 'accion_ver_turnos', 'Ver Mis Turnos', 'opt_ver_turnos'));
+
+    n.push({
+      id: 'msg_ver_ok', type: 'message', position: { x: COL_GESTION, y: 840 },
+      data: { type: 'text', text: '📋 Acá están tus próximos turnos. Si necesitás cancelar o modificar alguno, avisame.' },
+    });
+    e.push(mkEdge('e-ver-ok', 'accion_ver_turnos', 'msg_ver_ok', 'Listado enviado'));
+    e.push(mkEdge('e-ver-cierre', 'msg_ver_ok', 'cierre_universal', '¿Algo más?'));
   }
 
-  // ── FAQ ──
-  if (structuredData.faq?.length > 0) {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RAMA PRODUCTOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (hasProductos) {
+    const prodOptions = (structuredData.productos || []).map((p: any, i: number) => ({
+      id: `prod_${i}`, label: p.nombre?.substring(0, 24) || `Producto ${i+1}`,
+    }));
+
+    n.push({
+      id: 'menu_productos', type: 'message', position: { x: COL_PRODUCTOS, y: 300 },
+      data: { type: 'list', text: '🛍️ Acá tenés nuestros productos disponibles:', options: prodOptions },
+    });
+    e.push(mkEdge('e-root-productos', 'root', 'menu_productos', 'Ver Productos', 'opt_productos'));
+
+    // Una tarjeta de detalle por producto
+    let prodY = 520;
+    (structuredData.productos || []).forEach((p: any, idx: number) => {
+      const detId = `prod_det_${idx}`;
+      const precio = p.precio ? ` — $${p.precio}` : '';
+      const desc   = p.descripcion ? `\n${p.descripcion}` : '';
+      n.push({
+        id: detId, type: 'message', position: { x: COL_PRODUCTOS, y: prodY },
+        data: {
+          type: 'buttons',
+          text: `${p.nombre}${precio}${desc}`,
+          options: [{ id: `prod_comprar_${idx}`, label: '🛒 Consultar / Comprar' }],
+        },
+      });
+      e.push(mkEdge(`e-prod-${idx}`, 'menu_productos', detId, p.nombre, `prod_${idx}`));
+      // Consultar → derivar agente
+      e.push(mkEdge(`e-prod-comprar-${idx}`, detId, 'accion_agente', 'Consultar', `prod_comprar_${idx}`));
+      prodY += 220;
+    });
+
+    // Desde el último producto → cierre
+    const lastProd = structuredData.productos?.[structuredData.productos.length - 1];
+    if (lastProd) {
+      const lastIdx = structuredData.productos.length - 1;
+      e.push(mkEdge('e-prod-cierre', `prod_det_${lastIdx}`, 'cierre_universal', '¿Algo más?'));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RAMA FAQ
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (hasFaq) {
     const faqOptions = (structuredData.faq || []).map((f: any, i: number) => ({
       id: `faq_${i}`,
-      label: f.pregunta ? f.pregunta.substring(0, 22) + '…' : 'Pregunta',
+      label: f.pregunta ? f.pregunta.substring(0, 22) + '…' : `Pregunta ${i+1}`,
     }));
-    n.push({
-      id: 'menu_faq', type: 'message', position: { x: 1300, y: 280 },
-      data: { type: 'list', text: 'Te ayudo con tus dudas frecuentes:', options: faqOptions },
-    });
-    e.push({ id: 'e-faq', source: 'root', sourceHandle: 'opt_faq', target: 'menu_faq', type: 'flow', label: 'Preguntas Frecuentes', markerEnd: { type: MarkerType.ArrowClosed } });
 
-    let faqY = 500;
+    n.push({
+      id: 'menu_faq', type: 'message', position: { x: COL_FAQ, y: 300 },
+      data: { type: 'list', text: '❓ ¿Cuál es tu consulta?', options: faqOptions },
+    });
+    e.push(mkEdge('e-root-faq', 'root', 'menu_faq', 'Preguntas Frecuentes', 'opt_faq'));
+
+    let faqY = 520;
     (structuredData.faq || []).forEach((f: any, idx: number) => {
       const ansId = `faq_ans_${idx}`;
-      n.push({ id: ansId, type: 'message', position: { x: 1300, y: faqY }, data: { type: 'text', text: f.respuesta } });
-      e.push({ id: `e-faq-${idx}`, source: 'menu_faq', sourceHandle: `faq_${idx}`, target: ansId, type: 'flow', label: faqOptions[idx]?.label, markerEnd: { type: MarkerType.ArrowClosed } });
-      faqY += 180;
+      n.push({
+        id: ansId, type: 'message', position: { x: COL_FAQ, y: faqY },
+        data: {
+          type: 'buttons',
+          text: f.respuesta || 'Respuesta pendiente.',
+          options: [{ id: `faq_mas_${idx}`, label: '🔙 Ver más preguntas' }],
+        },
+      });
+      e.push(mkEdge(`e-faq-${idx}`, 'menu_faq', ansId, faqOptions[idx]?.label, `faq_${idx}`));
+      // "Ver más preguntas" → vuelve al menú FAQ
+      e.push(mkEdge(`e-faq-back-${idx}`, ansId, 'menu_faq', 'Ver más preguntas', `faq_mas_${idx}`));
+      faqY += 260;
     });
+
+    // FAQ siempre tiene opción de cierre desde el menú principal de FAQ
+    n.push({
+      id: 'faq_no_encontro', type: 'message', position: { x: COL_FAQ + 280, y: 400 },
+      data: {
+        type: 'buttons',
+        text: '🤔 ¿No encontraste lo que buscabas? Te conectamos con alguien.',
+        options: [
+          { id: 'faq_agente_si', label: '🙋 Sí, quiero hablar' },
+          { id: 'faq_agente_no', label: '🔙 Volver al menú' },
+        ],
+      },
+    });
+    e.push(mkEdge('e-faq-no-enc', 'menu_faq', 'faq_no_encontro', 'No encuentro mi pregunta'));
+    e.push(mkEdge('e-faq-agente', 'faq_no_encontro', 'accion_agente', 'Quiero hablar', 'faq_agente_si'));
+    e.push(mkEdge('e-faq-back-root', 'faq_no_encontro', 'root', 'Volver al menú', 'faq_agente_no'));
   }
 
   return { n, e };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
+
 
 export default function BotFlowPreview({ botType, structuredData, setStructuredData, onNext, onBack, viewMode }: BotFlowPreviewProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -178,6 +289,51 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
+
+  // Chat panel resizing state
+  const [chatWidth, setChatWidth] = useState(320);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
+
+  // AI Chat state
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessages, setAiMessages] = useState<{role: string, content: string}[]>([
+    { role: 'assistant', content: '¡Hola! Soy tu asistente de configuración. Decime qué querés cambiar o agregar al bot y lo hago por vos.' }
+  ]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      setChatWidth(prev => {
+        const newWidth = prev - e.movementX;
+        if (newWidth < 250) return 250;
+        if (newWidth > 800) return 800;
+        return newWidth;
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   // ── Build callbacks injected into every node's data ──
   const buildNodeData = useCallback((rawData: any, nodeId: string) => ({
@@ -284,7 +440,7 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
       type: 'flow',
       label: edgeLabel,
       markerEnd: { type: MarkerType.ArrowClosed },
-    }, eds));
+    } as any, eds));
   }, [nodes]);
 
   // Drop a fresh "isNew" node at a visible center position
@@ -329,6 +485,101 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
       setSaveResult('error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAISubmit = async () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    const instruction = aiPrompt.trim();
+    setAiPrompt('');
+    setAiMessages(prev => [...prev, { role: 'user', content: instruction }]);
+    setAiLoading(true);
+
+    try {
+      const nodesContext = nodes.map(n => ({
+        id: n.id,
+        texto: typeof n.data.text === 'string' ? n.data.text.substring(0, 50) : '',
+        opciones: (n.data.options as any[] || []).map(o => ({ id: o.id, label: o.label }))
+      }));
+
+      const result = await aiService.processInstruction(instruction, nodesContext);
+      
+      let replyMessage = '';
+
+      if (result.accion === 'desconocido') {
+        replyMessage = result.descripcion || 'Solo puedo ayudarte a crear o mejorar tu bot. Por favor indicá qué querés que haga el bot.';
+      } else {
+        if ((result.accion === 'crear_nodo' || result.accion === 'editar_nodo') && result.nodo) {
+          const newId = `ai_node_${Date.now()}`;
+          const offset = nodes.length * 30;
+          const mappedType = result.nodo.tipo === 'pregunta' ? 'text' 
+                           : result.nodo.tipo === 'condicion' ? 'buttons' 
+                           : result.nodo.tipo === 'api_call' ? 'action'
+                           : 'text';
+          
+          let options: any[] = [];
+          if (result.nodo.opciones && result.nodo.opciones.length > 0) {
+            options = result.nodo.opciones.map((opt: string, i: number) => ({ id: `opt_${Date.now()}_${i}`, label: opt }));
+          } else if (mappedType === 'buttons') {
+            options = [{ id: `opt_${Date.now()}_1`, label: 'Sí' }, { id: `opt_${Date.now()}_2`, label: 'No' }];
+          }
+
+          const newNode: Node = {
+            id: newId,
+            type: 'message',
+            position: { x: 300 + offset, y: 300 + offset },
+            data: buildNodeData({
+              type: options.length > 3 ? 'list' : options.length > 0 ? 'buttons' : mappedType,
+              text: result.nodo.contenido || result.descripcion,
+              options,
+              isNew: false
+            }, newId),
+          };
+          setNodes(nds => [...nds, newNode]);
+
+          // Handle incoming edges
+          if (Array.isArray(result.nodo.conexiones_entrantes_desde)) {
+            const incomingEdges = result.nodo.conexiones_entrantes_desde.map((sourceId: string) => ({
+              id: `e_${sourceId}_${newId}`,
+              source: sourceId,
+              target: newId,
+              type: 'flow',
+              markerEnd: { type: MarkerType.ArrowClosed }
+            }));
+            setEdges(eds => [...eds, ...incomingEdges]);
+          }
+
+          // Handle outgoing edges
+          if (Array.isArray(result.nodo.conexiones_salientes)) {
+            const outgoingEdges: any[] = [];
+            result.nodo.conexiones_salientes.forEach((conn: any) => {
+              const optMatch = options.find(o => o.label === conn.opcion);
+              if (optMatch && conn.target_node_id) {
+                outgoingEdges.push({
+                  id: `e_${newId}_${conn.target_node_id}`,
+                  source: newId,
+                  sourceHandle: optMatch.id,
+                  target: conn.target_node_id,
+                  type: 'flow',
+                  label: conn.opcion,
+                  markerEnd: { type: MarkerType.ArrowClosed }
+                });
+              }
+            });
+            setEdges(eds => [...eds, ...outgoingEdges]);
+          }
+
+          replyMessage = `✅ ¡Listo! Generé el nodo: "${result.descripcion}" y lo dejé conectado según pediste.`;
+        } else {
+          replyMessage = `✅ Entendido. Acción: ${result.accion}. (Para evitar romper tu flujo, generá las acciones complejas desde los botones, o pedime crear nodos específicos)`;
+        }
+      }
+
+      setAiMessages(prev => [...prev, { role: 'assistant', content: replyMessage }]);
+    } catch (error) {
+      setAiMessages(prev => [...prev, { role: 'assistant', content: '❌ Hubo un error al comunicarme con la IA. Intentá de nuevo.' }]);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -379,29 +630,87 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         {!viewMode && (
           <Button variant="outlined" onClick={onBack} sx={{ bgcolor: '#fff', textTransform: 'none' }}>Atrás</Button>
         )}
+        {!isChatOpen && (
+          <Button
+            variant="contained"
+            onClick={() => setIsChatOpen(true)}
+            startIcon={<AutoAwesomeIcon />}
+            sx={{ textTransform: 'none', fontWeight: 700, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' } }}
+          >
+            Crear flujo con IA
+          </Button>
+        )}
         <Button
           variant="contained"
           color={viewMode ? 'success' : 'primary'}
           onClick={() => setConfirmDialogOpen(true)}
           disabled={saving}
-          startIcon={saving ? <CircularProgress size={16} color="inherit" /> : null}
           sx={{ textTransform: 'none', fontWeight: 700, minWidth: 160 }}
         >
-          {saving ? 'Guardando...' : viewMode ? '💾 Guardar Cambios' : 'Confirmar Flujo'}
+          {viewMode ? '💾 Guardar Cambios' : 'Confirmar Flujo'}
         </Button>
       </Box>
 
-      {/* Save result feedback */}
+      {/* ─── Full-screen save overlay ─── */}
+      {saving && (
+        <Box sx={{
+          position: 'fixed', inset: 0, zIndex: 99999,
+          bgcolor: 'rgba(10, 10, 20, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 3,
+        }}>
+          <Box sx={{
+            bgcolor: '#1a1a2e', borderRadius: 4, px: 6, py: 5,
+            border: '1px solid rgba(124,58,237,0.4)',
+            boxShadow: '0 0 60px rgba(124,58,237,0.3)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2.5,
+            minWidth: 320,
+          }}>
+            <CircularProgress size={56} thickness={4} sx={{ color: '#7c3aed' }} />
+            <Typography variant="h6" fontWeight={700} sx={{ color: '#e2d9f3' }}>
+              {viewMode ? 'Guardando cambios…' : 'Creando tu bot…'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#888', textAlign: 'center', maxWidth: 260 }}>
+              Estamos aplicando la nueva configuración del flujo.<br/>Esto toma solo unos segundos.
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      {/* ─── Result feedback toast ─── */}
       {saveResult === 'success' && (
-        <Box sx={{ position: 'absolute', bottom: 60, right: 12, zIndex: 20 }}>
-          <Alert severity="success" onClose={() => setSaveResult(null)} sx={{ boxShadow: 3 }}>
-            ✅ Flujo guardado — el bot ya usa la nueva configuración
+        <Box sx={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99998, minWidth: 340,
+        }}>
+          <Alert
+            severity="success"
+            onClose={() => setSaveResult(null)}
+            sx={{
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 2,
+              fontSize: 14, fontWeight: 600,
+              '& .MuiAlert-icon': { fontSize: 22 },
+            }}
+          >
+            ✅ Flujo guardado correctamente — el bot ya usa la nueva configuración.
           </Alert>
         </Box>
       )}
       {saveResult === 'error' && (
-        <Box sx={{ position: 'absolute', bottom: 60, right: 12, zIndex: 20 }}>
-          <Alert severity="error" onClose={() => setSaveResult(null)} sx={{ boxShadow: 3 }}>
+        <Box sx={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99998, minWidth: 340,
+        }}>
+          <Alert
+            severity="error"
+            onClose={() => setSaveResult(null)}
+            sx={{
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 2,
+              fontSize: 14, fontWeight: 600,
+              '& .MuiAlert-icon': { fontSize: 22 },
+            }}
+          >
             ❌ Error al guardar el flujo. Reintentá en unos segundos.
           </Alert>
         </Box>
@@ -435,11 +744,102 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
     </Box>
   );
 
+  const chatPanel = (
+    <>
+      {/* Resizer Handle */}
+      <Box
+        onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+        sx={{
+          width: 4,
+          cursor: 'ew-resize',
+          bgcolor: isResizing ? '#7c3aed' : '#222',
+          '&:hover': { bgcolor: '#7c3aed' },
+          zIndex: 20,
+          transition: 'background-color 0.2s',
+        }}
+      />
+      {/* Chat Content */}
+      <Box sx={{ width: chatWidth, bgcolor: '#161622', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+      {/* Header */}
+      <Box sx={{ p: 2, borderBottom: '1px solid #333', bgcolor: '#1e1e2f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#fff', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AutoAwesomeIcon fontSize="small" sx={{ color: '#a78bfa' }} /> Asistente IA
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#aaa' }}>
+            Pedime que modifique el flujo del bot
+          </Typography>
+        </Box>
+        <IconButton onClick={() => setIsChatOpen(false)} size="small" sx={{ color: '#aaa', '&:hover': { color: '#fff' } }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
+
+      {/* Messages */}
+      <Box sx={{ flex: 1, p: 2, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {aiMessages.map((msg, i) => (
+          <Box key={i} sx={{ 
+            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+            bgcolor: msg.role === 'user' ? '#7c3aed' : '#2d2d44', 
+            p: 1.5, 
+            borderRadius: 2, 
+            maxWidth: '85%' 
+          }}>
+            <Typography variant="body2" color="#fff" sx={{ whiteSpace: 'pre-wrap' }}>
+              {msg.content}
+            </Typography>
+          </Box>
+        ))}
+        {aiLoading && (
+          <Box sx={{ alignSelf: 'flex-start', bgcolor: '#2d2d44', p: 1.5, borderRadius: 2 }}>
+            <CircularProgress size={16} sx={{ color: '#a78bfa' }} />
+          </Box>
+        )}
+      </Box>
+
+      {/* Input */}
+      <Box sx={{ p: 2, borderTop: '1px solid #333', bgcolor: '#1e1e2f' }}>
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Ej: Agregá un menú de reclamos..."
+          variant="outlined"
+          value={aiPrompt}
+          onChange={(e) => setAiPrompt(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleAISubmit(); }}
+          disabled={aiLoading}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              color: '#fff',
+              bgcolor: '#0f0f1a',
+              '& fieldset': { borderColor: '#444' },
+              '&:hover fieldset': { borderColor: '#7c3aed' },
+              '&.Mui-focused fieldset': { borderColor: '#7c3aed' },
+            }
+          }}
+        />
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleAISubmit}
+          disabled={aiLoading || !aiPrompt.trim()}
+          sx={{ mt: 1, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
+        >
+          {aiLoading ? 'Enviando...' : 'Enviar'}
+        </Button>
+      </Box>
+    </Box>
+    </>
+  );
+
   return (
     <>
       {/* Normal canvas */}
-      <Box sx={{ width: '100%', height: '75vh', border: '1px solid #333', borderRadius: 2, overflow: 'hidden', bgcolor: '#0f0f1a' }}>
-        {!fullscreen && canvasContent}
+      <Box sx={{ display: 'flex', width: '100%', height: '75vh', border: '1px solid #333', borderRadius: 2, overflow: 'hidden', bgcolor: '#0f0f1a' }}>
+        <Box sx={{ flex: 1, position: 'relative' }}>
+          {!fullscreen && canvasContent}
+        </Box>
+        {!fullscreen && isChatOpen && chatPanel}
       </Box>
 
       {/* Fullscreen overlay */}
@@ -447,9 +847,12 @@ export default function BotFlowPreview({ botType, structuredData, setStructuredD
         <Box sx={{
           position: 'fixed', inset: 0, zIndex: 9999,
           bgcolor: '#0f0f1a',
-          display: 'flex', flexDirection: 'column',
+          display: 'flex',
         }}>
-          {canvasContent}
+          <Box sx={{ flex: 1, position: 'relative' }}>
+            {canvasContent}
+          </Box>
+          {isChatOpen && chatPanel}
         </Box>
       )}
     </>
