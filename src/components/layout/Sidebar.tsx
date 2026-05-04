@@ -95,9 +95,13 @@ export default function Sidebar({
   const showText = isMobile || !collapsed;
 
   const renderItem = (item: SidebarItem) => {
-    const isLocked = onboardingStep < (item.minStep || 0);
     const isHidden = modulesConfig && item.configKey && modulesConfig[item.configKey] === false;
     if (isHidden) return null;
+
+    // Si el módulo está habilitado explícitamente en la configuración, no está bloqueado
+    // Esto permite que tenants antiguos vean sus módulos sin pasar por el nuevo onboarding
+    const isEnabledByConfig = modulesConfig && item.configKey && modulesConfig[item.configKey] === true;
+    const isLocked = !isEnabledByConfig && onboardingStep < (item.minStep || 0);
 
     const itemContent = (
       <ListItemButton
