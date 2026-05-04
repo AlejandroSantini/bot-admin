@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import { useState } from "react";
 
-const drawerWidth = 210;
+const drawerWidth = 240;
 const collapsedWidth = 64;
 
 export default function Layout() {

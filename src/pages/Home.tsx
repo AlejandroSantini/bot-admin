@@ -25,24 +25,9 @@ export default function Home() {
       return;
     }
 
-    if (onboardingStep === 1) {
-      navigate("/asistente", { replace: true });
-      return;
-    }
-
-    // Si ya completó onboarding (paso 2)
-    if (!modulesConfig) {
-      navigate("/configuracion", { replace: true });
-      return;
-    }
-
-    const firstEnabledModule = menuItems.find(item => modulesConfig[item.configKey] !== false);
-
-    if (firstEnabledModule) {
-      navigate(firstEnabledModule.path, { replace: true });
-    } else {
-      navigate("/configuracion", { replace: true });
-    }
+    // Por ahora, siempre llevar al asistente (Flujo del bot) al inicio
+    // ya que las estadísticas/dashboard aún no están activos
+    navigate("/asistente", { replace: true });
   }, [modulesConfig, isLoading, onboardingStep, navigate]);
 
   return (
