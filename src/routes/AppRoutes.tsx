@@ -190,14 +190,6 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/asistente"
-          element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/configuracion"
           element={
             <ProtectedRoute>

@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(res.user);
       setToken(res.token);
       await refreshUserData();
-      navigate("/asistente");
+      navigate("/");
     } catch (err) {
       console.error("Error en login:", err);
       throw err;

@@ -44,7 +44,6 @@ const mainMenuItems: SidebarItem[] = [
   { text: "Productos", icon: <ProductoIcon sx={{ fontSize: 20 }} />, path: "/productos", configKey: "productos", minStep: 2 },
   { text: "Campañas", icon: <CampaignIcon sx={{ fontSize: 20 }} />, path: "/campanas", configKey: "campanas", minStep: 2 },
   { text: "Facturación", icon: <ReceiptIcon sx={{ fontSize: 20 }} />, path: "/facturacion", configKey: "facturacion", minStep: 2 },
-  { text: "Flujo del bot", icon: <AssistantIcon sx={{ fontSize: 20 }} />, path: "/asistente", configKey: "asistente", minStep: 1 },
 ];
 
 const bottomMenuItems: SidebarItem[] = [

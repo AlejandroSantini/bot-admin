@@ -25,9 +25,15 @@ export default function Home() {
       return;
     }
 
-    // Por ahora, siempre llevar al asistente (Flujo del bot) al inicio
-    // ya que las estadísticas/dashboard aún no están activos
-    navigate("/asistente", { replace: true });
+    // Redirección dinámica basada en módulos activos
+    if (modulesConfig?.reservas) {
+      navigate("/reservas", { replace: true });
+    } else if (modulesConfig?.clientes) {
+      navigate("/clientes", { replace: true });
+    } else {
+      // Si no hay ninguno de los principales, ir a configuración
+      navigate("/configuracion", { replace: true });
+    }
   }, [modulesConfig, isLoading, onboardingStep, navigate]);
 
   return (

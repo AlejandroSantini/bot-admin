@@ -24,7 +24,6 @@ export default function Layout() {
     "/clientes":    "Clientes",
     "/servicios":   "Servicios",
     "/productos":   "Productos",
-    "/asistente":   "Flujo del Bot",
     "/configuracion": "Configuración",
   };
   const pageTitle = SECTION_LABELS[mainPath] ?? "Panel Admin";
