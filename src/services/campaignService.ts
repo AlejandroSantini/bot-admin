@@ -39,8 +39,13 @@ export const updateCampaign = async (id: string | number, data: FormData) => {
   return response.data;
 };
 
-export const runCampaign = async (id: string | number) => {
-  const response = await api.post(`/api/campanas/${id}/run`);
+export const runCampaign = async (id: string | number, mode: 'smart' | 'free' = 'smart') => {
+  const response = await api.post(`/api/campanas/${id}/run`, { mode });
+  return response.data;
+};
+
+export const getCampaignStats = async (id: string | number) => {
+  const response = await api.get(`/api/campanas/${id}/stats`);
   return response.data;
 };
 

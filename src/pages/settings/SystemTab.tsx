@@ -15,11 +15,13 @@ import {
   SettingsSuggest as ModulesIcon,
   CheckCircle as SaveIcon
 } from "@mui/icons-material";
-import { settingsService } from "../../services/settingsService";
+import { settingsService, type ReminderConfig, type ModulesConfig } from "../../services/settingsService";
 import { ContainedButton } from "../../components/common/ContainedButton";
 
 interface SystemTabProps {
-  initialModulesConfig?: any;
+  initialModulesConfig?: ModulesConfig;
+  initialReminders?: ReminderConfig | null;
+  showReservations?: boolean;
 }
 
 export default function SystemTab({ initialModulesConfig }: SystemTabProps) {
@@ -60,8 +62,8 @@ export default function SystemTab({ initialModulesConfig }: SystemTabProps) {
     try {
       setSaving(true);
       setError(null);
-      await settingsService.updateConfig({
-        modules_config: modulesConfig,
+      await settingsService.updateModulesConfig({
+        modules_config: modulesConfig as any,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

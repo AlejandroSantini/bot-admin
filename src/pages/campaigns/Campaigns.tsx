@@ -12,16 +12,22 @@ import { useNavigate } from "react-router-dom";
 import { Table } from "../../components/common/Table";
 import { ContainedButton } from "../../components/common/ContainedButton";
 
-import { getCampaigns, runCampaign, deleteCampaign } from "../../services/campaignService";
+import { getCampaigns, deleteCampaign } from "../../services/campaignService";
 import type { Campaign } from "../../services/campaignService";
 import { OutlinedButton } from "../../components/common/OutlinedButton";
-import { IconButton } from "@mui/material";
+import { IconButton, Snackbar } from "@mui/material";
+import BroadcastModal from "./BroadcastModal";
 
 export default function Campaigns() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
 
   const loadCampaigns = async () => {
     setLoading(true);
@@ -43,20 +49,9 @@ export default function Campaigns() {
     loadCampaigns();
   }, []);
 
-  const handleRun = async (id: string | number) => {
-    if (
-      !window.confirm(
-        "¿Estás seguro de que deseas ejecutar esta campaña ahora?",
-      )
-    )
-      return;
-    try {
-      await runCampaign(id);
-      alert("Campaña ejecutada correctamente");
-      loadCampaigns();
-    } catch (err) {
-      alert("Error al ejecutar la campaña");
-    }
+  const handleOpenBroadcast = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setModalOpen(true);
   };
 
   const handleDelete = async (id: string | number) => {
@@ -64,10 +59,10 @@ export default function Campaigns() {
       return;
     try {
       await deleteCampaign(id);
-      alert("Campaña eliminada correctamente");
+      setSnackbar({ open: true, message: "Campaña eliminada correctamente" });
       loadCampaigns();
     } catch (err) {
-      alert("Error al eliminar la campaña");
+      setSnackbar({ open: true, message: "Error al eliminar la campaña" });
     }
   };
 
@@ -84,7 +79,7 @@ export default function Campaigns() {
             startIcon={<PlayIcon />}
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation();
-              handleRun(c.id!);
+              handleOpenBroadcast(c);
             }}
           >
             Difundir
@@ -138,6 +133,23 @@ export default function Campaigns() {
           emptyMessage="No hay campañas registradas."
         />
       )}
+
+      <BroadcastModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        campaign={selectedCampaign}
+        onSuccess={() => {
+          setSnackbar({ open: true, message: "Envío iniciado correctamente" });
+          loadCampaigns();
+        }}
+      />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </Box>
   );
 }
