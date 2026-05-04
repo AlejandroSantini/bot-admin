@@ -7,6 +7,15 @@ export interface DashboardStats {
   dinero_generado: number;
   turnos_cancelados: number;
   tasa_cancelacion: string;
+  trends: {
+    mensajes_enviados: string;
+    dinero_generado: string;
+    clientes_atendidos: string;
+  };
+  history: {
+    date: string;
+    count: number;
+  }[];
 }
 
 export const dashboardService = {

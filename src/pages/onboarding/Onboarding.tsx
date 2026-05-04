@@ -19,6 +19,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Skeleton,
 } from "@mui/material";
 import {
   CloudUpload as UploadIcon,
@@ -31,6 +32,7 @@ import {
 import { settingsService } from "../../services/settingsService";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import BotFlowPreview from "./BotFlowPreview";
+import { useAuth } from "../../hooks/useAuth";
 
 const STEPS = ["Cargar Documento", "Revisar Información", "Preview Flujo", "Generar Bot"];
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -127,6 +129,8 @@ export default function Onboarding() {
     }
   };
 
+  const { setOnboardingStep } = useAuth();
+
   const handleApprove = async () => {
     setLoading(true);
     setError(null);
@@ -134,6 +138,7 @@ export default function Onboarding() {
       await settingsService.approveOnboarding();
       setActiveStep(3);
       setSuccess("¡Bot generado con éxito!");
+      await setOnboardingStep(); // Refrescamos el estado desde el backend
     } catch (err) {
       setError("Error al generar el bot.");
     } finally {
@@ -161,21 +166,35 @@ export default function Onboarding() {
   };
 
   return (
-    <Box sx={{ mx: "auto", p: activeStep === 3 ? { xs: 1, sm: 2 } : { xs: 2, sm: 4 }, maxWidth: 1400 }}>
+    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1400, mx: "auto", width: '100%', boxSizing: 'border-box' }}>
 
       {/* Stepper and title only show during wizard (steps 0-2) or when creating a new bot */}
       {activeStep < 3 && (
         <>
-          <Typography variant="h5" fontWeight="700" sx={{ mb: 4 }}>
-            Flujo del Bot
-          </Typography>
-          <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
-            {STEPS.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+          {loading ? (
+            <Box sx={{ mb: 5 }}>
+              <Skeleton variant="text" width={200} height={40} sx={{ mb: 2 }} />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                <Skeleton variant="circular" width={24} height={24} />
+                <Skeleton variant="circular" width={24} height={24} />
+                <Skeleton variant="circular" width={24} height={24} />
+                <Skeleton variant="circular" width={24} height={24} />
+              </Box>
+            </Box>
+          ) : (
+            <>
+              <Typography variant="h5" fontWeight="700" sx={{ mb: 4 }}>
+                Flujo del Bot
+              </Typography>
+              <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
+                {STEPS.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </>
+          )}
         </>
       )}
 
@@ -183,9 +202,14 @@ export default function Onboarding() {
       {success && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>{success}</Alert>}
 
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 5 }}>
-          <CircularProgress />
-        </Box>
+        <Card variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+          <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
+          <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 2, mb: 3 }} />
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 1.5 }} />
+            <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1.5 }} />
+          </Box>
+        </Card>
       )}
 
       {!loading && activeStep === 0 && (
@@ -609,19 +633,21 @@ export default function Onboarding() {
       {!loading && activeStep === 3 && (
         <Box>
           {/* Header bar */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FlowIcon sx={{ color: 'primary.main' }} />
-              <Typography variant="h6" fontWeight={700}>Flujo del Bot Activo</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box>
+              <Typography variant="h5" fontWeight={700} color="white">Flujo del Bot</Typography>
+              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+                Gestioná el comportamiento y las respuestas de tu asistente.
+              </Typography>
             </Box>
             <Button
               variant="outlined"
               startIcon={<NewBotIcon />}
               onClick={() => setActiveStep(0)}
               size="small"
-              sx={{ textTransform: 'none', fontWeight: 600 }}
+              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
             >
-              Crear Nuevo Bot
+              Nuevo Bot
             </Button>
           </Box>
 

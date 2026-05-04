@@ -5,70 +5,46 @@ import {
   Card,
   CardContent,
   Typography,
-  Link,
   Alert,
   InputAdornment,
   IconButton,
-  Stack,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import { Input } from "../common/Input";
 import { ContainedButton } from "../common/ContainedButton";
-import {
-  Visibility,
-  VisibilityOff,
-  Email,
-  Lock,
-  Person,
-  Phone,
-} from "@mui/icons-material";
+import { Visibility, VisibilityOff, Person, Email, Lock, Phone } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
-export interface RegisterData {
-  name: string;
+interface RegisterFormData {
+  full_name: string;
   email: string;
   phone: string;
   password: string;
 }
 
-interface RegisterFormData extends RegisterData {
-  confirmPassword: string;
-}
-
-interface RegisterProps {
-  onRegister?: (userData: RegisterData) => void;
-  onSwitchToLogin?: () => void;
-}
-
-export default function Register({
-  onRegister,
-  onSwitchToLogin,
-}: RegisterProps) {
+export default function Register({ onToggleMode }: { onToggleMode: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
+    watch,
   } = useForm<RegisterFormData>();
-
-  const password = watch("password");
 
   const onSubmit = async (data: RegisterFormData) => {
     setError("");
     setLoading(true);
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      if (onRegister) {
-        const { confirmPassword, ...registerData } = data;
-        onRegister(registerData);
-      }
-    } catch (err) {
-      setError("Error al crear la cuenta. Intenta de nuevo.");
+      localStorage.setItem("pending_user", JSON.stringify(data));
+      navigate("/pago");
+    } catch (err: any) {
+      setError("Error al registrarse.");
     } finally {
       setLoading(false);
     }
@@ -81,216 +57,129 @@ export default function Register({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "background.default",
+        background: "radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%)",
         p: 2,
       }}
     >
       <Card
         sx={{
-          maxWidth: 500,
+          maxWidth: 360,
           width: "100%",
-          borderRadius: 3,
-          boxShadow: (theme) => 
-            theme.palette.mode === 'light' 
-              ? '0 2px 8px 0 rgba(0,0,0,0.04)' 
-              : '0 4px 12px 0 rgba(0,0,0,0.4)',
-          border: "1px solid",
-          borderColor: "divider",
-          backgroundColor: "background.paper",
+          borderRadius: 2.5,
+          backgroundColor: "#1e293b",
+          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mb: 2,
-                py: 1,
-              }}
-            >
-              <img
-                src="/logo.png"
-                alt="Logo"
-                style={{
-                  maxWidth: 180,
-                  width: "100%",
-                  height: "auto",
-                  objectFit: "contain",
-                  display: "block",
-                }}
-              />
-            </Box>
-            <Typography
-              variant="h5"
-              fontWeight={600}
-              gutterBottom
-              color="text.primary"
-            >
-              Crear cuenta
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ mb: 2, textAlign: "center" }}>
+            <Typography variant="h6" fontWeight={700} color="white" gutterBottom>
+              Nueva cuenta
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Únete a Bot Admin
+            <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.5)" }}>
+              Crea tu perfil para comenzar.
             </Typography>
           </Box>
 
+          <Stepper
+            activeStep={0}
+            sx={{
+              mb: 3,
+              "& .MuiStepIcon-root": { fontSize: 16 },
+              "& .MuiStepLabel-label": { fontSize: "0.65rem", color: "rgba(255, 255, 255, 0.5) !important" },
+              "& .MuiStepLabel-label.Mui-active": { color: "#3b82f6 !important" }
+            }}
+          >
+            <Step><StepLabel>Registro</StepLabel></Step>
+            <Step><StepLabel>Pago</StepLabel></Step>
+            <Step><StepLabel>Setup</StepLabel></Step>
+          </Stepper>
+
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: "0.75rem", backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#f87171" }}>
               {error}
             </Alert>
           )}
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-            <Stack sx={{ spacing: 2 }}>
-              <Input
-                {...register("name", {
-                  required: "El nombre es requerido",
-                  minLength: {
-                    value: 2,
-                    message: "El nombre debe tener al menos 2 caracteres",
-                  },
-                })}
-                label="Nombre completo"
-                error={!!errors.name}
-                helperText={errors.name?.message}
-                icon={
-                  <InputAdornment position="start">
-                    <Person />
-                  </InputAdornment>
-                }
-                sx={{ borderRadius: 2, mb: 2, height: 48 }}
-                variant="outlined"
-              />
+            <Input
+              {...register("full_name", { required: "Requerido" })}
+              label="Nombre completo"
+              placeholder="Nombre y Apellido"
+              error={!!errors.full_name}
+              icon={<InputAdornment position="start"><Person sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              sx={{ mb: 1.5 }}
+            />
 
-              <Input
-                {...register("email", {
-                  required: "El email es requerido",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Por favor ingresa un email válido",
-                  },
-                })}
-                label="Email"
-                type="email"
-                error={!!errors.email}
-                helperText={errors.email?.message}
-                icon={
-                  <InputAdornment position="start">
-                    <Email />
-                  </InputAdornment>
-                }
-                sx={{ borderRadius: 2, mb: 2, height: 48 }}
-                variant="outlined"
-              />
+            <Input
+              {...register("email", { required: "Requerido" })}
+              label="Email"
+              placeholder="email@ejemplo.com"
+              error={!!errors.email}
+              icon={<InputAdornment position="start"><Email sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              sx={{ mb: 1.5 }}
+            />
 
-              <Input
-                {...register("phone", {
-                  required: "El teléfono es requerido",
-                  pattern: {
-                    value: /^\+?[\d\s-]{10,}$/,
-                    message: "Por favor ingresa un teléfono válido",
-                  },
-                })}
-                label="Teléfono"
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-                icon={
-                  <InputAdornment position="start">
-                    <Phone />
-                  </InputAdornment>
-                }
-                sx={{ borderRadius: 2, mb: 2, height: 48 }}
-                variant="outlined"
-              />
+            <Input
+              {...register("phone", { required: "Requerido" })}
+              label="WhatsApp (Personal)"
+              placeholder="5491144445555"
+              error={!!errors.phone}
+              icon={<InputAdornment position="start"><Phone sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              sx={{ mb: 1.5 }}
+            />
 
-              <Input
-                {...register("password", {
-                  required: "La contraseña es requerida",
-                  minLength: {
-                    value: 6,
-                    message: "La contraseña debe tener al menos 6 caracteres",
-                  },
-                })}
-                label="Contraseña"
-                type={showPassword ? "text" : "password"}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                icon={
-                  <InputAdornment position="start">
-                    <Lock />
+            <Input
+              {...register("password", { required: "Requerido" })}
+              label="Contraseña"
+              type={showPassword ? "text" : "password"}
+              error={!!errors.password}
+              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small" sx={{ color: "rgba(255, 255, 255, 0.3)" }}>
+                      {showPassword ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
+                    </IconButton>
                   </InputAdornment>
-                }
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2, mb: 2, height: 48 }}
-                variant="outlined"
-              />
+                ),
+              }}
+              sx={{ mb: 3 }}
+            />
 
-              <Input
-                {...register("confirmPassword", {
-                  required: "Confirma tu contraseña",
-                  validate: (value) =>
-                    value === password || "Las contraseñas no coinciden",
-                })}
-                label="Confirmar contraseña"
-                type={showConfirmPassword ? "text" : "password"}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                icon={
-                  <InputAdornment position="start">
-                    <Lock />
-                  </InputAdornment>
-                }
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        edge="end"
-                      >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2, mb: 2, height: 48 }}
-                variant="outlined"
-              />
-            </Stack>
-
-            <ContainedButton type="submit" fullWidth loading={loading}>
-              Crear cuenta
+            <ContainedButton
+              type="submit"
+              fullWidth
+              loading={loading}
+              sx={{ 
+                py: 1.1, 
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                borderRadius: 1.5,
+                background: "linear-gradient(to right, #3b82f6, #06b6d4)",
+                "&:hover": { background: "linear-gradient(to right, #2563eb, #0891b2)" }
+              }}
+            >
+              Continuar al pago
             </ContainedButton>
 
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                ¿Ya tienes cuenta?{" "}
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={onSwitchToLogin}
-                  sx={{ cursor: "pointer" }}
+            <Box sx={{ mt: 2, textAlign: "center" }}>
+              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+                ¿Ya tienes una cuenta?{" "}
+                <Typography
+                  component="span"
+                  variant="caption"
+                  sx={{
+                    color: "primary.main",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    "&:hover": { textDecoration: "underline" }
+                  }}
+                  onClick={onToggleMode}
                 >
-                  Inicia sesión aquí
-                </Link>
+                  Inicia sesión
+                </Typography>
               </Typography>
             </Box>
           </Box>

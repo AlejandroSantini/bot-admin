@@ -59,13 +59,17 @@ export default function Layout() {
         onMobileClose={() => setMobileOpen(false)}
       />
       <Box sx={{ flexGrow: 1, width: { xs: "100%", md: `calc(100% - ${sidebarWidth}px)` }, maxWidth: "100vw", overflowX: "hidden" }}>
-        <TopBar
-          title={pageTitle}
-          drawerWidth={sidebarWidth}
-          isMobile={isMobile}
-          onMenuClick={() => setMobileOpen(true)}
-        />
-        <Toolbar />
+        {isMobile && (
+          <>
+            <TopBar
+              title={pageTitle}
+              drawerWidth={sidebarWidth}
+              isMobile={isMobile}
+              onMenuClick={() => setMobileOpen(true)}
+            />
+            <Toolbar />
+          </>
+        )}
         <Box
           component="main"
           sx={{

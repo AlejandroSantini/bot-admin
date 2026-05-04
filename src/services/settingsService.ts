@@ -141,6 +141,10 @@ export const settingsService = {
     const response = await api.put("/api/onboarding/flow", { nodes, edges });
     return response.data;
   },
+  updateMetaConfig: async (meta_phone_number_id: string) => {
+    const response = await api.put("/api/tenants/meta", { meta_phone_number_id });
+    return response.data;
+  },
 };
 
 export interface BlockedDate {

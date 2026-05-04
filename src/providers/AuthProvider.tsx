@@ -17,18 +17,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [modulesConfig, setModulesConfig] = useState<Record<string, boolean> | null>(null);
+  const [onboardingStep, setOnboardingStepState] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchModulesConfig = async () => {
+  const refreshUserData = async () => {
     try {
       const res = await api.get("/api/tenants/me");
-      if (res.data?.status && res.data?.data?.modules_config) {
-        setModulesConfig(res.data.data.modules_config);
-        return res.data.data.modules_config;
+      if (res.data?.status && res.data?.data) {
+        const data = res.data.data;
+        setUser(data);
+        setModulesConfig(data.modules_config);
+        
+        // Calculate step
+        let step = 0;
+        if (data.meta_phone_number_id) {
+          step = 1;
+          // Check if bot is approved via onboarding data status
+          try {
+            const onboardingRes = await settingsService.getOnboardingData();
+            if (onboardingRes?.data?.status === "aprobado") {
+              step = 2;
+            }
+          } catch (e) {
+            console.error("Error fetching onboarding status:", e);
+          }
+        }
+        setOnboardingStepState(step);
+        return data;
       }
     } catch (err) {
-      console.error("Error fetching modules config:", err);
+      console.error("Error refreshing user data:", err);
     }
     return null;
   };
@@ -39,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const res = await authService.login({ phone_number_id, password });
       setUser(res.user);
       setToken(res.token);
-      await fetchModulesConfig();
+      await refreshUserData();
       navigate("/inicio");
     } catch (err) {
       console.error("Error en login:", err);
@@ -83,7 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           setUser(currentUser);
           setToken(storedToken);
-          await fetchModulesConfig();
+          await refreshUserData();
         } catch (error) {
           console.error("Auth initialization failed:", error);
           setUser(null);
@@ -104,6 +123,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: !!user,
     isLoading,
     modulesConfig,
+    onboardingStep,
+    setOnboardingStep: async () => {
+      await refreshUserData();
+    },
     login,
     logout,
   };

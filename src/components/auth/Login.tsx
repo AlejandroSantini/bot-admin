@@ -19,7 +19,7 @@ interface LoginFormData {
   password: string;
 }
 
-export default function Login() {
+export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,41 +51,32 @@ export default function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "background.default",
+        background: "radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%)",
         p: 2,
       }}
     >
       <Card
         sx={{
-          maxWidth: 400,
+          maxWidth: 340,
           width: "100%",
-          borderRadius: 3,
-          boxShadow: (theme) => 
-            theme.palette.mode === 'light' 
-              ? '0 2px 8px 0 rgba(0,0,0,0.04)' 
-              : '0 4px 12px 0 rgba(0,0,0,0.4)',
-          border: "1px solid",
-          borderColor: "divider",
-          backgroundColor: "background.paper",
+          borderRadius: 2.5,
+          backgroundColor: "#1e293b",
+          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          <Box sx={{ textAlign: "center", mb: 3 }}>
-            <Typography
-              variant="h5"
-              fontWeight={600}
-              gutterBottom
-              color="text.primary"
-            >
-              Iniciar sesión
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Typography variant="h6" fontWeight={700} color="white" gutterBottom>
+              Bienvenido
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Bienvenido a Bot Admin
+            <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.5)" }}>
+              Ingresá tus credenciales para continuar.
             </Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: "0.75rem", backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#f87171" }}>
               {error}
             </Alert>
           )}
@@ -93,62 +84,71 @@ export default function Login() {
           <Box component="form" onSubmit={handleSubmit(onSubmit)}>
             <Input
               {...register("phone_number_id", {
-                required: "El ID del número de teléfono es requerido",
+                required: "Requerido",
               })}
-              label="Usuario"
-              type="text"
+              label="Phone ID"
+              placeholder="ej: 1029384756"
               error={!!errors.phone_number_id}
-              helperText={errors.phone_number_id?.message}
-              icon={
-                <InputAdornment position="start">
-                  <Lock />
-                </InputAdornment>
-              }
-              sx={{ borderRadius: 2, mb: 2, height: 48 }}
-              variant="outlined"
+              icon={<InputAdornment position="start"><Email sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              sx={{ mb: 2 }}
             />
 
             <Input
               {...register("password", {
-                required: "La contraseña es requerida",
-                minLength: {
-                  value: 6,
-                  message: "La contraseña debe tener al menos 6 caracteres",
-                },
+                required: "Requerido",
               })}
               label="Contraseña"
               type={showPassword ? "text" : "password"}
               error={!!errors.password}
-              helperText={errors.password?.message}
-              icon={
-                <InputAdornment position="start">
-                  <Lock />
-                </InputAdornment>
-              }
+              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small" sx={{ color: "rgba(255, 255, 255, 0.3)" }}>
+                      {showPassword ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{ borderRadius: 2, mb: 2, height: 48 }}
-              variant="outlined"
+              sx={{ mb: 3 }}
             />
 
             <ContainedButton
               type="submit"
               fullWidth
-              disabled={!watch("phone_number_id") || !watch("password")}
               loading={loading}
+              disabled={!watch("phone_number_id") || !watch("password")}
+              sx={{ 
+                py: 1.1, 
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                borderRadius: 1.5,
+                background: "linear-gradient(to right, #3b82f6, #06b6d4)",
+                "&:hover": { background: "linear-gradient(to right, #2563eb, #0891b2)" }
+              }}
             >
               Iniciar sesión
             </ContainedButton>
+
+            <Box sx={{ mt: 2, textAlign: "center" }}>
+              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+                ¿No tienes una cuenta?{" "}
+                <Typography
+                  component="span"
+                  variant="caption"
+                  sx={{ 
+                    color: "primary.main", 
+                    cursor: "pointer", 
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    "&:hover": { textDecoration: "underline" }
+                  }}
+                  onClick={onToggleMode}
+                >
+                  Regístrate
+                </Typography>
+              </Typography>
+            </Box>
           </Box>
         </CardContent>
       </Card>

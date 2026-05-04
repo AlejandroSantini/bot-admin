@@ -20,6 +20,7 @@ import Settings from "../pages/settings/Settings";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Billing from "../pages/billing/Billing";
 import Onboarding from "../pages/onboarding/Onboarding";
+import Payment from "../pages/auth/Payment";
 
 export default function AppRoutes() {
   return (
@@ -29,6 +30,15 @@ export default function AppRoutes() {
         element={
           <PublicRoute>
             <AuthPage />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/pago"
+        element={
+          <PublicRoute>
+            <Payment />
           </PublicRoute>
         }
       />

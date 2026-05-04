@@ -14,7 +14,8 @@ import {
   DialogContent,
   DialogActions,
   Button,
-} from "@mui/material"; // Keep basic layout/feedback
+  Skeleton,
+} from "@mui/material"; 
 import { Search as SearchIcon, Add as AddIcon, Check as CheckIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -82,7 +83,7 @@ export default function Reservations() {
 
   const loadAllReservas = async () => {
     try {
-      const res = await obtenerReservas({ page: 1, limit: 999999 });
+      const res = await obtenerReservas({ page: 1, limit: 999999, estado: 'confirmado' });
       const list = Array.isArray(res) ? res : res.data || [];
       setAllReservas(list);
     } catch (err) {
@@ -210,8 +211,10 @@ export default function Reservations() {
   ];
 
   const content = loading ? (
-    <Box sx={{ p: 4, textAlign: "center" }}>
-      <CircularProgress />
+    <Box sx={{ p: 2 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.02)' }} />
+      ))}
     </Box>
   ) : null;
 
@@ -255,7 +258,7 @@ export default function Reservations() {
   ];
 
   return (
-    <Box sx={{ mx: "auto", p: { xs: 1, sm: 2 }, width: '100%', boxSizing: 'border-box' }}>
+    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1400, mx: "auto", width: '100%', boxSizing: 'border-box' }}>
       <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2, mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Reservas

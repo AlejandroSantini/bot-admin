@@ -61,9 +61,10 @@ class Auth {
 
   async logout(): Promise<void> {
     try {
-      await api.post("/auth/logout");
+      // Intentamos avisar al servidor, pero no bloqueamos si falla
+      await api.post("/api/tenants/auth/logout").catch(() => {}); 
     } catch (error) {
-      console.warn("Error al hacer logout en el servidor:", error);
+      console.warn("Logout server call skipped or failed");
     } finally {
       localStorage.removeItem("user");
       localStorage.removeItem("token");

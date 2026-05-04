@@ -9,6 +9,7 @@ import {
   Divider,
   IconButton,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -23,72 +24,31 @@ import {
   BarChart as BarChartIcon,
   Receipt as ReceiptIcon,
   SmartToy as AssistantIcon,
+  Lock as LockIcon,
 } from "@mui/icons-material";
-import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import api from "../../services/api";
 
 interface SidebarItem {
   text: string;
   icon: React.ReactNode;
   path: string;
   configKey?: string;
+  minStep?: number;
 }
 
-const menuItems: SidebarItem[] = [
-  {
-    text: "Estadísticas",
-    icon: <BarChartIcon />,
-    path: "/estadisticas",
-    configKey: "reservas",
-  },
-  {
-    text: "Reservas",
-    icon: <VentaIcon />,
-    path: "/reservas",
-    configKey: "reservas",
-  },
-  {
-    text: "Clientes",
-    icon: <PeopleIcon />,
-    path: "/clientes",
-    configKey: "clientes",
-  },
-  {
-    text: "Servicios",
-    icon: <InventoryIcon />,
-    path: "/servicios",
-    configKey: "servicios",
-  },
-  {
-    text: "Productos",
-    icon: <ProductoIcon />,
-    path: "/productos",
-    configKey: "productos",
-  },
-  {
-    text: "Campañas",
-    icon: <CampaignIcon />,
-    path: "/campanas",
-    configKey: "campanas",
-  },
-  {
-    text: "Facturación",
-    icon: <ReceiptIcon />,
-    path: "/facturacion",
-    configKey: "facturacion",
-  },
-  {
-    text: "Flujo del bot",
-    icon: <AssistantIcon />,
-    path: "/asistente",
-    configKey: "asistente",
-  },
-  {
-    text: "Configuración",
-    icon: <SettingsIcon />,
-    path: "/configuracion",
-  },
+const mainMenuItems: SidebarItem[] = [
+  { text: "Estadísticas", icon: <BarChartIcon sx={{ fontSize: 20 }} />, path: "/estadisticas", configKey: "reservas", minStep: 2 },
+  { text: "Reservas", icon: <VentaIcon sx={{ fontSize: 20 }} />, path: "/reservas", configKey: "reservas", minStep: 2 },
+  { text: "Clientes", icon: <PeopleIcon sx={{ fontSize: 20 }} />, path: "/clientes", configKey: "clientes", minStep: 2 },
+  { text: "Servicios", icon: <InventoryIcon sx={{ fontSize: 20 }} />, path: "/servicios", configKey: "servicios", minStep: 2 },
+  { text: "Productos", icon: <ProductoIcon sx={{ fontSize: 20 }} />, path: "/productos", configKey: "productos", minStep: 2 },
+  { text: "Campañas", icon: <CampaignIcon sx={{ fontSize: 20 }} />, path: "/campanas", configKey: "campanas", minStep: 2 },
+  { text: "Facturación", icon: <ReceiptIcon sx={{ fontSize: 20 }} />, path: "/facturacion", configKey: "facturacion", minStep: 2 },
+  { text: "Flujo del bot", icon: <AssistantIcon sx={{ fontSize: 20 }} />, path: "/asistente", configKey: "asistente", minStep: 1 },
+];
+
+const bottomMenuItems: SidebarItem[] = [
+  { text: "Configuración", icon: <SettingsIcon sx={{ fontSize: 20 }} />, path: "/configuracion", minStep: 0 },
 ];
 
 interface SidebarProps {
@@ -110,204 +70,158 @@ export default function Sidebar({
   mobileOpen = false,
   onMobileClose,
 }: SidebarProps) {
-  const drawerWidth = 210;
+  const drawerWidth = 220;
   const collapsedWidth = 64;
-  const { logout, modulesConfig } = useAuth();
+  const { logout, modulesConfig, onboardingStep, user } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  const visibleMenuItems = menuItems.filter((item) => {
-    if (!modulesConfig || !item.configKey) return true;
-    return modulesConfig[item.configKey] !== false;
-  });
-
-  const itemButtonSx = (itemPath: string) => ({
+  const itemButtonSx = (isLocked: boolean) => ({
     mx: 1,
-    borderRadius: 2,
-    minHeight: 48,
-    justifyContent: isMobile
-      ? "flex-start"
-      : collapsed
-        ? "center"
-        : "flex-start",
-    px: 2,
-    transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
+    my: 0.2,
+    borderRadius: 1.5,
+    minHeight: 40,
+    px: 1.5,
+    opacity: isLocked ? 0.3 : 1,
     "&.Mui-selected": {
-      backgroundColor: "action.selected",
-      "&:hover": { backgroundColor: "action.hover" },
+      backgroundColor: "rgba(59, 130, 246, 0.08)",
+      color: "primary.main",
+      "& .MuiListItemIcon-root": { color: "primary.main" },
+      "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.12)" },
     },
-  });
-
-  const itemIconSx = (itemPath: string) => ({
-    color: selectedItem === itemPath ? "primary.main" : "text.secondary",
-    minWidth: 40,
-    width: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: isMobile
-      ? "flex-start"
-      : collapsed
-        ? "center"
-        : "flex-start",
-    mr: 0,
-    transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
+    "&:hover": {
+        backgroundColor: isLocked ? "transparent" : "rgba(255, 255, 255, 0.04)",
+    }
   });
 
   const showText = isMobile || !collapsed;
 
-  const itemTextSx = {
-    opacity: showText ? 1 : 0,
-    maxWidth: showText ? 160 : 0,
-    minWidth: 0,
-    ml: 0,
-    transition: "opacity 0.3s, max-width 0.3s cubic-bezier(.4,0,.2,1)",
-    overflow: "hidden",
-    whiteSpace: "nowrap" as const,
-    "& .MuiListItemText-primary": {
-      fontWeight: 400,
-      fontSize: "0.85rem",
-    },
+  const renderItem = (item: SidebarItem) => {
+    const isLocked = onboardingStep < (item.minStep || 0);
+    const isHidden = modulesConfig && item.configKey && modulesConfig[item.configKey] === false;
+    if (isHidden) return null;
+
+    const itemContent = (
+      <ListItemButton
+        key={item.text}
+        selected={selectedItem === item.path}
+        disabled={isLocked}
+        onClick={() => !isLocked && onItemClick?.(item.path)}
+        sx={itemButtonSx(isLocked)}
+      >
+        <ListItemIcon sx={{ minWidth: 32, color: "inherit" }}>
+          {isLocked ? <LockIcon sx={{ fontSize: 16 }} /> : item.icon}
+        </ListItemIcon>
+        {showText && (
+          <ListItemText 
+            primary={item.text} 
+            sx={{ "& .MuiListItemText-primary": { fontSize: "0.85rem", fontWeight: selectedItem === item.path ? 600 : 400 } }} 
+          />
+        )}
+      </ListItemButton>
+    );
+
+    return isLocked && !collapsed ? (
+      <Tooltip key={item.text} title="Pendiente" placement="right">
+        {itemContent}
+      </Tooltip>
+    ) : itemContent;
   };
 
   const drawerContent = (
-    <>
-      <Toolbar
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: showText ? "space-between" : "center",
-          px: 0,
-          minHeight: 64,
-          height: 64,
-          width: "100%",
-        }}
-      >
+    <Box sx={{ 
+      height: "100%", 
+      display: "flex", 
+      flexDirection: "column",
+      backgroundColor: "#0b0f1a",
+      borderRight: "1px solid rgba(255, 255, 255, 0.05)",
+      color: "text.primary"
+    }}>
+      <Toolbar sx={{ px: 2, minHeight: 64, display: "flex", justifyContent: showText ? "space-between" : "center" }}>
         {showText && (
-          <Typography
-            variant="h6"
-            sx={{
-              ml: 2,
-              fontWeight: 700,
-              color: "primary.main",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <Typography variant="subtitle1" fontWeight={700} color="primary.main">
             Bot Admin
           </Typography>
         )}
         {!isMobile && (
-          <Box
-            sx={{
-              minWidth: 32,
-              display: "flex",
-              justifyContent: "right",
-              alignItems: "center",
-              flex: 1,
-            }}
-          >
-            <IconButton onClick={onToggle} size="small">
-              {collapsed ? <ChevronRight /> : <ChevronLeft />}
-            </IconButton>
-          </Box>
+          <IconButton onClick={onToggle} size="small" sx={{ color: "text.secondary" }}>
+            {collapsed ? <ChevronRight fontSize="small" /> : <ChevronLeft fontSize="small" />}
+          </IconButton>
         )}
       </Toolbar>
-      <Divider />
-      <List sx={{ pt: 1, pb: 8 }}>
-        {visibleMenuItems.map((item) => (
-          <ListItemButton
-            key={item.text}
-            selected={selectedItem === item.path}
-            onClick={() => onItemClick?.(item.path)}
-            sx={itemButtonSx(item.path)}
-          >
-            <ListItemIcon sx={itemIconSx(item.path)}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} sx={itemTextSx} />
-          </ListItemButton>
-        ))}
+      
+      <List sx={{ pt: 1, px: 0.5, flexGrow: 1 }}>
+        {mainMenuItems.map(renderItem)}
       </List>
-      <Box sx={{ position: "absolute", bottom: 0, width: "100%", mb: 1 }}>
+
+      <Divider sx={{ mx: 2, opacity: 0.3 }} />
+
+      <List sx={{ px: 0.5, py: 1 }}>
+        {bottomMenuItems.map(renderItem)}
+      </List>
+
+      {/* User Info Section */}
+      <Box sx={{ 
+        px: 2, 
+        py: 1.5, 
+        borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        minHeight: 60
+      }}>
+        <Box sx={{ 
+          width: 32, 
+          height: 32, 
+          borderRadius: "50%", 
+          background: "linear-gradient(45deg, #3b82f6 0%, #06b6d4 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          color: "white",
+          fontWeight: 700,
+          fontSize: "0.8rem",
+          boxShadow: "0 4px 10px rgba(59, 130, 246, 0.3)"
+        }}>
+          {user?.name?.charAt(0).toUpperCase() || "B"}
+        </Box>
+        {showText && (
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {user?.name || "Bot Admin"}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {user?.email || user?.phone || "Conectado"}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box sx={{ p: 1, borderTop: "1px solid rgba(255, 255, 255, 0.05)" }}>
         <ListItemButton
-          onClick={handleLogout}
-          sx={{
-            mx: 1,
-            borderRadius: 2,
-            minHeight: 48,
-            justifyContent: showText ? "flex-start" : "center",
-            px: 2,
-            mb: 0.5,
-            transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
-          }}
+          onClick={logout}
+          sx={{ borderRadius: 1.5, minHeight: 40, px: 1.5, color: "text.secondary" }}
         >
-          <ListItemIcon
-            sx={{
-              color: "text.secondary",
-              minWidth: 40,
-              width: 40,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: showText ? "flex-start" : "center",
-              mr: 0,
-              transition: "all 0.3s cubic-bezier(.4,0,.2,1)",
-            }}
-          >
-            <LogoutIcon />
+          <ListItemIcon sx={{ minWidth: 32, color: "inherit" }}>
+            <LogoutIcon sx={{ fontSize: 18 }} />
           </ListItemIcon>
-          <ListItemText
-            primary={showText ? "Cerrar sesión" : ""}
-            sx={itemTextSx}
-          />
+          {showText && <ListItemText primary="Salir" sx={{ "& .MuiListItemText-primary": { fontSize: "0.85rem" } }} />}
         </ListItemButton>
       </Box>
-    </>
+    </Box>
   );
 
-  // Mobile: temporary overlay drawer
-  if (isMobile) {
-    return (
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={onMobileClose}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            backgroundColor: "background.paper",
-          },
-        }}
-      >
-        {drawerContent}
-      </Drawer>
-    );
-  }
-
-  // Desktop: permanent collapsible drawer
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isMobile ? mobileOpen : true}
+      onClose={onMobileClose}
       sx={{
         width: collapsed ? collapsedWidth : drawerWidth,
         flexShrink: 0,
-        whiteSpace: "nowrap",
-        transition: (theme) =>
-          theme.transitions.create("width", {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
         "& .MuiDrawer-paper": {
           width: collapsed ? collapsedWidth : drawerWidth,
-          boxSizing: "border-box",
-          backgroundColor: "background.paper",
-          borderRight: "1px solid",
-          borderColor: "divider",
-          transition: (theme) =>
-            theme.transitions.create("width", {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
+          border: "none",
+          transition: "width 0.2s ease",
           overflowX: "hidden",
         },
       }}

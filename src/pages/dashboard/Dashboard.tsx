@@ -11,7 +11,10 @@ import {
   Select,
   FormControl,
   InputLabel,
-  useTheme
+  useTheme,
+  Skeleton,
+  IconButton,
+  Tooltip
 } from "@mui/material";
 import {
   Message as MessageIcon,
@@ -20,17 +23,17 @@ import {
   AttachMoney as MoneyIcon,
   EventBusy as CancelIcon,
   Percent as RateIcon,
-  TrendingUp as TrendIcon
+  TrendingUp as TrendIcon,
+  InfoOutlined as InfoIcon,
+  Refresh as RefreshIcon
 } from "@mui/icons-material";
 import { dashboardService, type DashboardStats } from "../../services/dashboardService";
-import { CustomPaper } from "../../components/common/CustomPaper";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"day" | "weekly" | "monthly" | "yearly">("weekly");
-  const theme = useTheme();
 
   useEffect(() => {
     fetchStats();
@@ -50,175 +53,361 @@ export default function Dashboard() {
     }
   };
 
-  const statCards = [
+  const mainStats = [
     {
       title: "Mensajes Enviados",
       value: stats?.mensajes_enviados || 0,
-      icon: <MessageIcon sx={{ fontSize: 18 }} />,
-      color: "#3f51b5",
-      gradient: "linear-gradient(135deg, #3f51b5 0%, #7986cb 100%)"
-    },
-    {
-      title: "Turnos Confirmados",
-      value: stats?.turnos_confirmados || 0,
-      icon: <SuccessIcon sx={{ fontSize: 18 }} />,
-      color: "#4caf50",
-      gradient: "linear-gradient(135deg, #4caf50 0%, #81c784 100%)"
-    },
-    {
-      title: "Clientes Atendidos",
-      value: stats?.clientes_atendidos || 0,
-      icon: <PeopleIcon sx={{ fontSize: 18 }} />,
-      color: "#ff9800",
-      gradient: "linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)"
+      icon: <MessageIcon sx={{ fontSize: 22 }} />,
+      color: "#3b82f6",
+      trend: stats?.trends?.mensajes_enviados || "0%"
     },
     {
       title: "Dinero Generado",
       value: `$${(stats?.dinero_generado || 0).toLocaleString()}`,
-      icon: <MoneyIcon sx={{ fontSize: 18 }} />,
-      color: "#009688",
-      gradient: "linear-gradient(135deg, #009688 0%, #4db6ac 100%)"
+      icon: <MoneyIcon sx={{ fontSize: 22 }} />,
+      color: "#10b981",
+      trend: stats?.trends?.dinero_generado || "0%"
+    },
+    {
+      title: "Clientes Atendidos",
+      value: stats?.clientes_atendidos || 0,
+      icon: <PeopleIcon sx={{ fontSize: 22 }} />,
+      color: "#f59e0b",
+      trend: stats?.trends?.clientes_atendidos || "0%"
+    }
+  ];
+
+  const secondaryStats = [
+    {
+      title: "Turnos Confirmados",
+      value: stats?.turnos_confirmados || 0,
+      icon: <SuccessIcon sx={{ fontSize: 18 }} />,
+      color: "#10b981"
     },
     {
       title: "Turnos Cancelados",
       value: stats?.turnos_cancelados || 0,
       icon: <CancelIcon sx={{ fontSize: 18 }} />,
-      color: "#f44336",
-      gradient: "linear-gradient(135deg, #f44336 0%, #e57373 100%)"
+      color: "#ef4444"
     },
     {
       title: "Tasa de Cancelación",
       value: stats?.tasa_cancelacion || "0.00%",
       icon: <RateIcon sx={{ fontSize: 18 }} />,
-      color: "#9c27b0",
-      gradient: "linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)"
+      color: "#8b5cf6"
     }
   ];
 
+
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: "auto", px: { xs: 0, sm: 2, md: 3 }, py: 3 }}>
-      {/* Header Section */}
+    <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1400, mx: "auto", width: '100%', boxSizing: 'border-box' }}>
+      {/* Header */}
       <Box sx={{ 
         display: "flex", 
-        flexDirection: { xs: "column", md: "row" },
+        flexDirection: { xs: "column", sm: "row" },
         justifyContent: "space-between", 
-        alignItems: { xs: "flex-start", md: "center" },
-        mb: 4,
-        gap: 2,
-        px: { xs: 2, sm: 0 }
+        alignItems: { xs: "flex-start", sm: "center" },
+        mb: 3,
+        gap: 2
       }}>
         <Box>
-          <Typography variant="h5" sx={{ 
-            fontWeight: 800, 
-            color: "text.primary", 
-            fontSize: { xs: '1.5rem', sm: '1.8rem' }
-          }}>
+          <Typography variant="h5" fontWeight={700} color="white">
             Estadísticas
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Rendimiento en tiempo real.
+          <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+            Resumen del rendimiento de tu asistente inteligente.
           </Typography>
         </Box>
 
-        <FormControl variant="outlined" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
-          <InputLabel id="filter-label">Periodo</InputLabel>
-          <Select
-            labelId="filter-label"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
-            label="Periodo"
-            size="small"
-            sx={{ borderRadius: 2, bgcolor: "background.paper" }}
-          >
-            <MenuItem value="day">Hoy</MenuItem>
-            <MenuItem value="weekly">Esta Semana</MenuItem>
-            <MenuItem value="monthly">Este Mes</MenuItem>
-            <MenuItem value="yearly">Este Año</MenuItem>
-          </Select>
-        </FormControl>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Tooltip title="Sincronizar datos">
+            <IconButton onClick={fetchStats} sx={{ 
+              color: 'rgba(255, 255, 255, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)', color: 'white' }
+            }}>
+              <RefreshIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+          <FormControl variant="outlined" size="small" sx={{ minWidth: 160 }}>
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+              sx={{ 
+                borderRadius: 2.5, 
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                bgcolor: '#1e293b',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' },
+              }}
+            >
+              <MenuItem value="day">Hoy</MenuItem>
+              <MenuItem value="weekly">Esta Semana</MenuItem>
+              <MenuItem value="monthly">Este Mes</MenuItem>
+              <MenuItem value="yearly">Este Año</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mx: 2, mb: 3, borderRadius: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</Alert>}
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-          <CircularProgress size={40} thickness={5} />
-        </Box>
-      ) : (
-        <Box sx={{ 
-          display: 'grid',
-          gridTemplateColumns: { 
-            xs: '1fr', 
-            sm: '1fr 1fr', 
-            md: '1fr 1fr 1fr' 
-          },
-          gap: 2,
-          width: '100%',
-          px: { xs: 1, sm: 0 } 
-        }}>
-          {statCards.map((card, index) => (
-            <Box key={index} sx={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 2,
-              overflow: 'hidden',
-              height: '100%',
-              minHeight: 130,
+      {/* Main Stats Row */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        {mainStats.map((stat, index) => (
+          <Grid size={{ xs: 12, md: 4 }} key={index}>
+            <Card sx={{ 
+              borderRadius: 4, 
+              bgcolor: '#1e293b',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 15px 35px -5px rgba(0,0,0,0.4)',
+              transition: 'transform 0.2s ease, border-color 0.2s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                borderColor: `${stat.color}40`
+              }
             }}>
-              <Box sx={{ 
-                p: 1.5, 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 1.5,
-                background: card.gradient,
-                color: "white",
-                height: 48,
-                flexShrink: 0
-              }}>
-                <Box sx={{ 
-                  width: 32,
-                  height: 32,
-                  borderRadius: 1, 
-                  bgcolor: "rgba(255, 255, 255, 0.2)",
-                  backdropFilter: "blur(4px)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0
-                }}>
-                  {card.icon}
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                  <Box sx={{ 
+                    p: 1.2, 
+                    borderRadius: 2, 
+                    bgcolor: `${stat.color}15`, 
+                    color: stat.color,
+                    boxShadow: `0 0 20px ${stat.color}10`
+                  }}>
+                    {stat.icon}
+                  </Box>
+                  <Box sx={{ 
+                    px: 1.2, 
+                    py: 0.4, 
+                    borderRadius: 1.5, 
+                    bgcolor: 'rgba(16, 185, 129, 0.1)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 0.5 
+                  }}>
+                    <TrendIcon sx={{ color: '#10b981', fontSize: 14 }} />
+                    <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 700 }}>
+                      {loading ? <Skeleton width={30} /> : stat.trend}
+                    </Typography>
+                  </Box>
                 </Box>
-                <Typography variant="caption" fontWeight="700" sx={{ 
-                   textTransform: 'uppercase', 
-                   letterSpacing: '0.5px',
-                   whiteSpace: 'nowrap'
+                
+                <Typography variant="caption" sx={{ 
+                  color: 'rgba(255, 255, 255, 0.4)', 
+                  fontWeight: 700, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: 1.5, 
+                  display: 'block', 
+                  mb: 1.5 
                 }}>
-                  {card.title}
+                  {stat.title}
                 </Typography>
-              </Box>
-
-              {/* Card Body (Value) */}
-              <Box sx={{ 
-                p: 2.5, 
-                flexGrow: 1,
-                display: 'flex',
-                alignItems: 'center'
-              }}>
                 <Typography variant="h4" sx={{ 
-                  fontWeight: 800, 
-                  color: "text.primary",
-                  fontSize: { xs: '1.8rem', sm: '2.2rem' }
+                  fontWeight: 900, 
+                  color: 'white', 
+                  letterSpacing: -1,
+                  fontSize: { xs: '1.8rem', lg: '2.2rem' }
                 }}>
-                  {card.value}
+                  {loading ? <Skeleton width="60%" sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} /> : stat.value}
                 </Typography>
-              </Box>
+                
+                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.2)', mt: 2, display: 'block' }}>
+                  Tendencia positiva este periodo
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Secondary Stats Row */}
+      <Grid container spacing={2.5} sx={{ mb: 4 }}>
+        {secondaryStats.map((stat, index) => (
+          <Grid size={{ xs: 12, md: 4 }} key={index}>
+            <Card sx={{ 
+              borderRadius: 3, 
+              bgcolor: 'rgba(30, 41, 59, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(12px)',
+            }}>
+              <CardContent sx={{ py: 2.5, px: 3, '&:last-child': { pb: 2.5 } }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  gap: 2
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                    <Box sx={{ 
+                      color: stat.color, 
+                      display: 'flex',
+                      p: 0.8,
+                      borderRadius: 1.5,
+                      bgcolor: `${stat.color}10`,
+                      flexShrink: 0
+                    }}>
+                      {stat.icon}
+                    </Box>
+                    <Typography variant="body2" sx={{ 
+                      color: 'rgba(255, 255, 255, 0.5)', 
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {stat.title}
+                    </Typography>
+                  </Box>
+                  <Typography variant="h5" sx={{ 
+                    fontWeight: 800, 
+                    color: 'white',
+                    flexShrink: 0,
+                    ml: 'auto'
+                  }}>
+                    {loading ? <Skeleton width={40} sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} /> : stat.value}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Performance Section */}
+      <Card sx={{ 
+        borderRadius: { xs: 3, md: 5 }, 
+        bgcolor: '#1e293b',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        p: { xs: 2, md: 3 },
+        boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+        overflow: 'hidden'
+      }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, fontWeight: 800, color: 'white' }}>Rendimiento Mensual</Typography>
+              <Tooltip title="Análisis detallado de interacciones diarias">
+                <InfoIcon sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.2)', cursor: 'help' }} />
+              </Tooltip>
             </Box>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)' }}>Volumen de mensajes y conversiones detectadas</Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, p: 1, px: 2, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', alignSelf: { xs: 'stretch', sm: 'auto' }, justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6', boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)' }} />
+              <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>Mensajes</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981', boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }} />
+              <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>Conversiones</Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Custom SVG Bar Chart with Horizontal Scroll on Mobile */}
+        <Box sx={{ 
+          maxWidth: '100%', 
+          overflowX: 'auto', 
+          pb: 2,
+          '&::-webkit-scrollbar': { height: 4 },
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }
+        }}>
+          <Box sx={{ 
+            position: 'relative', 
+            height: 200, 
+            display: 'flex', 
+            alignItems: 'flex-end', 
+            gap: 1.5, 
+            px: 1,
+            minWidth: { xs: 600, md: 'auto' } // Force minimum width on mobile for readability
+          }}>
+          {/* Subtle horizontal grid lines */}
+          {[0, 25, 50, 75, 100].map((level) => (
+            <Box key={level} sx={{ 
+              position: 'absolute', 
+              bottom: `${level}%`, 
+              left: 0, 
+              right: 0, 
+              height: '1px', 
+              bgcolor: 'rgba(255,255,255,0.03)',
+              zIndex: 0
+            }} />
+          ))}
+
+          {(stats?.history || []).map((point, i) => {
+            const maxVal = Math.max(...(stats?.history || []).map(p => p.count), 10);
+            const heightPerc = (point.count / maxVal) * 90; // scale to 90% max
+            
+            return (
+              <Box key={i} sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                gap: 1, 
+                zIndex: 1,
+                position: 'relative',
+                height: '100%',
+                justifyContent: 'flex-end'
+              }}>
+                <Box 
+                  sx={{ 
+                    width: '100%', 
+                    height: `${heightPerc}%`, 
+                    background: i === (stats?.history?.length || 0) - 1 
+                      ? "linear-gradient(to top, #3b82f6, #60a5fa)" 
+                      : "linear-gradient(to top, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.2))",
+                    borderRadius: '6px 6px 2px 2px',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    minHeight: point.count > 0 ? 4 : 0,
+                    '&:hover': {
+                      background: "linear-gradient(to top, #3b82f6, #93c5fd)",
+                      transform: 'scaleY(1.02)',
+                      boxShadow: '0 0 25px rgba(59, 130, 246, 0.3)',
+                      '& .val-tooltip': { opacity: 1, transform: 'translateY(-10px)' }
+                    }
+                  }} 
+                >
+                  <Box className="val-tooltip" sx={{ 
+                    position: 'absolute', 
+                    top: -30, 
+                    left: '50%', 
+                    transform: 'translateX(-50%)', 
+                    bgcolor: 'white', 
+                    color: '#1e293b', 
+                    px: 1, 
+                    py: 0.3, 
+                    borderRadius: 1, 
+                    fontSize: '0.65rem', 
+                    fontWeight: 800,
+                    opacity: 0,
+                    transition: '0.2s',
+                    pointerEvents: 'none',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                  }}>
+                    {point.count} turnos
+                  </Box>
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+        
+        <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', px: 1 }}>
+          {(stats?.history || []).filter((_, i, arr) => i % Math.max(1, Math.floor(arr.length / 7)) === 0).map((point, i) => (
+            <Typography key={i} variant="caption" sx={{ color: "rgba(255,255,255,0.2)", fontWeight: 600 }}>{point.date}</Typography>
           ))}
         </Box>
-      )}
+      </Card>
     </Box>
   );
 }

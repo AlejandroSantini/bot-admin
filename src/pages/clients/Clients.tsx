@@ -6,6 +6,7 @@ import {
   Alert,
   CircularProgress,
   IconButton,
+  Skeleton,
 } from "@mui/material";
 import { Table } from "../../components/common/Table";
 import DeleteButton from "../../components/common/DeleteButton";
@@ -225,8 +226,9 @@ export default function Clients() {
   return (
     <Box
       sx={{
+        p: { xs: 2, sm: 3 },
+        maxWidth: 1400,
         mx: "auto",
-        p: { xs: 1, sm: 2 },
         width: "100%",
         boxSizing: "border-box",
       }}
@@ -269,8 +271,10 @@ export default function Clients() {
       )}
 
       {loading ? (
-        <Box sx={{ p: 4, textAlign: "center" }}>
-          <CircularProgress />
+        <Box sx={{ p: 2 }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.02)' }} />
+          ))}
         </Box>
       ) : (
         <Table
