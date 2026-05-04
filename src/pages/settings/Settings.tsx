@@ -58,8 +58,8 @@ export default function Settings() {
     );
   }
   
-  const showReservationsConfig = tenant.modules_config?.reservas !== false && onboardingStep >= 2;
-  const showFullConfig = onboardingStep >= 2;
+  const showReservationsConfig = tenant.modules_config?.reservas !== false;
+  const showFullConfig = true; // Habilitamos todas las pestañas para que los tenants actuales puedan configurar todo
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue);
