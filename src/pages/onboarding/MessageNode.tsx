@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { systemService } from '../../services/systemService';
 import {
-  Box, Typography, Paper, IconButton, Tooltip, TextField, Popover, Select, MenuItem, FormControl
+  Box, Typography, Paper, IconButton, Tooltip, TextField, Popover, Select, MenuItem, FormControl, useTheme
 } from '@mui/material';
 import {
   SmartButton as ButtonIcon,
@@ -62,9 +62,11 @@ const SUGGESTIONS = [
 ];
 
 export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
+  const theme = useTheme();
   const d = data as MessageNodeData;
   const meta = TYPE_META[d.type] || TYPE_META.text;
   const nodeColor = d.nodeColor || meta.borderColor;
+  const isDark = theme.palette.mode === 'dark';
 
   const [editingText, setEditingText] = useState(false);
   const [colorAnchor, setColorAnchor] = useState<HTMLElement | null>(null);
@@ -97,35 +99,35 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       { t: 'form',    emoji: '📝', label: 'Form IA' },
     ];
     return (
-      <Paper elevation={6} sx={{ width: 280, borderRadius: 2, overflow: 'hidden', border: '2px dashed #7c3aed', bgcolor: '#1e1e2f' }}>
+      <Paper elevation={0} sx={{ width: 280, borderRadius: 3, overflow: 'hidden', border: '2px dashed #0f62fe', bgcolor: theme.palette.background.paper, boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(15, 98, 254, 0.08)' }}>
         <Handle type="target" position={Position.Top} isConnectable={isConnectable}
-          style={{ background: '#7c3aed', width: 12, height: 12, top: -6 }} />
-        <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid #333' }}>
-          <Typography variant="caption" fontWeight="bold" sx={{ color: '#aaa' }}>Nuevo nodo — Elegí el tipo:</Typography>
+          style={{ background: '#0f62fe', width: 12, height: 12, top: -6 }} />
+        <Box sx={{ px: 2, py: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Typography variant="caption" fontWeight="bold" sx={{ color: theme.palette.text.secondary }}>Nuevo nodo — Elegí el tipo:</Typography>
         </Box>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, p: 1.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, p: 2 }}>
           {types.map(({ t, emoji, label }) => (
             <Box
               key={t}
               onClick={() => d.onSelectType?.(t)}
               sx={{
                 cursor: 'pointer',
-                borderRadius: 1.5,
-                border: '1px solid #333',
-                p: 1,
+                borderRadius: 2,
+                border: `1px solid ${isDark ? '#333' : '#e0e0e0'}`,
+                p: 1.5,
                 textAlign: 'center',
-                bgcolor: '#111',
+                bgcolor: isDark ? '#1a1a2e' : '#fafafa',
                 transition: 'all .15s',
-                '&:hover': { bgcolor: TYPE_META[t].borderColor + '33', borderColor: TYPE_META[t].borderColor },
+                '&:hover': { bgcolor: TYPE_META[t].borderColor + (isDark ? '33' : '11'), borderColor: TYPE_META[t].borderColor, transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
               }}
             >
-              <Typography sx={{ fontSize: 20 }}>{emoji}</Typography>
-              <Typography variant="caption" sx={{ color: '#ccc', fontWeight: 600 }}>{label}</Typography>
+              <Typography sx={{ fontSize: 24 }}>{emoji}</Typography>
+              <Typography variant="caption" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>{label}</Typography>
             </Box>
           ))}
         </Box>
         <Handle type="source" position={Position.Bottom} isConnectable={isConnectable}
-          style={{ background: '#7c3aed', width: 12, height: 12, bottom: -6 }} />
+          style={{ background: '#0f62fe', width: 12, height: 12, bottom: -6 }} />
       </Paper>
     );
   }
@@ -197,14 +199,17 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
 
   return (
     <Paper
-      elevation={4}
+      elevation={0}
       sx={{
         width: 280,
-        borderRadius: 2,
+        borderRadius: 3,
         overflow: 'visible',
-        border: `2px solid ${nodeColor}`,
-        bgcolor: d.nodeColor ? `${nodeColor}11` : meta.color,
+        border: `1px solid ${nodeColor}`,
+        bgcolor: theme.palette.background.paper,
+        boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 8px 24px rgba(0,0,0,0.06)',
         position: 'relative',
+        transition: 'box-shadow 0.2s, transform 0.2s',
+        '&:hover': { boxShadow: isDark ? '0 12px 32px rgba(0,0,0,0.7)' : '0 12px 32px rgba(0,0,0,0.1)' }
       }}
     >
       {/* Incoming handle */}
@@ -212,7 +217,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         type="target"
         position={Position.Top}
         isConnectable={isConnectable}
-        style={{ background: nodeColor, width: 12, height: 12, top: -6 }}
+        style={{ background: nodeColor, width: 14, height: 14, top: -7, border: `2px solid ${theme.palette.background.paper}` }}
       />
 
       {/* Header */}
@@ -335,7 +340,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 <Select
                   value={systemModules.some(m => m.id === textVal) ? textVal : (systemModules[0]?.id || '')}
                   onChange={e => setTextVal(e.target.value as string)}
-                  sx={{ bgcolor: '#fff', fontSize: 13, '& .MuiSelect-select': { color: '#111', py: 1 } }}
+                  sx={{ bgcolor: theme.palette.background.default, fontSize: 13, '& .MuiSelect-select': { color: `${theme.palette.text.primary} !important`, py: 1 } }}
                   displayEmpty
                   MenuProps={{ style: { zIndex: 10001 } }}
                 >
@@ -357,9 +362,9 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 placeholder="Ej: Pedir datos personales..."
                 helperText="El backend iterará sobre las variables"
                 sx={{
-                  '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
-                  '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
-                  '& .MuiFormHelperText-root': { color: '#555' },
+                  '& .MuiInputBase-input, & textarea': { color: `${theme.palette.text.primary} !important`, fontSize: 13 },
+                  '& .MuiOutlinedInput-root': { bgcolor: theme.palette.background.default },
+                  '& .MuiFormHelperText-root': { color: theme.palette.text.secondary },
                 }}
               />
             ) : (
@@ -374,9 +379,9 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 autoFocus
                 placeholder="Usá {{ para insertar variables"
                 sx={{
-                  '& .MuiInputBase-input, & textarea': { color: '#111 !important', fontSize: 13 },
-                  '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
-                  '& .MuiFormHelperText-root': { color: '#555' },
+                  '& .MuiInputBase-input, & textarea': { color: `${theme.palette.text.primary} !important`, fontSize: 13, lineHeight: 1.5 },
+                  '& .MuiOutlinedInput-root': { bgcolor: theme.palette.background.default, borderRadius: 2 },
+                  '& .MuiFormHelperText-root': { color: theme.palette.text.secondary },
                 }}
               />
             )}
@@ -431,10 +436,10 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                         {s.icon}
                       </Box>
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" fontWeight="700" sx={{ color: '#1a1a1a', fontSize: 13, mb: 0.2 }}>
+                        <Typography variant="body2" fontWeight="700" sx={{ color: theme.palette.text.primary, fontSize: 13, mb: 0.2 }}>
                           {`{{${s.var}}}`}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#666', fontSize: 11, display: 'block', lineHeight: 1.2 }}>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: 11, display: 'block', lineHeight: 1.2 }}>
                           {s.label}
                         </Typography>
                       </Box>
@@ -457,7 +462,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         ) : (
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" sx={{ color: '#111', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5 }}>
+              <Typography variant="body2" sx={{ color: theme.palette.text.primary, whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5 }}>
                 {d.type === 'action' ? getModuleLabel(d.text) : d.text}
               </Typography>
               {d.type === 'list' && d.moduleId && (
@@ -465,7 +470,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                   <Typography variant="caption" fontWeight="bold" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <ActionIcon sx={{ fontSize: 12 }} /> Módulo dinámico:
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#111', fontWeight: 600 }}>
+                  <Typography variant="caption" sx={{ color: theme.palette.text.primary, fontWeight: 600 }}>
                     {getModuleLabel(d.moduleId)}
                   </Typography>
                 </Box>
@@ -480,23 +485,26 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
         )}
       </Box>
 
-      {/* Options list */}
-      {d.type === 'list' && d.moduleId ? (
-        <Box sx={{ p: 1.5, pt: 0 }}>
-           <Typography variant="caption" sx={{ color: '#666', fontStyle: 'italic' }}>
-             Las opciones se generarán automáticamente al ejecutar el flujo.
+      {/* Dynamic Module Info (if any) */}
+      {d.type === 'list' && d.moduleId && (
+        <Box sx={{ p: 1.5, pt: 0, borderBottom: d.options?.length ? `1px solid ${meta.borderColor}22` : 'none' }}>
+           <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}>
+             Opciones generadas por módulo (se muestran primero).
            </Typography>
-           <Box sx={{ mt: 1 }}>
+           <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
               <ButtonIcon fontSize="small" sx={{ color: '#ed6c02', opacity: 0.6, cursor: 'pointer', '&:hover': { opacity: 1 } }} 
                 onClick={() => d.onUpdateModule?.('')}
               />
               <Typography variant="caption" onClick={() => d.onUpdateModule?.('')} sx={{ ml: 1, color: '#1976d2', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
-                Volver a opciones manuales
+                Quitar módulo
               </Typography>
            </Box>
            <Handle type="source" position={Position.Right} id="dynamic_out" isConnectable={isConnectable} style={{ background: meta.borderColor, width: 12, height: 12, right: -6 }} />
         </Box>
-      ) : d.options && d.options.length > 0 && (
+      )}
+
+      {/* Static options list */}
+      {d.options && d.options.length > 0 && (
         <Box>
           {d.options.map((opt, idx) => (
             <Box
@@ -521,9 +529,9 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                     helperText={`${optVal.length}/24`}
                     sx={{
                       flex: 1,
-                      '& .MuiInputBase-input, & input': { color: '#111 !important', fontSize: 12, py: 0.5 },
-                      '& .MuiOutlinedInput-root': { bgcolor: '#fff' },
-                      '& .MuiFormHelperText-root': { color: '#555', fontSize: 11 },
+                      '& .MuiInputBase-input, & input': { color: `${theme.palette.text.primary} !important`, fontSize: 12, py: 0.5 },
+                      '& .MuiOutlinedInput-root': { bgcolor: theme.palette.background.default },
+                      '& .MuiFormHelperText-root': { color: theme.palette.text.secondary, fontSize: 11 },
                     }}
                   />
                   <IconButton size="small" onClick={() => saveOpt(opt.id)} color="success"><CheckIcon fontSize="small" /></IconButton>
@@ -539,7 +547,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                     border: `1px solid ${meta.borderColor}44`,
                     cursor: 'default',
                   }}>
-                    <Typography variant="caption" fontWeight="bold" sx={{ color: '#111', fontSize: 12 }}>
+                    <Typography variant="caption" fontWeight="bold" sx={{ color: theme.palette.text.primary, fontSize: 12 }}>
                       {opt.label}
                     </Typography>
                   </Box>

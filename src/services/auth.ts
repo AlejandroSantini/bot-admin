@@ -71,6 +71,32 @@ class Auth {
     }
   }
 
+  async register(data: any): Promise<AuthResponse> {
+    try {
+      const response = await api.post<AuthResponse>(
+        "/api/tenants/auth/register",
+        data,
+      );
+      if (response.data.token) {
+        const authData = response.data;
+        const userToSave = authData.tenant || authData.user;
+        localStorage.setItem("user", JSON.stringify(userToSave));
+        localStorage.setItem("token", authData.token);
+        return {
+          user: userToSave as User,
+          token: authData.token,
+        };
+      } else {
+        throw new Error(response.data.message || "Error en el registro");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Error de conexión");
+    }
+  }
+
   getCurrentUser(): User | null {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;

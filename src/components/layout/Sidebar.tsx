@@ -37,6 +37,7 @@ interface SidebarItem {
 }
 
 const mainMenuItems: SidebarItem[] = [
+  { text: "Asistente", icon: <AssistantIcon sx={{ fontSize: 20 }} />, path: "/asistente", configKey: "asistente", minStep: 1 },
   { text: "Estadísticas", icon: <BarChartIcon sx={{ fontSize: 20 }} />, path: "/estadisticas", configKey: "reservas", minStep: 2 },
   { text: "Reservas", icon: <VentaIcon sx={{ fontSize: 20 }} />, path: "/reservas", configKey: "reservas", minStep: 2 },
   { text: "Clientes", icon: <PeopleIcon sx={{ fontSize: 20 }} />, path: "/clientes", configKey: "clientes", minStep: 2 },
@@ -79,7 +80,7 @@ export default function Sidebar({
     borderRadius: 1.5,
     minHeight: 40,
     px: 1.5,
-    opacity: isLocked ? 0.5 : 1,
+    opacity: isLocked ? 0.7 : 1,
     color: isLocked ? 'text.disabled' : 'text.primary',
     '&.Mui-selected': {
       backgroundColor: 'action.selected',
@@ -100,8 +101,13 @@ export default function Sidebar({
 
     // Si el módulo está habilitado explícitamente en la configuración, no está bloqueado
     // Esto permite que tenants antiguos vean sus módulos sin pasar por el nuevo onboarding
-    const isEnabledByConfig = modulesConfig && item.configKey && modulesConfig[item.configKey] === true;
-    const isLocked = !isEnabledByConfig && onboardingStep < (item.minStep || 0);
+    const isExplicitlyEnabled = modulesConfig && item.configKey && modulesConfig[item.configKey] === true;
+    
+    // Fail-safe para tenants antiguos que no tienen modulesConfig poblado
+    const hasEmptyModules = !modulesConfig || Object.keys(modulesConfig).length === 0;
+    const isOldTenantFallback = hasEmptyModules && onboardingStep >= 1;
+
+    const isLocked = (!isExplicitlyEnabled && !isOldTenantFallback) && onboardingStep < (item.minStep || 0);
 
     const itemContent = (
       <ListItemButton
@@ -114,7 +120,6 @@ export default function Sidebar({
         <ListItemIcon sx={{ 
           minWidth: 32, 
           color: "inherit",
-          opacity: isLocked ? 0.5 : 1
         }}>
           {item.icon}
         </ListItemIcon>
@@ -131,7 +136,7 @@ export default function Sidebar({
 
         )}
         {isLocked && !collapsed && (
-          <LockIcon sx={{ fontSize: 14, opacity: 0.5, ml: 1 }} />
+          <LockIcon sx={{ fontSize: 16, color: "text.disabled", ml: 1 }} />
         )}
       </ListItemButton>
     );
@@ -147,6 +152,20 @@ export default function Sidebar({
       backgroundColor: "background.paper",
       borderRight: "1px solid",
       borderColor: "divider",
+      overflowX: "hidden",
+      "&::-webkit-scrollbar": {
+        width: "5px",
+      },
+      "&::-webkit-scrollbar-track": {
+        background: "transparent",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        background: "rgba(155, 155, 155, 0.2)",
+        borderRadius: "10px",
+      },
+      "&:hover::-webkit-scrollbar-thumb": {
+        background: "rgba(155, 155, 155, 0.4)",
+      }
     }}>
       <Toolbar sx={{ px: 2, minHeight: 64, display: "flex", justifyContent: showText ? "space-between" : "center" }}>
         {showText && (

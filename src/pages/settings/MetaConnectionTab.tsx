@@ -12,24 +12,35 @@ import {
   DialogActions,
 } from "@mui/material";
 
-import { WhatsApp, CheckCircle, Warning, ErrorOutline } from "@mui/icons-material";
+import { WhatsApp, CheckCircle, Warning, ErrorOutline, Description as DocIcon, Business as BusinessIcon, Info as InfoIcon, Computer as ComputerIcon } from "@mui/icons-material";
 import { useAuth } from "../../hooks/useAuth";
 import { settingsService } from "../../services/settingsService";
 import { ContainedButton } from "../../components/common/ContainedButton";
 import { OutlinedButton } from "../../components/common/OutlinedButton";
+import WhatsAppDocsModal from "./WhatsAppDocsModal";
 
 export default function MetaConnectionTab() {
   const [connecting, setConnecting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { onboardingStep, setOnboardingStep } = useAuth();
+  const [showDocs, setShowDocs] = useState(false);
+  const { onboardingStep, setOnboardingStep, user } = useAuth();
   const [progress, setProgress] = useState(onboardingStep > 0 ? 100 : 0);
 
+  const isConnected = onboardingStep >= 1 || !!user?.meta_phone_number_id;
+
   const handleConnect = async () => {
+    // En producción, aquí se abriría el popup de Meta (FB.login)
+    // Por ahora, simulamos el proceso de vinculación
     setConnecting(true);
     try {
-      // Simulado: en producción esto vendría de un popup de Meta
-      await settingsService.updateMetaConfig("123456789012345");
-      await setOnboardingStep();
+      // Simulamos una demora de red
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // SOLO para propósitos de demostración en este ambiente:
+      // await settingsService.updateMetaConfig("123456789012345");
+      // await setOnboardingStep();
+      
+      alert("Simulación: En producción, aquí se abriría el Login de Meta y se recibiría el WABA ID real.");
     } catch (error) {
       console.error("Error al vincular Meta:", error);
     } finally {
@@ -48,7 +59,6 @@ export default function MetaConnectionTab() {
     }
   };
 
-  const isConnected = onboardingStep >= 1;
 
   return (
     <Box sx={{ maxWidth: 600 }}>
@@ -104,13 +114,80 @@ export default function MetaConnectionTab() {
 
           {!isConnected && (
             <Box>
-              <Alert 
-                severity="warning" 
-                icon={<Warning fontSize="small" />} 
-                sx={{ mb: 3, borderRadius: 1.5, "& .MuiAlert-message": { fontSize: "0.75rem" } }}
+               <Alert 
+                severity="info" 
+                icon={<InfoIcon fontSize="small" />} 
+                sx={{ 
+                  mb: 1.5, 
+                  borderRadius: 2, 
+                  "& .MuiAlert-message": { fontSize: "0.8rem" } 
+                }}
               >
-                Serás redirigido para autorizar el acceso a tu cuenta.
+                Al iniciar el proceso, se abrirá una ventana segura de Meta para autorizar el vínculo de tu cuenta oficial.
               </Alert>
+
+              <Box sx={{ 
+                mb: 1.5, 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 1.5, 
+                p: 1.5, 
+                borderRadius: 2, 
+                bgcolor: "rgba(255, 152, 0, 0.05)", 
+                border: "1px solid rgba(255, 152, 0, 0.2)" 
+              }}>
+                <ComputerIcon sx={{ color: "#ff9800", fontSize: 20 }} />
+                <Typography variant="body2" sx={{ color: "#ff9800", fontWeight: 700, fontSize: "0.75rem" }}>
+                  RECOMENDACIÓN: Realizar este proceso desde una COMPUTADORA.
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 1.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <Box 
+                  onClick={() => setShowDocs(true)}
+                  sx={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 2, 
+                    p: 2, 
+                    borderRadius: 2, 
+                    bgcolor: "action.hover", 
+                    border: "1px solid",
+                    borderColor: "divider",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    "&:hover": { bgcolor: "action.selected", borderColor: "primary.main" }
+                  }}
+                >
+                  <DocIcon sx={{ color: "primary.main", fontSize: 20 }} />
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>Guía de Configuración</Typography>
+                    <Typography variant="caption" color="text.secondary">Aprende paso a paso cómo activar tus canales.</Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ p: 2, borderRadius: 2, bgcolor: "background.default", border: "1px solid", borderColor: "divider" }}>
+                  <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main", mb: 1, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>
+                    Requisitos Previos
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <BusinessIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
+                      Necesitas un{" "}
+                      <Typography 
+                        component="a" 
+                        href="https://www.facebook.com/business/help/1710077379203657" 
+                        target="_blank" 
+                        rel="noopener"
+                        sx={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600, fontSize: 'inherit', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                      >
+                        Portafolio de Negocios
+                      </Typography>{" "}
+                      activo y verificado en Meta.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
               
               {connecting ? (
                 <Box sx={{ width: '100%', py: 1 }}>
@@ -192,6 +269,11 @@ export default function MetaConnectionTab() {
           </ContainedButton>
         </DialogActions>
       </Dialog>
+
+      <WhatsAppDocsModal 
+        open={showDocs} 
+        onClose={() => setShowDocs(false)} 
+      />
     </Box>
   );
 }

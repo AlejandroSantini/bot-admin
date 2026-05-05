@@ -29,22 +29,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(data);
         setModulesConfig(data.modules_config);
         
-        // Calculate step
-        let step = 0;
-        if (data.meta_phone_number_id) {
+        // Usar el paso de onboarding que viene de la DB, con fallback si ya tiene Meta conectado
+        let step = data.onboarding_step || 0;
+        
+        // Si el paso es 0 pero ya tiene Meta vinculado, forzamos al paso 1
+        if (step === 0 && data.meta_phone_number_id) {
           step = 1;
-          // Check if bot is approved via onboarding data status
-          try {
-            const onboardingRes = await settingsService.getOnboardingData();
-            if (onboardingRes?.data?.status === "aprobado") {
-              step = 2;
-            }
-          } catch (e) {
-            console.error("Error fetching onboarding status:", e);
-          }
         }
+          
         setOnboardingStepState(step);
         return data;
+
       }
     } catch (err) {
       console.error("Error refreshing user data:", err);

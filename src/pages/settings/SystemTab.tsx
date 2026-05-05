@@ -24,8 +24,11 @@ interface SystemTabProps {
   showReservations?: boolean;
 }
 
+import { useAuth } from "../../hooks/useAuth";
+
 export default function SystemTab({ initialModulesConfig }: SystemTabProps) {
   const { mode, toggleColorMode } = useThemeMode();
+  const { onboardingStep } = useAuth();
   const [modulesConfig, setModulesConfig] = useState<Record<string, boolean>>({
     campanas: false,
     clientes: false,
@@ -118,62 +121,64 @@ export default function SystemTab({ initialModulesConfig }: SystemTabProps) {
         </Card>
 
         {/* Módulos */}
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
-          <CardContent sx={{ p: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <ModulesIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
-              <Typography variant="subtitle2" fontWeight="600">Módulos del Sistema</Typography>
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-              Habilita o deshabilita secciones enteras del administrador según tus necesidades.
-            </Typography>
+        {onboardingStep >= 1 && (
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <ModulesIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
+                <Typography variant="subtitle2" fontWeight="600">Módulos del Sistema</Typography>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                Habilita o deshabilita secciones enteras del administrador según tus necesidades.
+              </Typography>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              {Object.keys(moduleLabels).map((key) => (
-                <Box
-                  key={key}
-                  sx={{
-                    p: 1.5,
-                    bgcolor: "action.hover",
-                    borderRadius: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    border: "1px solid",
-                    borderColor: modulesConfig[key] ? "primary.main" : "transparent",
-                  }}
-                >
-                  <Box>
-                    <Typography variant="body2" fontWeight="600">
-                      {moduleLabels[key].label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {moduleLabels[key].desc}
-                    </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {Object.keys(moduleLabels).map((key) => (
+                  <Box
+                    key={key}
+                    sx={{
+                      p: 1.5,
+                      bgcolor: "action.hover",
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      border: "1px solid",
+                      borderColor: modulesConfig[key] ? "primary.main" : "transparent",
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body2" fontWeight="600">
+                        {moduleLabels[key].label}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {moduleLabels[key].desc}
+                      </Typography>
+                    </Box>
+                    <Switch
+                      size="small"
+                      checked={modulesConfig[key]}
+                      onChange={() => handleToggleModule(key)}
+                    />
                   </Box>
-                  <Switch
-                    size="small"
-                    checked={modulesConfig[key]}
-                    onChange={() => handleToggleModule(key)}
-                  />
-                </Box>
-              ))}
-            </Box>
+                ))}
+              </Box>
 
-            <Box sx={{ 
-              mt: 3, pt: 1, borderTop: "1px solid", borderColor: "divider",
-              display: "flex", justifyContent: "flex-end"
-            }}>
-              <ContainedButton 
-                onClick={handleSaveModules} 
-                disabled={saving}
-                startIcon={<SaveIcon />}
-              >
-                {saving ? <CircularProgress size={20} color="inherit" /> : "Guardar Módulos"}
-              </ContainedButton>
-            </Box>
-          </CardContent>
-        </Card>
+              <Box sx={{ 
+                mt: 3, pt: 1, borderTop: "1px solid", borderColor: "divider",
+                display: "flex", justifyContent: "flex-end"
+              }}>
+                <ContainedButton 
+                  onClick={handleSaveModules} 
+                  disabled={saving}
+                  startIcon={<SaveIcon />}
+                >
+                  {saving ? <CircularProgress size={20} color="inherit" /> : "Guardar Módulos"}
+                </ContainedButton>
+              </Box>
+            </CardContent>
+          </Card>
+        )}
       </Box>
     </Box>
   );

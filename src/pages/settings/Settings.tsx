@@ -17,8 +17,8 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null);
   const { onboardingStep } = useAuth();
   
-  // Si estamos en el paso 0, forzamos la pestaña de Meta
-  const [activeTab, setActiveTab] = useState(onboardingStep === 0 ? "meta" : "meta");
+  // Si estamos en el paso 0, forzamos la pestaña de Meta, sino vamos a horarios por defecto
+  const [activeTab, setActiveTab] = useState(onboardingStep === 0 ? "meta" : "schedule");
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -26,10 +26,11 @@ export default function Settings() {
         setLoading(true);
         const data = await settingsService.getMe();
         setTenant(data);
+        
         // Si ya pasó el onboarding pero no tiene reservas, ir a sistema
-        if (onboardingStep >= 2 && data.modules_config?.reservas === false) {
+        if (onboardingStep >= 1 && data.modules_config?.reservas === false) {
            setActiveTab("system");
-        } else if (onboardingStep >= 2) {
+        } else if (onboardingStep >= 1) {
            setActiveTab("schedule");
         }
       } catch (err) {
@@ -95,24 +96,22 @@ export default function Settings() {
             textColor="primary"
             indicatorColor="primary"
           >
-            {showFullConfig && showReservationsConfig && (
+            {onboardingStep >= 1 && showFullConfig && showReservationsConfig && (
               <Tab label="Horarios" value="schedule" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
-            {showFullConfig && showReservationsConfig && (
+            {onboardingStep >= 1 && showFullConfig && showReservationsConfig && (
               <Tab label="Pagos y Señas" value="payments" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
-            {showFullConfig && showReservationsConfig && (
+            {onboardingStep >= 1 && showFullConfig && showReservationsConfig && (
               <Tab label="Bloqueos" value="blocks" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
             {showFullConfig && (
               <Tab label="Sistema" value="system" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
-            {showFullConfig && (
+            {onboardingStep >= 1 && showFullConfig && (
               <Tab label="Notificaciones" value="notifications" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             )}
-            {showFullConfig && (
-              <Tab label="Mi Perfil" value="profile" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
-            )}
+            <Tab label="Mi Perfil" value="profile" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
             <Tab label="Conexión Meta" value="meta" sx={{ textTransform: 'none', fontWeight: 600, py: 2 }} />
           </Tabs>
         </Box>

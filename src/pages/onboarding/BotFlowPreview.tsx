@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
   Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Typography, Tooltip, IconButton, CircularProgress, Alert,
+  TextField, Typography, Tooltip, IconButton, CircularProgress, Alert, useTheme,
+  Popover, MenuItem
 } from '@mui/material';
 import {
   ReactFlow, Controls, Background, addEdge,
@@ -297,6 +298,8 @@ export default function BotFlowPreview(props: BotFlowPreviewProps) {
 }
 
 function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNext, onBack, viewMode }: BotFlowPreviewProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { screenToFlowPosition } = useReactFlow();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -304,6 +307,15 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
+
+  // Connection Menu state
+  const [connectMenu, setConnectMenu] = useState<{
+    open: boolean;
+    x: number;
+    y: number;
+    sourceNode: string;
+    sourceHandle: string | null;
+  } | null>(null);
 
   // Sidebar and Layout state
   const [sidebarWidth, setSidebarWidth] = useState(320);
@@ -472,6 +484,22 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
       markerEnd: { type: MarkerType.ArrowClosed },
     } as any, eds));
   }, [nodes]);
+
+  const onConnectEnd = useCallback((event: any, connectionState: any) => {
+    // If the drop is invalid (dropped on canvas)
+    if (!connectionState.isValid && connectionState.fromNode) {
+      // Use event.clientX / clientY or fallback to touch
+      const clientX = event.clientX ?? (event.changedTouches?.[0]?.clientX || 0);
+      const clientY = event.clientY ?? (event.changedTouches?.[0]?.clientY || 0);
+      setConnectMenu({
+        open: true,
+        x: clientX,
+        y: clientY,
+        sourceNode: connectionState.fromNode.id,
+        sourceHandle: connectionState.fromHandle?.id || null,
+      });
+    }
+  }, []);
 
   // Drop a fresh "isNew" node at a visible center position
   const addNode = () => {
@@ -668,7 +696,12 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
   const canvasContent = useMemo(() => (
     <Box sx={{
       width: '100%', height: '100%', position: 'relative',
-      '& .react-flow__controls button': { bgcolor: '#1e1e2f', fill: '#aaa', border: '1px solid #333', '&:hover': { bgcolor: '#2d2d44' } },
+      '& .react-flow__controls': { bottom: 24, right: 24, display: 'flex', flexDirection: 'column', gap: 1, boxShadow: 'none' },
+      '& .react-flow__controls button': { 
+        bgcolor: theme.palette.background.paper, color: theme.palette.text.secondary, border: `1px solid ${theme.palette.divider}`, borderRadius: '8px !important', 
+        width: 40, height: 40, boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.05)', mb: 1,
+        '&:hover': { bgcolor: theme.palette.action.hover } 
+      },
     }}>
       <ReactFlow
         nodes={nodes}
@@ -678,60 +711,123 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
         onDragOver={onDragOver}
         onDrop={onDrop}
         fitView
         minZoom={0.1}
         maxZoom={2}
       >
-        <Background color="#444" gap={20} />
-        <Controls showInteractive={false} />
+        <Background color={isDark ? '#555' : '#ccc'} gap={24} size={1.5} />
+        <Controls position="bottom-right" showInteractive={false} />
       </ReactFlow>
 
-      {/* Top toolbar */}
-      <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 1, zIndex: 20 }}>
-        <Button
-          variant="contained" size="small"
-          startIcon={<AddIcon />}
-          onClick={() => addNode()}
-          sx={{ bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
-        >
-          Agregar Nodo
-        </Button>
-        <Tooltip title={fullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
-          <IconButton
-            onClick={() => setFullscreen(f => !f)}
-            sx={{ bgcolor: '#1e1e2f', color: '#aaa', border: '1px solid #333', '&:hover': { bgcolor: '#2d2d44', color: '#fff' } }}
-          >
-            {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-          </IconButton>
-        </Tooltip>
-      </Box>
+      {/* ── Context Menu for Connection Drop ── */}
+      <Popover
+        open={Boolean(connectMenu?.open)}
+        anchorReference="anchorPosition"
+        anchorPosition={connectMenu ? { top: connectMenu.y, left: connectMenu.x } : undefined}
+        onClose={() => setConnectMenu(null)}
+        sx={{ zIndex: 10000 }}
+        transformOrigin={{ vertical: 'center', horizontal: 'left' }}
+      >
+        <Box sx={{ p: 1, minWidth: 200, bgcolor: theme.palette.background.paper }}>
+          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, ml: 1, mb: 1, display: 'block', fontWeight: 'bold' }}>
+            AGREGAR Y CONECTAR
+          </Typography>
+          {[
+            { t: 'text', label: 'Mensaje Simple', icon: '💬' },
+            { t: 'buttons', label: 'Botones Rápidos', icon: '🔘' },
+            { t: 'list', label: 'Lista Desplegable', icon: '📋' },
+            { t: 'action', label: 'Acción del Sistema', icon: '⚙️' },
+            { t: 'form', label: 'Formulario', icon: '📝' },
+          ].map(opt => (
+            <MenuItem 
+              key={opt.t}
+              onClick={() => {
+                if (!connectMenu) return;
+                const position = screenToFlowPosition({ x: connectMenu.x, y: connectMenu.y });
+                const newId = `node_${Date.now()}`;
+                
+                const defaultText: Record<string, string> = {
+                  text:    'Escribí la respuesta del bot aquí.',
+                  buttons: '¿Qué opción preferís?',
+                  list:    'Elegí una opción de la lista:',
+                  action:  'Módulo Interno',
+                  form:    'Pedir datos personales...',
+                };
+                const defaultOpts: Record<string, any[]> = {
+                  buttons: [{ id: `opt_${Date.now()}`, label: 'Opción 1' }],
+                  list:    [{ id: `opt_${Date.now()}`, label: 'Opción 1' }],
+                };
 
-      {/* Bottom toolbar */}
-      <Box sx={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: 1.5, zIndex: 20 }}>
+                const newNode: Node = {
+                  id: newId,
+                  type: 'message',
+                  position,
+                  data: buildNodeData({
+                    type: opt.t,
+                    text: defaultText[opt.t] || '',
+                    isNew: false,
+                    ...(defaultOpts[opt.t] ? { options: defaultOpts[opt.t] } : {}),
+                  }, newId),
+                };
+                
+                setNodes(nds => nds.concat(newNode));
+                
+                // Add the edge
+                const sourceNode = nodes.find(n => n.id === connectMenu.sourceNode);
+                const sourceOpts = (sourceNode?.data?.options as any[]) || [];
+                const matchedOpt = sourceOpts.find((o: any) => o.id === connectMenu.sourceHandle);
+                const edgeLabel = matchedOpt?.label || undefined;
+
+                setEdges(eds => addEdge({
+                  id: `e_${connectMenu.sourceNode}_${newId}`,
+                  source: connectMenu.sourceNode,
+                  sourceHandle: connectMenu.sourceHandle,
+                  target: newId,
+                  type: 'flow',
+                  label: edgeLabel,
+                  markerEnd: { type: MarkerType.ArrowClosed }
+                } as any, eds));
+                
+                setConnectMenu(null);
+              }}
+              sx={{ display: 'flex', gap: 1.5, py: 1, borderRadius: 1, '&:hover': { bgcolor: theme.palette.action.hover } }}
+            >
+              <Typography sx={{ fontSize: 18 }}>{opt.icon}</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{opt.label}</Typography>
+            </MenuItem>
+          ))}
+        </Box>
+      </Popover>
+
+      {/* Top toolbar */}
+      <Box sx={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 1.5, zIndex: 20 }}>
         {!viewMode && (
-          <Button variant="outlined" onClick={onBack} sx={{ bgcolor: '#fff', textTransform: 'none' }}>Atrás</Button>
-        )}
-        {!isChatOpen && (
-          <Button
-            variant="contained"
-            onClick={() => setIsChatOpen(true)}
-            startIcon={<AutoAwesomeIcon />}
-            sx={{ textTransform: 'none', fontWeight: 700, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' } }}
-          >
-            Crear flujo con IA
-          </Button>
+          <Button variant="outlined" onClick={onBack} sx={{ bgcolor: theme.palette.background.paper, borderColor: theme.palette.divider, color: theme.palette.text.secondary, borderRadius: 8, px: 3, textTransform: 'none', fontWeight: 600, boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.05)', '&:hover': { bgcolor: theme.palette.action.hover, borderColor: theme.palette.divider } }}>Atrás</Button>
         )}
         <Button
           variant="contained"
           color={viewMode ? 'success' : 'primary'}
           onClick={() => setConfirmDialogOpen(true)}
           disabled={saving}
-          sx={{ textTransform: 'none', fontWeight: 700, minWidth: 160 }}
+          sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 8, px: 3, boxShadow: '0 4px 14px rgba(0, 200, 83, 0.25)', minWidth: 160 }}
         >
-          {viewMode ? '💾 Guardar Cambios' : 'Confirmar Flujo'}
+          {viewMode ? 'Guardar Cambios' : 'Confirmar Flujo'}
         </Button>
+      </Box>
+
+      {/* Floating full-screen button */}
+      <Box sx={{ position: 'absolute', top: 24, right: viewMode ? 210 : 310, zIndex: 20 }}>
+        <Tooltip title={fullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}>
+          <IconButton
+            onClick={() => setFullscreen(f => !f)}
+            sx={{ bgcolor: theme.palette.background.paper, color: theme.palette.text.secondary, border: `1px solid ${theme.palette.divider}`, borderRadius: '50%', boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.05)', '&:hover': { bgcolor: theme.palette.action.hover, color: theme.palette.text.primary } }}
+          >
+            {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+          </IconButton>
+        </Tooltip>
       </Box>
 
       {/* ─── Full-screen save overlay ─── */}
@@ -825,58 +921,72 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
         </DialogActions>
       </Dialog>
     </Box>
-  ), [nodes, edges, fullscreen, saving, saveResult, confirmDialogOpen, viewMode, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop]);
+  ), [nodes, edges, fullscreen, saving, saveResult, confirmDialogOpen, viewMode, onNodesChange, onEdgesChange, onConnect, onConnectEnd, onDragOver, onDrop, connectMenu, theme.palette.mode]);
 
   const sidebarContent = useMemo(() => (
-    <Box sx={{ display: 'flex', height: '100%' }}>
+    <Box sx={{ display: 'flex', height: '100%', pointerEvents: 'none' }}>
       <Box sx={{
-        width: sidebarOpen ? sidebarWidth : 40,
-        height: '100%',
-        bgcolor: '#1e1e2f',
-        borderRight: '1px solid #333',
-        transition: 'width 0.1s linear',
+        width: sidebarOpen ? sidebarWidth : 64,
+        height: 'calc(100% - 48px)',
+        m: 3,
+        bgcolor: theme.palette.background.paper,
+        borderRadius: 4,
+        boxShadow: isDark ? '0 12px 48px rgba(0,0,0,0.5)' : '0 12px 48px rgba(0,0,0,0.06)',
+        border: `1px solid ${theme.palette.divider}`,
+        transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        pointerEvents: 'auto',
       }}>
         {/* Toggle button */}
         <IconButton 
           size="small" 
           onClick={() => setSidebarOpen(!sidebarOpen)}
           sx={{ 
-            position: 'absolute', top: 10, right: sidebarOpen ? 10 : 5, 
-            color: '#fff', bgcolor: '#333', '&:hover': { bgcolor: '#444' },
+            position: 'absolute', top: 12, right: sidebarOpen ? 12 : '50%', 
+            transform: sidebarOpen ? 'none' : 'translateX(50%)',
+            color: theme.palette.text.secondary, bgcolor: theme.palette.action.hover, '&:hover': { bgcolor: theme.palette.action.selected, color: theme.palette.text.primary },
             zIndex: 100 
           }}
         >
           {sidebarOpen ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
         </IconButton>
 
+        {!sidebarOpen && (
+           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', mt: 8 }}>
+             <Tooltip title="Herramientas" placement="right"><IconButton onClick={() => { setActiveSection('tools'); setSidebarOpen(true); }}><SchemaIcon sx={{ color: '#555' }} /></IconButton></Tooltip>
+             <Tooltip title="IA" placement="right"><IconButton onClick={() => { setActiveSection('ai'); setSidebarOpen(true); }}><AutoAwesomeIcon sx={{ color: '#555' }} /></IconButton></Tooltip>
+             <Tooltip title="Variables" placement="right"><IconButton onClick={() => { setActiveSection('vars'); setSidebarOpen(true); }}><CodeIcon sx={{ color: '#555' }} /></IconButton></Tooltip>
+             <Tooltip title="Módulos" placement="right"><IconButton onClick={() => { setActiveSection('modules'); setSidebarOpen(true); }}><ExtensionIcon sx={{ color: '#555' }} /></IconButton></Tooltip>
+           </Box>
+        )}
+
         {sidebarOpen && (
           <>
             {/* Sidebar Header */}
-            <Box sx={{ p: 2, borderBottom: '1px solid #333', mt: 4 }}>
-              <Typography variant="h6" sx={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>Flow Studio</Typography>
-              <Typography variant="caption" sx={{ color: '#aaa' }}>Gestioná el flujo de tu bot</Typography>
+            <Box sx={{ p: 3, pb: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>Flow Studio</Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>Gestioná el flujo de tu bot</Typography>
             </Box>
 
             {/* Navigation Tabs */}
-            <Box sx={{ display: 'flex', borderBottom: '1px solid #333' }}>
+            <Box sx={{ display: 'flex', borderBottom: `1px solid ${theme.palette.divider}`, px: 1 }}>
                {[
-                 { id: 'tools', icon: <SchemaIcon />, label: 'Herramientas' },
-                 { id: 'ai', icon: <AutoAwesomeIcon />, label: 'IA' },
-                 { id: 'vars', icon: <CodeIcon />, label: 'Variables' },
-                 { id: 'modules', icon: <ExtensionIcon />, label: 'Módulos' }
+                 { id: 'tools', icon: <SchemaIcon fontSize="small" />, label: 'Elementos' },
+                 { id: 'ai', icon: <AutoAwesomeIcon fontSize="small" />, label: 'IA' },
+                 { id: 'vars', icon: <CodeIcon fontSize="small" />, label: 'Vars' },
+                 { id: 'modules', icon: <ExtensionIcon fontSize="small" />, label: 'Acciones' }
                ].map(tab => (
                  <Tooltip key={tab.id} title={tab.label}>
                    <IconButton 
                     onClick={() => setActiveSection(tab.id as any)}
                     sx={{ 
-                      flex: 1, borderRadius: 0, 
-                      color: activeSection === tab.id ? '#7c3aed' : '#888',
-                      borderBottom: activeSection === tab.id ? '2px solid #7c3aed' : 'none',
-                      py: 1.5
+                      flex: 1, borderRadius: 2, m: 0.5,
+                      color: activeSection === tab.id ? '#0f62fe' : theme.palette.text.secondary,
+                      bgcolor: activeSection === tab.id ? (isDark ? '#0f62fe22' : '#f0f4ff') : 'transparent',
+                      '&:hover': { bgcolor: activeSection === tab.id ? (isDark ? '#0f62fe33' : '#f0f4ff') : theme.palette.action.hover },
                     }}
                    >
                      {tab.icon}
@@ -889,51 +999,42 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
             <Box sx={{ 
               flex: 1, 
               overflowY: 'auto', 
-              p: 2,
-              '&::-webkit-scrollbar': { width: '6px' },
+              p: 3,
+              '&::-webkit-scrollbar': { width: '4px' },
               '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-              '&::-webkit-scrollbar-thumb': { bgcolor: '#444', borderRadius: '10px' },
-              '&::-webkit-scrollbar-thumb:hover': { bgcolor: '#7c3aed' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: '#e0e0e0', borderRadius: '10px' },
+              '&::-webkit-scrollbar-thumb:hover': { bgcolor: '#c0c0c0' },
             }}>
               {activeSection === 'tools' && (
                 <Box>
-                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Constructor</Typography>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={addNode}
-                    sx={{ mt: 1, mb: 3, bgcolor: '#7c3aed', color: '#fff', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700 }}
-                  >
-                    Agregar Nuevo Nodo
-                  </Button>
-
-                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Tipos de Nodo</Typography>
-                  <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography variant="overline" sx={{ color: '#0f62fe', fontWeight: 700, letterSpacing: 0.5 }}>Arrastrar al Lienzo</Typography>
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                      {[
-                       { id: 'text', label: 'Texto Simple', icon: '📝', desc: 'Respuesta directa de texto' },
-                       { id: 'buttons', label: 'Botones Interactivos', icon: '🔘', desc: 'Hasta 3 opciones rápidas' },
-                       { id: 'list', label: 'Lista de Opciones', icon: '📋', desc: 'Menú desplegable de opciones' },
-                       { id: 'action', label: 'Módulo de Acción', icon: '⚙️', desc: 'Lógica interna del sistema' },
-                       { id: 'form', label: 'Formulario IA', icon: '🧠', desc: 'Recolección inteligente de datos' },
-                       { id: 'note', label: 'Nota Adhesiva', icon: '📌', desc: 'Anotaciones en el lienzo' }
+                       { id: 'text', label: 'Mensaje Simple', icon: '💬', desc: 'Respuesta directa de texto' },
+                       { id: 'buttons', label: 'Botones Rápidos', icon: '🔘', desc: 'Hasta 3 opciones interactivas' },
+                       { id: 'list', label: 'Lista Desplegable', icon: '📋', desc: 'Menú con múltiples opciones' },
+                       { id: 'action', label: 'Acción del Sistema', icon: '⚙️', desc: 'Ejecuta lógica interna' },
+                       { id: 'form', label: 'Formulario', icon: '📝', desc: 'Recolección de datos' },
+                       { id: 'note', label: 'Nota Interna', icon: '📌', desc: 'Anotaciones para el equipo' }
                      ].map((t) => (
                        <Box 
                         key={t.id} 
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         sx={{ 
-                          p: 1.5, bgcolor: '#2d2d44', borderRadius: 2, border: '1px solid #3d3d5a',
-                          cursor: 'grab',
-                          transition: 'all 0.2s',
-                          '&:hover': { bgcolor: '#3d3d5a', borderColor: '#7c3aed', transform: 'translateX(5px)' },
-                          '&:active': { cursor: 'grabbing' }
+                          p: 2, bgcolor: theme.palette.background.paper, borderRadius: 3, border: `1px solid ${theme.palette.divider}`,
+                          cursor: 'grab', display: 'flex', alignItems: 'center', gap: 2,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': { borderColor: '#0f62fe', transform: 'translateY(-2px)', boxShadow: '0 8px 16px rgba(15, 98, 254, 0.1)' },
+                          '&:active': { cursor: 'grabbing', transform: 'none' }
                         }}
                        >
-                          <Typography sx={{ color: '#fff', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <span>{t.icon}</span> {t.label}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#aaa', fontSize: 11 }}>{t.desc}</Typography>
+                          <Typography sx={{ fontSize: 24, lineHeight: 1 }}>{t.icon}</Typography>
+                          <Box>
+                             <Typography sx={{ color: theme.palette.text.primary, fontSize: 13, fontWeight: 700 }}>{t.label}</Typography>
+                             <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: 11, lineHeight: 1.2, display: 'block' }}>{t.desc}</Typography>
+                          </Box>
                        </Box>
                      ))}
                   </Box>
@@ -942,38 +1043,43 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
 
               {activeSection === 'ai' && (
                 <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700, mb: 1 }}>Asistente Inteligente</Typography>
+                  <Typography variant="overline" sx={{ color: '#0f62fe', fontWeight: 700, mb: 1, letterSpacing: 0.5 }}>Asistente Inteligente</Typography>
                   
                   {/* AI Messages List */}
                   <Box sx={{ 
                     flex: 1, 
-                    bgcolor: '#0f0f1a', 
-                    borderRadius: 2, 
-                    p: 1.5, 
+                    bgcolor: isDark ? '#1a1a2e' : '#fafafa', 
+                    borderRadius: 3, 
+                    p: 2, 
                     mb: 2, 
                     overflowY: 'auto', 
                     display: 'flex', 
                     flexDirection: 'column', 
                     gap: 1.5,
                     maxHeight: 'calc(100% - 150px)',
-                    border: '1px solid #333'
+                    border: `1px solid ${theme.palette.divider}`
                   }}>
                     {aiMessages.map((msg, i) => (
                       <Box key={i} sx={{ 
                         alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        bgcolor: msg.role === 'user' ? '#7c3aed' : '#2d2d44', 
-                        p: 1.2, 
-                        borderRadius: 2, 
-                        maxWidth: '90%' 
+                        bgcolor: msg.role === 'user' ? '#0f62fe' : theme.palette.background.paper, 
+                        color: msg.role === 'user' ? '#fff' : theme.palette.text.primary,
+                        border: msg.role === 'user' ? 'none' : `1px solid ${theme.palette.divider}`,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        p: 1.5, 
+                        borderRadius: 3, 
+                        maxWidth: '90%',
+                        borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
+                        borderBottomLeftRadius: msg.role === 'user' ? 12 : 4,
                       }}>
-                        <Typography variant="body2" color="#fff" sx={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.5 }}>
                           {msg.content}
                         </Typography>
                       </Box>
                     ))}
                     {aiLoading && (
-                      <Box sx={{ alignSelf: 'flex-start', bgcolor: '#2d2d44', p: 1.2, borderRadius: 2 }}>
-                        <CircularProgress size={14} sx={{ color: '#a78bfa' }} />
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: theme.palette.background.paper, p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}>
+                        <CircularProgress size={16} sx={{ color: '#0f62fe' }} />
                       </Box>
                     )}
                   </Box>
@@ -993,12 +1099,13 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                       disabled={aiLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          color: '#fff',
-                          bgcolor: '#2d2d44',
-                          fontSize: 12,
-                          '& fieldset': { borderColor: '#444' },
-                          '&:hover fieldset': { borderColor: '#7c3aed' },
-                          '&.Mui-focused fieldset': { borderColor: '#7c3aed' },
+                          bgcolor: theme.palette.background.paper,
+                          fontSize: 13,
+                          borderRadius: 3,
+                          color: theme.palette.text.primary,
+                          '& fieldset': { borderColor: theme.palette.divider },
+                          '&:hover fieldset': { borderColor: '#0f62fe' },
+                          '&.Mui-focused fieldset': { borderColor: '#0f62fe', borderWidth: '2px' },
                         }
                       }}
                     />
@@ -1007,9 +1114,9 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                       variant="contained"
                       onClick={handleAISubmit}
                       disabled={aiLoading || !aiPrompt.trim()}
-                      sx={{ mt: 1, bgcolor: '#7c3aed', '&:hover': { bgcolor: '#6d28d9' }, textTransform: 'none', fontWeight: 700, fontSize: 13 }}
+                      sx={{ mt: 1.5, bgcolor: '#0f62fe', '&:hover': { bgcolor: '#0353e9' }, borderRadius: 8, py: 1, textTransform: 'none', fontWeight: 600, fontSize: 13, boxShadow: '0 4px 12px rgba(15, 98, 254, 0.2)' }}
                     >
-                      {aiLoading ? 'Procesando...' : 'Aplicar Cambios con IA'}
+                      {aiLoading ? 'Procesando...' : 'Aplicar con IA'}
                     </Button>
                   </Box>
                 </Box>
@@ -1017,9 +1124,9 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
 
               {activeSection === 'vars' && (
                 <Box>
-                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Variables del Sistema</Typography>
-                  <Typography variant="body2" sx={{ color: '#aaa', fontSize: 11, mb: 2 }}>
-                    Usá estas etiquetas entre <code style={{ color: '#7c3aed' }}>{`{{}}`}</code> en cualquier texto.
+                  <Typography variant="overline" sx={{ color: '#0f62fe', fontWeight: 700, letterSpacing: 0.5 }}>Variables</Typography>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: 12, mb: 2 }}>
+                    Usá <code style={{ color: '#0f62fe', backgroundColor: isDark ? '#0f62fe22' : '#f0f4ff', padding: '2px 6px', borderRadius: 4 }}>{`{{etiqueta}}`}</code> en los textos de tu bot para personalizarlos.
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                      {[
@@ -1029,9 +1136,9 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                        { var: 'saludo', label: 'Saludo (Buen día/etc)' },
                        { var: 'detalles_del_turno', label: 'Resumen del turno' }
                      ].map(v => (
-                       <Box key={v.var} sx={{ p: 1, bgcolor: '#0f0f1a', borderRadius: 1, border: '1px solid #333' }}>
-                          <Typography variant="body2" sx={{ color: '#7c3aed', fontWeight: 700, fontSize: 12 }}>{`{{${v.var}}}`}</Typography>
-                          <Typography variant="caption" sx={{ color: '#888', fontSize: 10 }}>{v.label}</Typography>
+                       <Box key={v.var} sx={{ p: 1.5, bgcolor: isDark ? '#1a1a2e' : '#fafafa', borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                          <Typography variant="body2" sx={{ color: '#0f62fe', fontWeight: 700, fontSize: 13 }}>{`{{${v.var}}}`}</Typography>
+                          <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: 11 }}>{v.label}</Typography>
                        </Box>
                      ))}
                   </Box>
@@ -1040,14 +1147,15 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
 
               {activeSection === 'modules' && (
                 <Box>
-                  <Typography variant="overline" sx={{ color: '#7c3aed', fontWeight: 700 }}>Módulos Disponibles</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                  <Typography variant="overline" sx={{ color: '#0f62fe', fontWeight: 700, letterSpacing: 0.5 }}>Módulos</Typography>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: 12, mb: 2 }}>Acciones avanzadas para tus nodos.</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                      {systemModules.map(m => (
-                       <Box key={m.id} sx={{ p: 1, bgcolor: '#2d2d44', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <ExtensionIcon sx={{ fontSize: 14, color: m.category === 'data' ? '#ed6c02' : '#7c3aed' }} />
+                       <Box key={m.id} sx={{ p: 1.5, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                          <ExtensionIcon sx={{ fontSize: 18, color: m.category === 'data' ? '#ed6c02' : '#0f62fe' }} />
                           <Box>
-                            <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, fontSize: 12 }}>{m.label}</Typography>
-                            <Typography variant="caption" sx={{ color: '#aaa', fontSize: 10, textTransform: 'capitalize' }}>{m.category || 'Acción'}</Typography>
+                            <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 600, fontSize: 13 }}>{m.label}</Typography>
+                            <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: 11, textTransform: 'capitalize' }}>{m.category || 'Acción'}</Typography>
                           </Box>
                        </Box>
                      ))}
@@ -1063,10 +1171,14 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
           <Box
             onMouseDown={(e) => { e.preventDefault(); setIsResizingSidebar(true); }}
             sx={{
-              width: 4,
+              width: 5,
               cursor: 'ew-resize',
-              bgcolor: isResizingSidebar ? '#7c3aed' : '#222',
-              '&:hover': { bgcolor: '#7c3aed' },
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              bgcolor: isResizingSidebar ? '#0f62fe' : 'transparent',
+              '&:hover': { bgcolor: '#0f62fe' },
               zIndex: 20,
               transition: 'background-color 0.2s',
             }}
@@ -1079,23 +1191,30 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
   return (
     <>
       {/* Main Container */}
-      <Box sx={{ display: 'flex', width: '100%', height: '85vh', border: '1px solid #333', borderRadius: 2, overflow: 'hidden', bgcolor: '#0f0f1a' }}>
-        {/* Sidebar */}
-        {sidebarContent}
-
-        {/* Canvas Area */}
-        <Box sx={{ flex: 1, position: 'relative' }}>
+      <Box sx={{ position: 'relative', display: 'flex', width: '100%', height: '85vh', borderRadius: 4, overflow: 'hidden', bgcolor: theme.palette.background.default, border: `1px solid ${theme.palette.divider}` }}>
+        
+        {/* Canvas Area (Background) */}
+        <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
           {canvasContent}
-          {fullscreen && (
-             <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, bgcolor: '#0f0f1a', display: 'flex' }}>
-                {sidebarContent}
-                <Box sx={{ flex: 1, position: 'relative' }}>
-                   {canvasContent}
-                </Box>
-             </Box>
-          )}
         </Box>
+
+        {/* Floating Sidebar Container */}
+        <Box sx={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
+           {sidebarContent}
+        </Box>
+
+        {fullscreen && (
+           <Box sx={{ position: 'fixed', inset: 0, zIndex: 9999, bgcolor: theme.palette.background.default, display: 'flex' }}>
+              <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+                 {canvasContent}
+              </Box>
+              <Box sx={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
+                 {sidebarContent}
+              </Box>
+           </Box>
+        )}
       </Box>
     </>
   );
 }
+

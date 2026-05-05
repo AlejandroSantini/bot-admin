@@ -17,6 +17,7 @@ import { ContainedButton } from "../../components/common/ContainedButton";
 import { CreditCard, AccountBalance, CheckCircle } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import authService from "../../services/auth";
 
 export default function Payment() {
   const [loading, setLoading] = useState(false);
@@ -29,23 +30,37 @@ export default function Payment() {
     setLoading(true);
     // Simular procesamiento de pago
     setTimeout(async () => {
-      setSuccess(true);
-      setLoading(false);
-      
-      // Simular login automático después de 2 segundos de éxito
-      setTimeout(async () => {
-         const pendingUser = JSON.parse(localStorage.getItem("pending_user") || "{}");
-         // Aquí simulamos el login exitoso
-         // En el futuro esto llamará a la API de registro + login
-         localStorage.setItem("isAuthenticated", "true");
-         localStorage.setItem("user", JSON.stringify(pendingUser));
-         localStorage.removeItem("pending_user");
-         
-         // Forzamos un recarga o redirección al dashboard
-         window.location.href = "/inicio"; 
-      }, 2000);
+      try {
+        const pendingUser = JSON.parse(localStorage.getItem("pending_user") || "{}");
+        if (!pendingUser.email) throw new Error("No hay datos de usuario pendientes.");
+
+        // LLAMADA REAL AL BACKEND PARA REGISTRAR
+        const response = await authService.register({
+          full_name: pendingUser.full_name,
+          email: pendingUser.email,
+          phone: pendingUser.phone,
+          password: pendingUser.password
+        });
+
+        if (response.token) {
+          setSuccess(true);
+          localStorage.removeItem("pending_user");
+          
+          // Simular login automático después de 2 segundos de éxito
+          setTimeout(() => {
+             // Ya el authService.register guardó el token y user en localStorage
+             window.location.href = "/inicio"; 
+          }, 2000);
+        }
+      } catch (err: any) {
+        console.error("Error en el registro post-pago:", err);
+        alert(err.message || "Error al procesar el registro.");
+      } finally {
+        setLoading(false);
+      }
     }, 3000);
   };
+
 
   return (
     <Box

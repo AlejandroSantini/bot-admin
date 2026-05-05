@@ -26,7 +26,9 @@ export default function Home() {
     }
 
     // Redirección dinámica basada en módulos activos
-    if (modulesConfig?.reservas) {
+    if (modulesConfig?.asistente) {
+      navigate("/asistente", { replace: true });
+    } else if (modulesConfig?.reservas) {
       navigate("/reservas", { replace: true });
     } else if (modulesConfig?.clientes) {
       navigate("/clientes", { replace: true });
@@ -34,6 +36,7 @@ export default function Home() {
       // Si no hay ninguno de los principales, ir a configuración
       navigate("/configuracion", { replace: true });
     }
+
   }, [modulesConfig, isLoading, onboardingStep, navigate]);
 
   return (

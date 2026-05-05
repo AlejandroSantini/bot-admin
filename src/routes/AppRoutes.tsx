@@ -197,7 +197,16 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/asistente"
+          element={
+            <ProtectedRoute moduleKey="asistente">
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+
 
       <Route path="/" element={<Home />} />
       <Route path="*" element={<Home />} />
