@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  Typography,
+  CircularProgress,
+  TextField,
+  IconButton,
+} from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { getProducts } from "../../services/productoService";
 import type { Product } from "../../services/productoService";
-import { Select } from "./Select";
 import { Input } from "./Input";
 import { ContainedButton } from "./ContainedButton";
 
@@ -20,33 +26,55 @@ export interface ProductSelectorProps {
 }
 
 export function ProductSelector({ items, onChange }: ProductSelectorProps) {
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [currentQty, setCurrentQty] = useState<number>(1);
 
+  const loadProducts = async (searchStr?: string) => {
+    setLoading(true);
+    try {
+      const res = await getProducts({ search: searchStr, activo: true, limit: 10 } as any);
+      const list: Product[] = Array.isArray(res) ? res : res.data || [];
+      setOptions(list);
+    } catch (err) {
+      console.error("Error loading products:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAvailableProducts = async () => {
-      try {
-        const res = await getProducts();
-        const list = Array.isArray(res) ? res : res.data || [];
-        setAvailableProducts(list);
-      } catch (err) {
-        console.error("Error fetching products", err);
-      }
-    };
-    fetchAvailableProducts();
-  }, []);
+    if (!open) return;
+
+    if (!inputValue) {
+      loadProducts();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      loadProducts(inputValue);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, open]);
 
   const addItem = () => {
     if (!currentProduct) return;
-    const name = currentProduct.nombre;
-    const price = Number(currentProduct.precio);
     const qty = Number(currentQty) || 1;
-    const productId = currentProduct.id;
-
-    onChange([...items, { id: productId, nombre: name, cantidad: qty, precio: price * qty }]);
-    
+    onChange([
+      ...items,
+      {
+        id: currentProduct.id,
+        nombre: currentProduct.nombre,
+        cantidad: qty,
+        precio: Number(currentProduct.precio) * qty,
+      },
+    ]);
     setCurrentProduct(null);
+    setInputValue("");
     setCurrentQty(1);
   };
 
@@ -59,25 +87,70 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
         Agregar Productos
       </Typography>
-      <Box sx={{ display: "flex", gap: 1, alignItems: "stretch", mb: 2 }}>
+
+      <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start", mb: 2 }}>
+        {/* Autocomplete de búsqueda */}
         <Box sx={{ flex: 1 }}>
-          <Select
-            label="Producto"
-            value={currentProduct?.id || ""}
-            onChange={(e: any) => {
-              const prod = availableProducts.find(p => p.id === e.target.value);
-              setCurrentProduct(prod || null);
+          <Autocomplete
+            open={open}
+            onOpen={() => setOpen(true)}
+            onClose={() => setOpen(false)}
+            options={options}
+            loading={loading}
+            value={currentProduct}
+            inputValue={inputValue}
+            onInputChange={(_, newInputValue) => {
+              setInputValue(newInputValue);
             }}
-            options={[
-              { value: "", label: "Seleccionar producto..." },
-              ...availableProducts.map((p) => ({
-                value: p.id!,
-                label: `${p.nombre} - $${p.precio}`
-              }))
-            ]}
-            sx={{ mt: 0, mb: 0 }}
+            onChange={(_, newValue: Product | null) => {
+              setCurrentProduct(newValue);
+            }}
+            getOptionLabel={(option) => option.nombre || ""}
+            filterOptions={(x) => x}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderOption={(props, option) => (
+              <Box component="li" {...props} key={option.id}>
+                <Box>
+                  <Typography variant="body2">{option.nombre}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    ${Number(option.precio).toLocaleString("es-AR")}
+                    {option.codigo ? ` · ${option.codigo}` : ""}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Producto"
+                placeholder="Buscar por nombre o código..."
+                size="small"
+                fullWidth
+                sx={{
+                  "& .MuiInputBase-root": {
+                    borderRadius: 2,
+                    backgroundColor: "background.paper",
+                    "& input": { color: "text.primary" },
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": { borderRadius: 2 },
+                }}
+                slotProps={{
+                  input: {
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  },
+                }}
+              />
+            )}
           />
         </Box>
+
+        {/* Cantidad */}
         <Box sx={{ width: 80 }}>
           <Input
             label="Cant."
@@ -88,14 +161,14 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
             sx={{ mb: 0 }}
           />
         </Box>
-        <ContainedButton 
-          onClick={addItem} 
-          disabled={!currentProduct}
-        >
+
+        {/* Botón agregar */}
+        <ContainedButton onClick={addItem} disabled={!currentProduct} sx={{ height: 40, alignSelf: "center" }}>
           +
         </ContainedButton>
       </Box>
 
+      {/* Lista de productos seleccionados */}
       {items.length > 0 && (
         <Box sx={{ mt: 1 }}>
           {items.map((item, idx) => (
@@ -112,7 +185,8 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
               }}
             >
               <Typography variant="body2">
-                {item.nombre} x{item.cantidad} - <strong>${item.precio}</strong>
+                {item.nombre} x{item.cantidad} -{" "}
+                <strong>${item.precio.toLocaleString("es-AR")}</strong>
               </Typography>
               <IconButton size="small" color="error" onClick={() => removeItem(idx)}>
                 <CloseIcon fontSize="small" />

@@ -6,11 +6,12 @@ export interface Product {
   codigo: string;
   precio: number | string;
   stock: number;
+  activo?: boolean;
   tenant_id?: number;
   created_at?: string;
 }
 
-export const getProducts = async (params?: { search?: string; page?: number; limit?: number }) => {
+export const getProducts = async (params?: { search?: string; activo?: boolean; page?: number; limit?: number }) => {
   const response = await api.get("/api/productos", { params });
   return response.data;
 };
