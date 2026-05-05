@@ -37,11 +37,11 @@ export function ThemeModeProvider({ children }: { children: React.ReactNode }) {
       createTheme({
         palette: {
           mode,
-          primary: { main: "#1976d2" },
-          secondary: { main: "#9c27b0" },
+          primary: { main: '#1976d2' },
+          secondary: { main: '#9c27b0' },
           background: {
-            default: mode === "light" ? "#f4f6f8" : "#0f0f0f",
-            paper: mode === "light" ? "#ffffff" : "#1a1a1a",
+            default: mode === 'light' ? '#f4f6f8' : '#0f0f0f',
+            paper: mode === 'light' ? '#ffffff' : '#1a1a1a',
           },
         },
         components: {
@@ -58,6 +58,21 @@ export function ThemeModeProvider({ children }: { children: React.ReactNode }) {
             styleOverrides: {
               paper: {
                 backgroundColor: mode === "light" ? "#ffffff" : "#1a1a1a",
+                backgroundImage: 'none',
+              },
+            },
+          },
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                backgroundImage: 'none',
+                boxShadow: 'none',
+              },
+            },
+          },
+          MuiPaper: {
+            styleOverrides: {
+              root: {
                 backgroundImage: 'none',
               },
             },

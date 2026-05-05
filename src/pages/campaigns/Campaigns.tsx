@@ -4,19 +4,19 @@ import {
   Typography,
   Alert,
   CircularProgress,
-  Button,
+  Snackbar,
 } from "@mui/material";
-import { Add as AddIcon, PlayArrow as PlayIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { Add as AddIcon, PlayArrow as PlayIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 import { Table } from "../../components/common/Table";
 import { ContainedButton } from "../../components/common/ContainedButton";
-
+import { OutlinedButton } from "../../components/common/OutlinedButton";
+import DeleteButton from "../../components/common/DeleteButton";
 import { getCampaigns, deleteCampaign } from "../../services/campaignService";
 import type { Campaign } from "../../services/campaignService";
-import { OutlinedButton } from "../../components/common/OutlinedButton";
-import { IconButton, Snackbar } from "@mui/material";
 import BroadcastModal from "./BroadcastModal";
+
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -84,16 +84,12 @@ export default function Campaigns() {
           >
             Difundir
           </OutlinedButton>
-          <IconButton
-            size="small"
-            color="error"
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
+          <DeleteButton
+            onClick={(e) => {
+              e?.stopPropagation();
               handleDelete(c.id!);
             }}
-          >
-            <DeleteIcon />
-          </IconButton>
+          />
         </Box>
       ),
     },

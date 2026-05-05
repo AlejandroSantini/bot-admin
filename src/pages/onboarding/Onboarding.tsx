@@ -5,7 +5,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Button,
   Card,
   CardContent,
   Grid,
@@ -31,6 +30,7 @@ import {
 } from "@mui/icons-material";
 import { settingsService } from "../../services/settingsService";
 import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 import BotFlowPreview from "./BotFlowPreview";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -244,29 +244,28 @@ export default function Onboarding() {
                 <Typography variant="caption" sx={{ display: "block", mb: 0.5 }}>• <strong>El Flujo deseado</strong> (Explicá cómo te gustaría que responda el bot).</Typography>
                 <Typography variant="caption" sx={{ display: "block", mb: 1 }}>• <strong>Preguntas Frecuentes</strong> con sus respectivas respuestas.</Typography>
                 <Box sx={{ mt: 3, mb: 1, textAlign: "center" }}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    component="a"
+                  <a
                     href={`/public_ejemplo_${botType}.txt`}
                     download
-                    sx={{
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "12px 0",
                       fontWeight: 800,
                       fontSize: "1rem",
-                      py: 1.5,
-                      textTransform: "none",
-                      borderRadius: 2,
-                      boxShadow: "0 4px 14px 0 rgba(0,118,255,0.39)",
-                      "&:hover": { transform: "translateY(-2px)", boxShadow: "0 6px 20px rgba(0,118,255,0.23)" },
-                      transition: "all 0.2s ease-in-out",
+                      textAlign: "center",
+                      borderRadius: 8,
+                      textDecoration: "none",
+                      color: "white",
                       background: "linear-gradient(90deg, #0072ff 0%, #00c6ff 100%)",
-                      color: "white"
+                      boxShadow: "0 4px 14px 0 rgba(0,118,255,0.39)",
+                      transition: "all 0.2s ease-in-out",
                     }}
                   >
                     📥 Descargar Plantilla de Ejemplo (.txt)
-                  </Button>
+                  </a>
                 </Box>
+
               </Box>
             </Box>
 
@@ -358,9 +357,9 @@ export default function Onboarding() {
                     Los servicios guardados aquí se cargarán en tu cuenta y podrás modificarlos o eliminarlos más adelante desde el módulo de <strong>Servicios</strong>.
                   </Alert>
                   <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                    <Button startIcon={<AddIcon />} onClick={() => addArrayItem("servicios", { nombre: "", precio: "", descripcion: "" })}>
+                    <OutlinedButton startIcon={<AddIcon />} onClick={() => addArrayItem("servicios", { nombre: "", precio: "", descripcion: "" })}>
                       Agregar Servicio
-                    </Button>
+                    </OutlinedButton>
                   </Box>
                   {structuredData.servicios?.map((serv: any, index: number) => (
                     <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
@@ -406,9 +405,9 @@ export default function Onboarding() {
                     Los productos guardados aquí se cargarán en el flujo del bot para que tus clientes puedan verlos y comprarlos.
                   </Alert>
                   <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                    <Button startIcon={<AddIcon />} onClick={() => addArrayItem("productos", { nombre: "", precio: "", descripcion: "" })}>
+                    <OutlinedButton startIcon={<AddIcon />} onClick={() => addArrayItem("productos", { nombre: "", precio: "", descripcion: "" })}>
                       Agregar Producto
-                    </Button>
+                    </OutlinedButton>
                   </Box>
                   {structuredData.productos?.map((prod: any, index: number) => (
                     <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
@@ -451,9 +450,9 @@ export default function Onboarding() {
               {tabValue === 3 && (
                 <Box>
                   <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                    <Button startIcon={<AddIcon />} onClick={() => addArrayItem("faq", { pregunta: "", respuesta: "" })}>
+                    <OutlinedButton startIcon={<AddIcon />} onClick={() => addArrayItem("faq", { pregunta: "", respuesta: "" })}>
                       Agregar FAQ
-                    </Button>
+                    </OutlinedButton>
                   </Box>
                   {structuredData.faq?.map((faq: any, index: number) => (
                     <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
@@ -601,11 +600,11 @@ export default function Onboarding() {
             </Box>
 
             <Box sx={{ p: 3, borderTop: 1, borderColor: "divider", display: "flex", justifyContent: "space-between" }}>
-              <Button onClick={() => setActiveStep(0)}>Atrás</Button>
+              <OutlinedButton onClick={() => setActiveStep(0)}>Atrás</OutlinedButton>
               <Box>
-                <Button onClick={handleSaveData} sx={{ mr: 2 }}>
+                <OutlinedButton onClick={handleSaveData} sx={{ mr: 2 }}>
                   Guardar Progreso
-                </Button>
+                </OutlinedButton>
                 <ContainedButton onClick={() => setActiveStep(2)}>
                   Ver Flujo
                 </ContainedButton>
@@ -640,15 +639,14 @@ export default function Onboarding() {
                 Gestioná el comportamiento y las respuestas de tu asistente.
               </Typography>
             </Box>
-            <Button
-              variant="outlined"
+            <OutlinedButton
               startIcon={<NewBotIcon />}
               onClick={() => setActiveStep(0)}
               size="small"
-              sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+              sx={{ fontWeight: 600 }}
             >
               Nuevo Bot
-            </Button>
+            </OutlinedButton>
           </Box>
 
           {/* Flow editor as the main view */}

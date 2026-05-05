@@ -8,6 +8,7 @@ import {
   Alert,
   InputAdornment,
   IconButton,
+  useTheme,
 } from "@mui/material";
 import { Input } from "../common/Input";
 import { ContainedButton } from "../common/ContainedButton";
@@ -20,6 +21,8 @@ interface LoginFormData {
 }
 
 export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +54,7 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%)",
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -60,23 +63,24 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
           maxWidth: 340,
           width: "100%",
           borderRadius: 2.5,
-          backgroundColor: "#1e293b",
-          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.5)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
+          backgroundColor: "background.paper",
+          boxShadow: isDark ? "0 20px 40px -10px rgba(0,0,0,0.5)" : "0 8px 30px rgba(0,0,0,0.1)",
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ mb: 3, textAlign: "center" }}>
-            <Typography variant="h6" fontWeight={700} color="white" gutterBottom>
+            <Typography variant="h6" fontWeight={700} gutterBottom>
               Bienvenido
             </Typography>
-            <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.5)" }}>
+            <Typography variant="caption" color="text.secondary">
               Ingresá tus credenciales para continuar.
             </Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: "0.75rem", backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#f87171" }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: "0.75rem" }}>
               {error}
             </Alert>
           )}
@@ -100,7 +104,7 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
               label="Contraseña"
               type={showPassword ? "text" : "password"}
               error={!!errors.password}
-              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
+              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 16, color: "text.disabled" }} /></InputAdornment>}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -118,20 +122,12 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
               fullWidth
               loading={loading}
               disabled={!watch("phone_number_id") || !watch("password")}
-              sx={{ 
-                py: 1.1, 
-                fontSize: "0.85rem",
-                fontWeight: 700,
-                borderRadius: 1.5,
-                background: "linear-gradient(to right, #3b82f6, #06b6d4)",
-                "&:hover": { background: "linear-gradient(to right, #2563eb, #0891b2)" }
-              }}
             >
               Iniciar sesión
             </ContainedButton>
 
             <Box sx={{ mt: 2, textAlign: "center" }}>
-              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+              <Typography variant="caption" color="text.secondary">
                 ¿No tienes una cuenta?{" "}
                 <Typography
                   component="span"

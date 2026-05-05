@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
   LinearProgress,
   Alert,
   Dialog,
@@ -12,9 +11,12 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+
 import { WhatsApp, CheckCircle, Warning, ErrorOutline } from "@mui/icons-material";
 import { useAuth } from "../../hooks/useAuth";
 import { settingsService } from "../../services/settingsService";
+import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 
 export default function MetaConnectionTab() {
   const [connecting, setConnecting] = useState(false);
@@ -90,14 +92,13 @@ export default function MetaConnectionTab() {
               </Typography>
             </Box>
             {isConnected && (
-              <Button 
+              <OutlinedButton 
                 size="small" 
                 color="error" 
                 onClick={() => setShowConfirm(true)}
-                sx={{ fontSize: "0.7rem", opacity: 0.6 }}
               >
                 Desvincular
-              </Button>
+              </OutlinedButton>
             )}
           </Box>
 
@@ -119,8 +120,7 @@ export default function MetaConnectionTab() {
                   <LinearProgress variant="determinate" value={progress} sx={{ height: 4, borderRadius: 2 }} />
                 </Box>
               ) : (
-                <Button 
-                  variant="contained" 
+                <ContainedButton 
                   fullWidth
                   onClick={handleConnect}
                   sx={{ 
@@ -130,7 +130,7 @@ export default function MetaConnectionTab() {
                   }}
                 >
                   Vincular WhatsApp
-                </Button>
+                </ContainedButton>
               )}
             </Box>
           )}
@@ -178,20 +178,18 @@ export default function MetaConnectionTab() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, gap: 1 }}>
-          <Button 
+          <OutlinedButton 
             onClick={() => setShowConfirm(false)}
             sx={{ color: "white", textTransform: "none" }}
           >
             Cancelar
-          </Button>
-          <Button 
-            variant="contained" 
-            color="error"
+          </OutlinedButton>
+          <ContainedButton 
             onClick={handleDisconnect}
-            sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}
+            sx={{ bgcolor: 'error.main', background: 'error.main', textTransform: "none", borderRadius: 2, fontWeight: 700, '&:hover': { bgcolor: 'error.dark' } }}
           >
             Sí, desvincular y borrar todo
-          </Button>
+          </ContainedButton>
         </DialogActions>
       </Dialog>
     </Box>

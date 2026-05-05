@@ -1,4 +1,3 @@
-
 import { Button, CircularProgress, Box } from '@mui/material';
 import type { ButtonProps } from '@mui/material';
 import type { ReactNode } from 'react';
@@ -18,15 +17,13 @@ export function ContainedButton({ icon, children, loading, disabled, ...props }:
       disabled={disabled || loading}
       sx={{
         borderRadius: 2,
-        fontWeight: 500,
+        fontWeight: 400,
         textTransform: 'none',
         boxShadow: 'none !important',
         letterSpacing: 0,
-        fontSize: '1rem',
-        background: '#1976d2',
+        fontSize: '0.95rem',
         minWidth: loading ? 140 : undefined,
         '&:hover': {
-          background: '#115293',
           boxShadow: 'none !important',
         },
         ...props.sx,

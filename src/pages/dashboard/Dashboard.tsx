@@ -5,12 +5,10 @@ import {
   Grid, 
   Card, 
   CardContent, 
-  CircularProgress, 
   Alert,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   useTheme,
   Skeleton,
   IconButton,
@@ -34,6 +32,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"day" | "weekly" | "monthly" | "yearly">("weekly");
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   useEffect(() => {
     fetchStats();
@@ -98,7 +98,6 @@ export default function Dashboard() {
     }
   ];
 
-
   return (
     <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 1400, mx: "auto", width: '100%', boxSizing: 'border-box' }}>
       {/* Header */}
@@ -111,20 +110,21 @@ export default function Dashboard() {
         gap: 2
       }}>
         <Box>
-          <Typography variant="h5" fontWeight={700} color="white">
+          <Typography variant="h5" fontWeight={700}>
             Estadísticas
           </Typography>
-          <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+          <Typography variant="caption" color="text.secondary">
             Resumen del rendimiento de tu asistente inteligente.
           </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <Tooltip title="Sincronizar datos">
-            <IconButton onClick={fetchStats} sx={{ 
-              color: 'rgba(255, 255, 255, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)', color: 'white' }
+            <IconButton onClick={fetchStats} size="small" sx={{ 
+              color: 'text.secondary',
+              border: '1px solid',
+              borderColor: 'divider',
+              '&:hover': { bgcolor: 'action.hover' }
             }}>
               <RefreshIcon sx={{ fontSize: 20 }} />
             </IconButton>
@@ -133,15 +133,7 @@ export default function Dashboard() {
             <Select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              sx={{ 
-                borderRadius: 2.5, 
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                bgcolor: '#1e293b',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.1)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' },
-              }}
+              sx={{ borderRadius: 2.5, fontWeight: 600, fontSize: '0.85rem' }}
             >
               <MenuItem value="day">Hoy</MenuItem>
               <MenuItem value="weekly">Esta Semana</MenuItem>
@@ -152,7 +144,7 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>{error}</Alert>}
 
       {/* Main Stats Row */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
@@ -160,13 +152,12 @@ export default function Dashboard() {
           <Grid size={{ xs: 12, md: 4 }} key={index}>
             <Card sx={{ 
               borderRadius: 4, 
-              bgcolor: '#1e293b',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              boxShadow: '0 15px 35px -5px rgba(0,0,0,0.4)',
+              border: '1px solid',
+              borderColor: 'divider',
               transition: 'transform 0.2s ease, border-color 0.2s ease',
               '&:hover': {
                 transform: 'translateY(-4px)',
-                borderColor: `${stat.color}40`
+                borderColor: `${stat.color}60`
               }
             }}>
               <CardContent sx={{ p: 3 }}>
@@ -176,7 +167,6 @@ export default function Dashboard() {
                     borderRadius: 2, 
                     bgcolor: `${stat.color}15`, 
                     color: stat.color,
-                    boxShadow: `0 0 20px ${stat.color}10`
                   }}>
                     {stat.icon}
                   </Box>
@@ -197,7 +187,7 @@ export default function Dashboard() {
                 </Box>
                 
                 <Typography variant="caption" sx={{ 
-                  color: 'rgba(255, 255, 255, 0.4)', 
+                  color: 'text.secondary', 
                   fontWeight: 700, 
                   textTransform: 'uppercase', 
                   letterSpacing: 1.5, 
@@ -208,14 +198,13 @@ export default function Dashboard() {
                 </Typography>
                 <Typography variant="h4" sx={{ 
                   fontWeight: 900, 
-                  color: 'white', 
                   letterSpacing: -1,
                   fontSize: { xs: '1.8rem', lg: '2.2rem' }
                 }}>
-                  {loading ? <Skeleton width="60%" sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} /> : stat.value}
+                  {loading ? <Skeleton width="60%" /> : stat.value}
                 </Typography>
                 
-                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.2)', mt: 2, display: 'block' }}>
+                <Typography variant="caption" color="text.disabled" sx={{ mt: 2, display: 'block' }}>
                   Tendencia positiva este periodo
                 </Typography>
               </CardContent>
@@ -230,9 +219,8 @@ export default function Dashboard() {
           <Grid size={{ xs: 12, md: 4 }} key={index}>
             <Card sx={{ 
               borderRadius: 3, 
-              bgcolor: 'rgba(30, 41, 59, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.03)',
-              backdropFilter: 'blur(12px)',
+              border: '1px solid',
+              borderColor: 'divider',
             }}>
               <CardContent sx={{ py: 2.5, px: 3, '&:last-child': { pb: 2.5 } }}>
                 <Box sx={{ 
@@ -254,7 +242,7 @@ export default function Dashboard() {
                       {stat.icon}
                     </Box>
                     <Typography variant="body2" sx={{ 
-                      color: 'rgba(255, 255, 255, 0.5)', 
+                      color: 'text.secondary', 
                       fontWeight: 600,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -265,11 +253,10 @@ export default function Dashboard() {
                   </Box>
                   <Typography variant="h5" sx={{ 
                     fontWeight: 800, 
-                    color: 'white',
                     flexShrink: 0,
                     ml: 'auto'
                   }}>
-                    {loading ? <Skeleton width={40} sx={{ bgcolor: 'rgba(255,255,255,0.05)' }} /> : stat.value}
+                    {loading ? <Skeleton width={40} /> : stat.value}
                   </Typography>
                 </Box>
               </CardContent>
@@ -280,43 +267,42 @@ export default function Dashboard() {
 
       {/* Performance Section */}
       <Card sx={{ 
-        borderRadius: { xs: 3, md: 5 }, 
-        bgcolor: '#1e293b',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: { xs: 3, md: 4 }, 
+        border: '1px solid',
+        borderColor: 'divider',
         p: { xs: 2, md: 3 },
-        boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
         overflow: 'hidden'
       }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4, gap: 2 }}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, fontWeight: 800, color: 'white' }}>Rendimiento Mensual</Typography>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, fontWeight: 800 }}>Rendimiento Mensual</Typography>
               <Tooltip title="Análisis detallado de interacciones diarias">
-                <InfoIcon sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.2)', cursor: 'help' }} />
+                <InfoIcon sx={{ fontSize: 16, color: 'text.disabled', cursor: 'help' }} />
               </Tooltip>
             </Box>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)' }}>Volumen de mensajes y conversiones detectadas</Typography>
+            <Typography variant="caption" color="text.secondary">Volumen de mensajes y conversiones detectadas</Typography>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, p: 1, px: 2, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', alignSelf: { xs: 'stretch', sm: 'auto' }, justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, p: 1, px: 2, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', alignSelf: { xs: 'stretch', sm: 'auto' }, justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6', boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)' }} />
-              <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>Mensajes</Typography>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6' }} />
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>Mensajes</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981', boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }} />
-              <Typography variant="caption" sx={{ color: 'white', fontWeight: 600 }}>Conversiones</Typography>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>Conversiones</Typography>
             </Box>
           </Box>
         </Box>
 
-        {/* Custom SVG Bar Chart with Horizontal Scroll on Mobile */}
+        {/* Bar Chart */}
         <Box sx={{ 
           maxWidth: '100%', 
           overflowX: 'auto', 
           pb: 2,
           '&::-webkit-scrollbar': { height: 4 },
-          '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 }
         }}>
           <Box sx={{ 
             position: 'relative', 
@@ -325,9 +311,8 @@ export default function Dashboard() {
             alignItems: 'flex-end', 
             gap: 1.5, 
             px: 1,
-            minWidth: { xs: 600, md: 'auto' } // Force minimum width on mobile for readability
+            minWidth: { xs: 600, md: 'auto' }
           }}>
-          {/* Subtle horizontal grid lines */}
           {[0, 25, 50, 75, 100].map((level) => (
             <Box key={level} sx={{ 
               position: 'absolute', 
@@ -335,14 +320,15 @@ export default function Dashboard() {
               left: 0, 
               right: 0, 
               height: '1px', 
-              bgcolor: 'rgba(255,255,255,0.03)',
+              bgcolor: 'divider',
               zIndex: 0
             }} />
           ))}
 
           {(stats?.history || []).map((point, i) => {
             const maxVal = Math.max(...(stats?.history || []).map(p => p.count), 10);
-            const heightPerc = (point.count / maxVal) * 90; // scale to 90% max
+            const heightPerc = (point.count / maxVal) * 90;
+            const isLast = i === (stats?.history?.length || 0) - 1;
             
             return (
               <Box key={i} sx={{ 
@@ -360,9 +346,11 @@ export default function Dashboard() {
                   sx={{ 
                     width: '100%', 
                     height: `${heightPerc}%`, 
-                    background: i === (stats?.history?.length || 0) - 1 
+                    background: isLast 
                       ? "linear-gradient(to top, #3b82f6, #60a5fa)" 
-                      : "linear-gradient(to top, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.2))",
+                      : isDark
+                        ? "linear-gradient(to top, rgba(59,130,246,0.15), rgba(59,130,246,0.25))"
+                        : "linear-gradient(to top, rgba(59,130,246,0.12), rgba(59,130,246,0.20))",
                     borderRadius: '6px 6px 2px 2px',
                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
@@ -380,8 +368,10 @@ export default function Dashboard() {
                     top: -30, 
                     left: '50%', 
                     transform: 'translateX(-50%)', 
-                    bgcolor: 'white', 
-                    color: '#1e293b', 
+                    bgcolor: 'background.paper', 
+                    color: 'text.primary',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     px: 1, 
                     py: 0.3, 
                     borderRadius: 1, 
@@ -391,7 +381,7 @@ export default function Dashboard() {
                     transition: '0.2s',
                     pointerEvents: 'none',
                     whiteSpace: 'nowrap',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                    boxShadow: 2
                   }}>
                     {point.count} turnos
                   </Box>
@@ -402,9 +392,9 @@ export default function Dashboard() {
         </Box>
       </Box>
         
-        <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', px: 1 }}>
+        <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', px: 1 }}>
           {(stats?.history || []).filter((_, i, arr) => i % Math.max(1, Math.floor(arr.length / 7)) === 0).map((point, i) => (
-            <Typography key={i} variant="caption" sx={{ color: "rgba(255,255,255,0.2)", fontWeight: 600 }}>{point.date}</Typography>
+            <Typography key={i} variant="caption" color="text.disabled" sx={{ fontWeight: 600 }}>{point.date}</Typography>
           ))}
         </Box>
       </Card>

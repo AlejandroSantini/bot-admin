@@ -13,9 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   Skeleton,
-} from "@mui/material"; 
+} from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon, Check as CheckIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +22,7 @@ import { Table } from "../../components/common/Table";
 import { Select } from "../../components/common/Select";
 import { Input } from "../../components/common/Input";
 import { ContainedButton } from "../../components/common/ContainedButton";
+import { OutlinedButton } from "../../components/common/OutlinedButton";
 import DeleteButton from "../../components/common/DeleteButton";
 import { SimpleTabs } from "../../components/common/SimpleTabs";
 import ReservationsCalendar from "./components/ReservationsCalendar";
@@ -337,45 +337,39 @@ export default function Reservations() {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={() => setOpenDialog(false)} variant="outlined" size="small">
+          <OutlinedButton onClick={() => setOpenDialog(false)} sx={{ height: 34, fontSize: '0.82rem' }}>
             Cerrar
-          </Button>
-          <Button 
+          </OutlinedButton>
+          <OutlinedButton
             onClick={() => {
               setOpenDialog(false);
               navigate(`/reservas/${selectedReserva._id || selectedReserva.id}`, { state: { tab: 1 } });
             }}
-            variant="outlined" 
-            color="primary"
-            size="small"
+            sx={{ height: 34, fontSize: '0.82rem' }}
           >
             Ver Detalles
-          </Button>
+          </OutlinedButton>
           {selectedReserva && selectedReserva.estado === "pendiente" && (
-            <Button
+            <ContainedButton
               onClick={() => {
                 handleConfirm(selectedReserva._id || selectedReserva.id);
                 setOpenDialog(false);
               }}
-              variant="contained"
-              color="success"
-              size="small"
+              sx={{ height: 34, fontSize: '0.82rem', background: 'success.main', bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
             >
               Confirmar
-            </Button>
+            </ContainedButton>
           )}
           {selectedReserva && selectedReserva.estado !== "cancelado" && (
-            <Button
+            <ContainedButton
               onClick={() => {
                 handleCancel(selectedReserva._id || selectedReserva.id);
                 setOpenDialog(false);
               }}
-              variant="contained"
-              color="error"
-              size="small"
+              sx={{ height: 34, fontSize: '0.82rem', bgcolor: 'error.main', background: 'error.main', '&:hover': { bgcolor: 'error.dark' } }}
             >
               Eliminar
-            </Button>
+            </ContainedButton>
           )}
         </DialogActions>
       </Dialog>

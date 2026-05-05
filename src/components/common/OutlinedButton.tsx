@@ -17,18 +17,16 @@ export function OutlinedButton({ icon, children, loading, disabled, ...props }: 
       disabled={disabled || loading}
       sx={{
         borderRadius: 2,
-        fontWeight: 500,
+        fontWeight: 400,
         textTransform: 'none',
         boxShadow: 'none',
         letterSpacing: 0,
-        fontSize: '1rem',
-        borderWidth: 1,
+        fontSize: '0.95rem',
         height: 40,
         whiteSpace: 'nowrap',
         minWidth: loading ? 140 : undefined,
         '&:hover': {
           backgroundColor: 'action.hover',
-          borderWidth: 1,
           boxShadow: 'none',
         },
         ...props.sx,

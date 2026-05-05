@@ -79,18 +79,17 @@ export default function Sidebar({
     borderRadius: 1.5,
     minHeight: 40,
     px: 1.5,
-    opacity: isLocked ? 0.5 : 1, // Aumentado de 0.3 a 0.5
-    color: isLocked ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.9)",
-    "&.Mui-selected": {
-      backgroundColor: "rgba(59, 130, 246, 0.12)",
-      color: "#60a5fa",
-      "& .MuiListItemIcon-root": { color: "#60a5fa" },
-      "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.18)" },
+    opacity: isLocked ? 0.5 : 1,
+    color: isLocked ? 'text.disabled' : 'text.primary',
+    '&.Mui-selected': {
+      backgroundColor: 'action.selected',
+      color: 'primary.main',
+      '& .MuiListItemIcon-root': { color: 'primary.main' },
+      '&:hover': { backgroundColor: 'action.selected' },
     },
-    "&:hover": {
-        backgroundColor: isLocked ? "transparent" : "rgba(255, 255, 255, 0.06)",
-        color: isLocked ? "rgba(255, 255, 255, 0.3)" : "#fff",
-    }
+    '&:hover': {
+      backgroundColor: isLocked ? 'transparent' : 'action.hover',
+    },
   });
 
   const showText = isMobile || !collapsed;
@@ -126,10 +125,10 @@ export default function Sidebar({
               "& .MuiListItemText-primary": { 
                 fontSize: "0.85rem", 
                 fontWeight: selectedItem === item.path ? 600 : 400,
-                color: isLocked ? "rgba(255, 255, 255, 0.4)" : "inherit"
               } 
             }} 
           />
+
         )}
         {isLocked && !collapsed && (
           <LockIcon sx={{ fontSize: 14, opacity: 0.5, ml: 1 }} />
@@ -145,9 +144,9 @@ export default function Sidebar({
       height: "100%", 
       display: "flex", 
       flexDirection: "column",
-      backgroundColor: "#0f172a", // Ligeramente más claro para mejor contraste (Slate 900)
-      borderRight: "1px solid rgba(255, 255, 255, 0.08)",
-      color: "#f1f5f9"
+      backgroundColor: "background.paper",
+      borderRight: "1px solid",
+      borderColor: "divider",
     }}>
       <Toolbar sx={{ px: 2, minHeight: 64, display: "flex", justifyContent: showText ? "space-between" : "center" }}>
         {showText && (
@@ -176,7 +175,8 @@ export default function Sidebar({
       <Box sx={{ 
         px: 2, 
         py: 1.5, 
-        borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+        borderTop: "1px solid",
+        borderColor: "divider",
         display: "flex",
         alignItems: "center",
         gap: 1.5,
@@ -200,7 +200,7 @@ export default function Sidebar({
         </Box>
         {showText && (
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {user?.name || "Bot Admin"}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -210,7 +210,7 @@ export default function Sidebar({
         )}
       </Box>
 
-      <Box sx={{ p: 1, borderTop: "1px solid rgba(255, 255, 255, 0.05)" }}>
+      <Box sx={{ p: 1, borderTop: "1px solid", borderColor: "divider" }}>
         <ListItemButton
           onClick={logout}
           sx={{ borderRadius: 1.5, minHeight: 40, px: 1.5, color: "text.secondary" }}
