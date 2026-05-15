@@ -83,12 +83,6 @@ export const settingsService = {
     return response.data;
   },
 
-  // MODULES CONFIG (SYSTEM)
-  updateModulesConfig: async (config: { modules_config: ModulesConfig }) => {
-    const response = await api.put("/api/tenants/modules-config", config);
-    return response.data;
-  },
-
   // BLOCKED DATES
   getBlockedDates: async (): Promise<{ blocked_dates: BlockedDate[] }> => {
     const response = await api.get("/api/tenants/blocked-dates");
