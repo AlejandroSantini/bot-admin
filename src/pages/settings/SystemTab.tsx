@@ -6,28 +6,22 @@ import {
   Switch,
   Card,
   CardContent,
-  Alert,
 } from "@mui/material";
 import { 
   DarkMode as DarkModeIcon, 
 } from "@mui/icons-material";
-import { type ModulesConfig } from "../../services/settingsService";
+
 
 interface SystemTabProps {
-  initialModulesConfig?: ModulesConfig;
-  showReservations?: boolean;
 }
 
-export default function SystemTab({ initialModulesConfig }: SystemTabProps) {
+export default function SystemTab() {
   const { mode, toggleColorMode } = useThemeMode();
-  const [error, setError] = useState<string | null>(null);
 
 
 
   return (
     <Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Apariencia */}
         <Card variant="outlined" sx={{ borderRadius: 2 }}>

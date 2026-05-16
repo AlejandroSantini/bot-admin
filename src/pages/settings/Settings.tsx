@@ -125,11 +125,7 @@ export default function Settings() {
               {activeTab === "payments" && showReservationsConfig && <PaymentsTab />}
               {activeTab === "blocks" && showReservationsConfig && <BlockedDatesTab />}
               {activeTab === "system" && (
-                <SystemTab 
-                  initialReminders={tenant.reminder_config} 
-                  initialModulesConfig={tenant.modules_config}
-                  showReservations={showReservationsConfig}
-                />
+                <SystemTab />
               )}
               {activeTab === "notifications" && (
                 <NotificationsTab 
