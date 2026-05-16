@@ -74,7 +74,7 @@ export default function ImageUploader({
         sx={{
           border: '2px dashed',
           borderColor: 'divider',
-          borderRadius: 2,
+          borderRadius: 1.5,
           minHeight: 200,
           p: 2,
           cursor: 'pointer',
@@ -123,7 +123,7 @@ export default function ImageUploader({
                     height: 120,
                     border: '1px solid',
                     borderColor: 'divider',
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                     overflow: 'hidden',
                     backgroundColor: 'background.paper',
                   }}
@@ -143,7 +143,7 @@ export default function ImageUploader({
                       position: 'absolute',
                       top: 4,
                       right: 4,
-                      borderRadius: 2,
+                      borderRadius: 1.5,
                       bgcolor: 'background.paper',
                       '&:hover': {
                         bgcolor: 'action.hover',
@@ -167,7 +167,7 @@ export default function ImageUploader({
                     height: 120,
                     border: '2px dashed',
                     borderColor: 'divider',
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

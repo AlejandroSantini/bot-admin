@@ -93,7 +93,7 @@ export default function PaymentsTab() {
       {success && <Alert severity="success" sx={{ mb: 2 }}>Configuración guardada correctamente</Alert>}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ borderRadius: 1.5 }}>
           <CardContent sx={{ p: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <PaymentIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
@@ -146,7 +146,7 @@ export default function PaymentsTab() {
         </Card>
 
         {/* RESERVA CARD */}
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ borderRadius: 1.5 }}>
           <CardContent sx={{ p: 2 }}>
             <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 2 }}>
               Reserva y Cancelación

@@ -169,7 +169,7 @@ export default function NotificationsTab({
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
         {showReservations && (
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1.5 }}>
             <CardContent sx={{ p: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <RemindersIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
@@ -185,7 +185,7 @@ export default function NotificationsTab({
                     sx={{
                       p: 1.5,
                       bgcolor: "action.hover",
-                      borderRadius: 2,
+                      borderRadius: 1.5,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
@@ -234,7 +234,7 @@ export default function NotificationsTab({
           </Card>
         )}
 
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ borderRadius: 1.5 }}>
           <CardContent sx={{ p: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <RemindersIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
@@ -266,7 +266,7 @@ export default function NotificationsTab({
                   sx={{
                     p: 1.5,
                     bgcolor: "action.hover",
-                    borderRadius: 2,
+                    borderRadius: 1.5,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -328,7 +328,7 @@ export default function NotificationsTab({
           </CardContent>
         </Card>
 
-        <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ borderRadius: 1.5 }}>
           <CardContent sx={{ p: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <RemindersIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
@@ -341,7 +341,7 @@ export default function NotificationsTab({
                 flexGrow: 1,
                 p: 1.5,
                 bgcolor: "action.hover",
-                borderRadius: 2,
+                borderRadius: 1.5,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",

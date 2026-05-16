@@ -8,7 +8,6 @@ import {
   Card,
   CardContent,
   Grid,
-  TextField,
   Tabs,
   Tab,
   CircularProgress,
@@ -19,7 +18,9 @@ import {
   FormControl,
   InputLabel,
   Skeleton,
+  useTheme,
 } from "@mui/material";
+import { Input } from "../../components/common/Input";
 import {
   CloudUpload as UploadIcon,
   CheckCircle as SuccessIcon,
@@ -38,6 +39,8 @@ const STEPS = ["Cargar Documento", "Revisar Información", "Preview Flujo", "Gen
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 export default function Onboarding() {
+  const theme = useTheme();
+  const mode = theme.palette.mode;
   const [activeStep, setActiveStep] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -183,10 +186,18 @@ export default function Onboarding() {
             </Box>
           ) : (
             <>
-              <Typography variant="h5" fontWeight="700" sx={{ mb: 4 }}>
-                Flujo del Bot
+              <Typography variant="h5" sx={{ mb: 4, display: 'flex', alignItems: 'baseline', gap: 1, color: 'text.primary' }}>
+                Configuración <span className="tino-font" style={{ color: 'primary.main', fontWeight: 900, fontSize: '1.8rem' }}>tino</span>
               </Typography>
-              <Stepper activeStep={activeStep} sx={{ mb: 5 }}>
+              <Stepper 
+                activeStep={activeStep} 
+                sx={{ 
+                  mb: 6,
+                  '& .MuiStepIcon-root.Mui-active': { color: 'primary.main' },
+                  '& .MuiStepIcon-root.Mui-completed': { color: 'primary.main' },
+                  '& .MuiStepLabel-label': { fontWeight: 600, fontSize: '0.85rem' }
+                }}
+              >
                 {STEPS.map((label) => (
                   <Step key={label}>
                     <StepLabel>{label}</StepLabel>
@@ -202,9 +213,9 @@ export default function Onboarding() {
       {success && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>{success}</Alert>}
 
       {loading && (
-        <Card variant="outlined" sx={{ borderRadius: 3, p: 3 }}>
+        <Card variant="outlined" sx={{ borderRadius: 1.5, p: 3 }}>
           <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
-          <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 1.5, mb: 3 }} />
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 1.5 }} />
             <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: 1.5 }} />
@@ -213,7 +224,20 @@ export default function Onboarding() {
       )}
 
       {!loading && activeStep === 0 && (
-        <Card variant="outlined" sx={{ borderRadius: 3, p: 3, textAlign: "center" }}>
+        <Card 
+          variant="outlined" 
+          sx={{ 
+            borderRadius: 1.5,
+            border: '1px solid',
+            borderColor: 'divider',
+            background: mode === 'light' 
+              ? 'rgba(255, 255, 255, 0.8)' 
+              : 'rgba(26, 26, 26, 0.8)',
+            backdropFilter: 'blur(10px)',
+            p: 4,
+            textAlign: "center" 
+          }}
+        >
           <CardContent>
             <Box sx={{ mb: 4, textAlign: "left" }}>
               <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1 }}>
@@ -235,7 +259,7 @@ export default function Onboarding() {
               <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1 }}>
                 Formato recomendado para tu documento:
               </Typography>
-              <Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+              <Box sx={{ p: 2, bgcolor: "background.paper", borderRadius: 1.5, border: "1px solid", borderColor: "divider" }}>
                 <Typography variant="caption" sx={{ display: "block", color: "text.secondary", mb: 1 }}>
                   Para que el sistema arme la lógica perfecta de tu bot, te sugerimos incluir:
                 </Typography>
@@ -273,7 +297,7 @@ export default function Onboarding() {
               sx={{
                 border: "2px dashed",
                 borderColor: "primary.main",
-                borderRadius: 3,
+                borderRadius: 1.5,
                 p: 5,
                 bgcolor: "action.hover",
                 cursor: "pointer",
@@ -308,10 +332,55 @@ export default function Onboarding() {
 
 
       {!loading && activeStep === 1 && (
-        <Card variant="outlined" sx={{ borderRadius: 3 }}>
+        <Card 
+          variant="outlined" 
+          sx={{ 
+            borderRadius: 1.5,
+            border: '1px solid',
+            borderColor: 'divider',
+            background: mode === 'light' 
+              ? 'rgba(255, 255, 255, 0.8)' 
+              : 'rgba(26, 26, 26, 0.8)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: mode === 'light'
+              ? '0 8px 32px rgba(0, 0, 0, 0.05)'
+              : '0 8px 32px rgba(0, 0, 0, 0.3)',
+            overflow: 'hidden'
+          }}
+        >
           <CardContent sx={{ p: 0 }}>
-            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-              <Tabs value={tabValue} onChange={(_, val) => setTabValue(val)} variant="scrollable">
+            <Box sx={{ 
+              borderBottom: 1, 
+              borderColor: "divider",
+              backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)'
+            }}>
+              <Tabs 
+                value={tabValue} 
+                onChange={(_, val) => setTabValue(val)} 
+                variant="scrollable"
+                sx={{
+                  px: 2,
+                  minHeight: 60,
+                  '& .MuiTabs-indicator': {
+                    height: 3,
+                    borderRadius: '3px 3px 0 0',
+                    backgroundColor: 'primary.main',
+                  },
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    minHeight: 60,
+                    transition: 'all 0.2s',
+                    '&.Mui-selected': {
+                      color: 'primary.main',
+                    },
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    }
+                  }
+                }}
+              >
                 <Tab label="General" />
                 <Tab label="Servicios" />
                 <Tab label="Productos" />
@@ -325,25 +394,22 @@ export default function Onboarding() {
               {tabValue === 0 && (
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Nombre del Negocio"
-                      fullWidth
                       value={structuredData.nombre || ""}
                       onChange={(e) => handleFieldChange("nombre", e.target.value)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Ubicación"
-                      fullWidth
                       value={structuredData.ubicacion || ""}
                       onChange={(e) => handleFieldChange("ubicacion", e.target.value)}
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField
+                    <Input
                       label="Horarios"
-                      fullWidth
                       value={structuredData.horarios || ""}
                       onChange={(e) => handleFieldChange("horarios", e.target.value)}
                     />
@@ -362,34 +428,57 @@ export default function Onboarding() {
                     </OutlinedButton>
                   </Box>
                   {structuredData.servicios?.map((serv: any, index: number) => (
-                    <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
-                      <Grid container spacing={2} alignItems="center">
+                    <Box 
+                      key={index} 
+                      sx={{ 
+                        mb: 2, 
+                        p: 3, 
+                        border: "1px solid", 
+                        borderColor: "divider", 
+                        borderRadius: 1.5,
+                        backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.01)' : 'rgba(255,255,255,0.01)',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                          borderColor: 'primary.main',
+                        }
+                      }}
+                    >
+                      <Grid container spacing={3} alignItems="center">
                         <Grid size={{ xs: 12, sm: 4 }}>
-                          <TextField
-                            label="Nombre"
-                            fullWidth
+                          <Input
+                            label="Nombre del Servicio"
                             value={serv.nombre || ""}
                             onChange={(e) => handleArrayChange("servicios", index, "nombre", e.target.value)}
+                            placeholder="Ej: Corte de pelo"
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 3 }}>
-                          <TextField
+                          <Input
                             label="Precio"
-                            fullWidth
                             value={serv.precio || ""}
                             onChange={(e) => handleArrayChange("servicios", index, "precio", e.target.value)}
+                            placeholder="Ej: 1500"
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 4 }}>
-                          <TextField
-                            label="Descripción"
-                            fullWidth
+                          <Input
+                            label="Descripción (opcional)"
                             value={serv.descripcion || ""}
                             onChange={(e) => handleArrayChange("servicios", index, "descripcion", e.target.value)}
+                            placeholder="Breve descripción..."
                           />
                         </Grid>
-                        <Grid size={{ xs: 12, sm: 1 }}>
-                          <IconButton color="error" onClick={() => removeArrayItem("servicios", index)}>
+                        <Grid size={{ xs: 12, sm: 1 }} sx={{ display: 'flex', justifyContent: 'center' }}>
+                          <IconButton 
+                            color="error" 
+                            onClick={() => removeArrayItem("servicios", index)}
+                            sx={{ 
+                              backgroundColor: 'rgba(211, 47, 47, 0.05)',
+                              '&:hover': { backgroundColor: 'rgba(211, 47, 47, 0.1)' }
+                            }}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </Grid>
@@ -410,28 +499,25 @@ export default function Onboarding() {
                     </OutlinedButton>
                   </Box>
                   {structuredData.productos?.map((prod: any, index: number) => (
-                    <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
+                    <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 1.5 }}>
                       <Grid container spacing={2} alignItems="center">
                         <Grid size={{ xs: 12, sm: 4 }}>
-                          <TextField
+                          <Input
                             label="Nombre"
-                            fullWidth
                             value={prod.nombre || ""}
                             onChange={(e) => handleArrayChange("productos", index, "nombre", e.target.value)}
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 3 }}>
-                          <TextField
+                          <Input
                             label="Precio"
-                            fullWidth
                             value={prod.precio || ""}
                             onChange={(e) => handleArrayChange("productos", index, "precio", e.target.value)}
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 4 }}>
-                          <TextField
+                          <Input
                             label="Descripción"
-                            fullWidth
                             value={prod.descripcion || ""}
                             onChange={(e) => handleArrayChange("productos", index, "descripcion", e.target.value)}
                           />
@@ -455,12 +541,11 @@ export default function Onboarding() {
                     </OutlinedButton>
                   </Box>
                   {structuredData.faq?.map((faq: any, index: number) => (
-                    <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
+                    <Box key={index} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 1.5 }}>
                       <Grid container spacing={2} alignItems="flex-start">
                         <Grid size={{ xs: 12, sm: 5 }}>
-                          <TextField
+                          <Input
                             label="Pregunta"
-                            fullWidth
                             multiline
                             rows={2}
                             value={faq.pregunta || ""}
@@ -468,9 +553,8 @@ export default function Onboarding() {
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <TextField
+                          <Input
                             label="Respuesta"
-                            fullWidth
                             multiline
                             rows={2}
                             value={faq.respuesta || ""}
@@ -498,7 +582,7 @@ export default function Onboarding() {
                       const config = structuredData.schedule_config[dayIndex];
                       if (!config.enabled || !config.ranges || config.ranges.length === 0) return null;
                       return (
-                        <Box key={dayIndex} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2, bgcolor: "background.paper" }}>
+                        <Box key={dayIndex} sx={{ mb: 2, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 1.5, bgcolor: "background.paper" }}>
                           <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "primary.main" }}>
                             {DAYS[parseInt(dayIndex)] || `Día ${dayIndex}`}
                           </Typography>
@@ -540,9 +624,8 @@ export default function Onboarding() {
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <TextField
+                      <Input
                         label="Alias de Mercado Pago"
-                        fullWidth
                         value={structuredData.payment_config?.alias || ""}
                         onChange={(e) => setStructuredData({
                           ...structuredData,
@@ -552,9 +635,8 @@ export default function Onboarding() {
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
+                      <Input
                         label="Monto de Seña ($)"
-                        fullWidth
                         type="number"
                         value={structuredData.payment_config?.deposit_amount || 0}
                         onChange={(e) => setStructuredData({
@@ -565,9 +647,8 @@ export default function Onboarding() {
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
+                      <Input
                         label="Horas de anticipación (Cancelación)"
-                        fullWidth
                         type="number"
                         value={structuredData.payment_config?.cancellation_hours || 0}
                         onChange={(e) => setStructuredData({
@@ -615,9 +696,21 @@ export default function Onboarding() {
       )}
 
       {!loading && activeStep === 2 && (
-        <Card variant="outlined" sx={{ borderRadius: 3, p: 2 }}>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Este es un preview interactivo de cómo quedará estructurado el flujo de tu bot. Podés editar los nombres haciendo click en las hojas. El bot podrá ser modificado posteriormente en la sección de configuración.
+        <Card 
+          variant="outlined" 
+          sx={{ 
+            borderRadius: 1.5,
+            border: '1px solid',
+            borderColor: 'divider',
+            background: mode === 'light' 
+              ? 'rgba(255, 255, 255, 0.8)' 
+              : 'rgba(26, 26, 26, 0.8)',
+            backdropFilter: 'blur(10px)',
+            p: 2 
+          }}
+        >
+          <Alert severity="info" sx={{ mb: 2, borderRadius: 1.5 }}>
+            Este es un preview interactivo de cómo quedará estructurado el flujo de tu bot. Podés editar los nombres haciendo click en las hojas.
           </Alert>
           <BotFlowPreview 
             botType={botType}
@@ -634,8 +727,10 @@ export default function Onboarding() {
           {/* Header bar */}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
             <Box>
-              <Typography variant="h5" fontWeight={700} color="white">Flujo del Bot</Typography>
-              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)" }}>
+              <Typography variant="h5" sx={{ display: 'flex', alignItems: 'baseline', gap: 1, color: 'text.primary' }}>
+                Gestión <span className="tino-font" style={{ color: 'primary.main', fontWeight: 900, fontSize: '1.8rem' }}>tino</span>
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
                 Gestioná el comportamiento y las respuestas de tu asistente.
               </Typography>
             </Box>

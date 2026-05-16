@@ -99,7 +99,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       { t: 'form',    emoji: '📝', label: 'Form IA' },
     ];
     return (
-      <Paper elevation={0} sx={{ width: 280, borderRadius: 3, overflow: 'hidden', border: '2px dashed #0f62fe', bgcolor: theme.palette.background.paper, boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(15, 98, 254, 0.08)' }}>
+      <Paper elevation={0} sx={{ width: 280, borderRadius: 1.5, overflow: 'hidden', border: '2px dashed #0f62fe', bgcolor: theme.palette.background.paper, boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.4)' : '0 8px 24px rgba(15, 98, 254, 0.08)' }}>
         <Handle type="target" position={Position.Top} isConnectable={isConnectable}
           style={{ background: '#0f62fe', width: 12, height: 12, top: -6 }} />
         <Box sx={{ px: 2, py: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
@@ -112,7 +112,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
               onClick={() => d.onSelectType?.(t)}
               sx={{
                 cursor: 'pointer',
-                borderRadius: 2,
+                borderRadius: 1.5,
                 border: `1px solid ${isDark ? '#333' : '#e0e0e0'}`,
                 p: 1.5,
                 textAlign: 'center',
@@ -202,7 +202,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
       elevation={0}
       sx={{
         width: 280,
-        borderRadius: 3,
+        borderRadius: 1.5,
         overflow: 'visible',
         border: `1px solid ${nodeColor}`,
         bgcolor: theme.palette.background.paper,
@@ -233,7 +233,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
             onClick={e => setTypeAnchor(e.currentTarget as HTMLElement)}
             sx={{
               display: 'flex', alignItems: 'center', gap: 0.5,
-              cursor: 'pointer', borderRadius: 1,
+              cursor: 'pointer', borderRadius: 1.5,
               px: 0.5, py: 0.25,
               '&:hover': { bgcolor: nodeColor + '33' },
             }}
@@ -262,7 +262,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 onClick={() => { d.onSelectType?.(t); setTypeAnchor(null); }}
                 sx={{
                   display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75,
-                  cursor: 'pointer', borderRadius: 1,
+                  cursor: 'pointer', borderRadius: 1.5,
                   bgcolor: d.type === t ? TYPE_META[t].borderColor + '22' : 'transparent',
                   '&:hover': { bgcolor: TYPE_META[t].borderColor + '22' },
                 }}
@@ -380,7 +380,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 placeholder="Usá {{ para insertar variables"
                 sx={{
                   '& .MuiInputBase-input, & textarea': { color: `${theme.palette.text.primary} !important`, fontSize: 13, lineHeight: 1.5 },
-                  '& .MuiOutlinedInput-root': { bgcolor: theme.palette.background.default, borderRadius: 2 },
+                  '& .MuiOutlinedInput-root': { bgcolor: theme.palette.background.default, borderRadius: 1.5 },
                   '& .MuiFormHelperText-root': { color: theme.palette.text.secondary },
                 }}
               />
@@ -466,7 +466,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                 {d.type === 'action' ? getModuleLabel(d.text) : d.text}
               </Typography>
               {d.type === 'list' && d.moduleId && (
-                <Box sx={{ mt: 1, p: 1, bgcolor: '#ed6c0211', border: '1px solid #ed6c0244', borderRadius: 1 }}>
+                <Box sx={{ mt: 1, p: 1, bgcolor: '#ed6c0211', border: '1px solid #ed6c0244', borderRadius: 1.5 }}>
                   <Typography variant="caption" fontWeight="bold" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <ActionIcon sx={{ fontSize: 12 }} /> Módulo dinámico:
                   </Typography>
@@ -542,7 +542,7 @@ export default function MessageNode({ data, isConnectable }: MessageNodeProps) {
                   <Box sx={{
                     flex: 1,
                     bgcolor: meta.borderColor + '18',
-                    borderRadius: 1,
+                    borderRadius: 1.5,
                     px: 1, py: 0.4,
                     border: `1px solid ${meta.borderColor}44`,
                     cursor: 'default',

@@ -16,12 +16,24 @@ export function DateInput({ label, sx, variant = 'outlined', ...props }: DateInp
       fullWidth
       size="small"
       sx={{
-        borderRadius: 2,
+        borderRadius: 1.5,
         mb: 2,
         mt: 0,
         '& .MuiInputBase-root': {
-          borderRadius: 2,
-          backgroundColor: 'background.paper',
+          borderRadius: 1.5,
+          backgroundColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
+          border: "1px solid",
+          borderColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          '&:hover': {
+            borderColor: "primary.main",
+          },
+          '&.Mui-focused': {
+            borderColor: "primary.main",
+            boxShadow: (theme: any) => `0 0 0 3px ${theme.palette.primary.main}22`,
+          },
+          "& fieldset": {
+            border: "none",
+          },
         },
         ...(sx || {}),
       }}

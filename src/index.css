@@ -8,6 +8,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+:root {
+  --font-tino: 'Outfit', system-ui, sans-serif;
+}
+
+.tino-font {
+  font-family: var(--font-tino);
+  text-transform: lowercase;
+  font-weight: 900;
+}
+
 body {
   margin: 0;
   min-width: 320px;

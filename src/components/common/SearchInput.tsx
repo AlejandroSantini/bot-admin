@@ -20,7 +20,7 @@ export function SearchInput({ onClear, showClear, InputProps, disabled, ...props
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <SearchIcon color="action" />
+            <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
           </InputAdornment>
         ),
         endAdornment: showClear && onClear ? (
@@ -43,16 +43,28 @@ export function SearchInput({ onClear, showClear, InputProps, disabled, ...props
             </IconButton>
           </InputAdornment>
         ) : undefined,
-        readOnly: true,
         ...InputProps
       }}
       sx={{
-        borderRadius: 2,
+        borderRadius: 1.5,
         mb: 2,
         mt: 0,
         '& .MuiInputBase-root': {
-          borderRadius: 2,
-          backgroundColor: 'background.paper',
+          borderRadius: 1.5,
+          height: 40,
+          backgroundColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
+          border: "1px solid",
+          borderColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          '&:hover': {
+            borderColor: "primary.main",
+          },
+          '&.Mui-focused': {
+            borderColor: "primary.main",
+            boxShadow: (theme: any) => `0 0 0 3px ${theme.palette.primary.main}22`,
+          },
+          "& fieldset": {
+            border: "none",
+          },
           cursor: disabled ? 'default' : 'pointer',
         },
         '& .MuiInputBase-input': {

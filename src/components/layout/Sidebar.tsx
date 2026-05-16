@@ -10,6 +10,7 @@ import {
   IconButton,
   Typography,
   Tooltip,
+  useTheme,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -72,6 +73,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const drawerWidth = 240;
   const collapsedWidth = 64;
+  const theme = useTheme();
+  const mode = theme.palette.mode;
   const { logout, modulesConfig, onboardingStep, user } = useAuth();
 
   const itemButtonSx = (isLocked: boolean) => ({
@@ -107,7 +110,7 @@ export default function Sidebar({
     const hasEmptyModules = !modulesConfig || Object.keys(modulesConfig).length === 0;
     const isOldTenantFallback = hasEmptyModules && onboardingStep >= 1;
 
-    const isLocked = (!isExplicitlyEnabled && !isOldTenantFallback) && onboardingStep < (item.minStep || 0);
+    const isLocked = false; // Removiendo candados por pedido del usuario
 
     const itemContent = (
       <ListItemButton
@@ -134,9 +137,6 @@ export default function Sidebar({
             }} 
           />
 
-        )}
-        {isLocked && !collapsed && (
-          <LockIcon sx={{ fontSize: 16, color: "text.disabled", ml: 1 }} />
         )}
       </ListItemButton>
     );
@@ -169,8 +169,18 @@ export default function Sidebar({
     }}>
       <Toolbar sx={{ px: 2, minHeight: 64, display: "flex", justifyContent: showText ? "space-between" : "center" }}>
         {showText && (
-          <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-            Bot Admin
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'baseline', 
+              gap: 0.8,
+              color: mode === 'dark' ? '#fff' : 'primary.main',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            <span className="tino-font" style={{ fontSize: '1.8rem' }}>tino</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 500, opacity: 0.6 }}>admin</span>
           </Typography>
         )}
         {!isMobile && (
@@ -205,7 +215,7 @@ export default function Sidebar({
           width: 32, 
           height: 32, 
           borderRadius: "50%", 
-          background: "linear-gradient(45deg, #3b82f6 0%, #06b6d4 100%)",
+          background: "linear-gradient(135deg, #0b8185 0%, #1f5f61 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -213,14 +223,19 @@ export default function Sidebar({
           color: "white",
           fontWeight: 700,
           fontSize: "0.8rem",
-          boxShadow: "0 4px 10px rgba(59, 130, 246, 0.3)"
+          boxShadow: "0 4px 12px rgba(11, 129, 133, 0.3)"
         }}>
           {user?.name?.charAt(0).toUpperCase() || "B"}
         </Box>
         {showText && (
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {user?.name || "Bot Admin"}
+              {user?.name || (
+                <Box component="span" sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                  <span className="tino-font" style={{ color: mode === 'dark' ? '#fff' : 'primary.main', fontSize: '1.1rem' }}>tino</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.6, fontWeight: 500 }}>admin</span>
+                </Box>
+              )}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {user?.email || user?.phone || "Conectado"}

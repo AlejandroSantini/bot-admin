@@ -41,6 +41,7 @@ export default function Reservations() {
   const location = useLocation();
   const [reservas, setReservas] = useState<any[]>([]);
   const [allReservas, setAllReservas] = useState<any[]>([]);
+  const [blockedDates, setBlockedDates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(false);
@@ -83,9 +84,13 @@ export default function Reservations() {
 
   const loadAllReservas = async () => {
     try {
-      const res = await obtenerReservas({ page: 1, limit: 999999, estado: 'confirmado' });
+      const [res, blocksData] = await Promise.all([
+        obtenerReservas({ page: 1, limit: 999999, estado: 'confirmado' }),
+        settingsService.getBlockedDates()
+      ]);
       const list = Array.isArray(res) ? res : res.data || [];
       setAllReservas(list);
+      setBlockedDates(blocksData.blocked_dates || []);
     } catch (err) {
       console.error("Error loading all reservations for calendar", err);
     }
@@ -213,7 +218,7 @@ export default function Reservations() {
   const content = loading ? (
     <Box sx={{ p: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.02)' }} />
+        <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1.5, bgcolor: 'rgba(255,255,255,0.02)' }} />
       ))}
     </Box>
   ) : null;
@@ -248,7 +253,9 @@ export default function Reservations() {
       content: content || (
         <ReservationsCalendar
           reservas={allReservas}
+          blockedDates={blockedDates}
           onSelectEvent={(r) => {
+            if (r.type === 'block') return;
             setSelectedReserva(r);
             setOpenDialog(true);
           }}
@@ -285,7 +292,7 @@ export default function Reservations() {
               disabled={syncing}
               color="secondary"
             >
-              {syncing ? <CircularProgress size={20} color="inherit" /> : "Sincronizar desde Google Calendar"}
+              {syncing ? <CircularProgress size={20} color="inherit" /> : "Sincronizar Google Calendar"}
             </ContainedButton>
           )}
           <ContainedButton

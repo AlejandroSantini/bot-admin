@@ -16,8 +16,8 @@ export function OutlinedButton({ icon, children, loading, disabled, ...props }: 
       startIcon={!loading ? icon : undefined}
       disabled={disabled || loading}
       sx={{
-        borderRadius: 2,
-        fontWeight: 400,
+        borderRadius: 1.5,
+        fontWeight: 500,
         textTransform: 'none',
         boxShadow: 'none',
         letterSpacing: 0,

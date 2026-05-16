@@ -273,7 +273,7 @@ export default function Clients() {
       {loading ? (
         <Box sx={{ p: 2 }}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.02)' }} />
+            <Skeleton key={i} variant="rectangular" height={50} sx={{ mb: 1, borderRadius: 1.5, bgcolor: 'rgba(255,255,255,0.02)' }} />
           ))}
         </Box>
       ) : (

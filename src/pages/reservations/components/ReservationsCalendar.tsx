@@ -18,25 +18,30 @@ interface Reservation {
   [key: string]: any;
 }
 
+interface BlockedDate {
+  start: string;
+  end: string;
+  reason?: string;
+}
+
 interface ReservationsCalendarProps {
   reservas: Reservation[];
+  blockedDates?: BlockedDate[];
   onSelectEvent?: (event: any) => void;
 }
 
 export default function ReservationsCalendar({
   reservas,
+  blockedDates = [],
   onSelectEvent,
 }: ReservationsCalendarProps) {
   // Transform reservations to calendar events
   const events = useMemo(() => {
-    return reservas
+    const resEvents = reservas
       .map((res) => {
-        // Create Start Date
-        const dateStr = res.fecha; // e.g., "2025-12-31" or "31/12/2025" logic needed if format varies
+        const dateStr = res.fecha;
         const timeStr = res.horario;
 
-        // Robust parsing (assuming ISO YYYY-MM-DD or similar standard)
-        // If fecha is missing, skip or handle
         if (!dateStr || !timeStr) return null;
 
         const start = moment(`${dateStr} ${timeStr}`, [
@@ -44,7 +49,7 @@ export default function ReservationsCalendar({
           "DD/MM/YYYY HH:mm",
           "YYYY-MM-DD HH:mm:ss",
         ]).toDate();
-        const end = moment(start).add(1, "hour").toDate(); // Default 1 hour duration if not specified
+        const end = moment(start).add(1, "hour").toDate();
 
         return {
           id: res.id || res._id,
@@ -52,118 +57,216 @@ export default function ReservationsCalendar({
           start,
           end,
           resource: res,
+          type: 'reservation'
         };
       })
       .filter(Boolean);
-  }, [reservas]);
+
+    const blockEvents = (blockedDates || []).map((block, idx) => ({
+      id: `block-${idx}`,
+      title: `BLOQUEADO: ${block.reason || 'Sin motivo'}`,
+      start: new Date(block.start),
+      end: new Date(block.end),
+      resource: { ...block, type: 'block' },
+      type: 'block'
+    }));
+
+    return [...resEvents, ...blockEvents];
+  }, [reservas, blockedDates]);
 
   return (
     <Box
       sx={{
-        height: 650,
-        backgroundColor: "background.paper",
-        p: 0,
-        borderRadius: 3,
+        height: 700,
+        backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+        p: 2,
+        borderRadius: 1.5,
+        border: '1px solid',
+        borderColor: 'divider',
+        backdropFilter: 'blur(10px)',
         overflow: "hidden",
         "& .rbc-calendar": {
           fontFamily: "inherit",
+          color: 'text.primary',
         },
         "& .rbc-toolbar": {
-          mb: 2,
+          mb: 3,
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
-          "& button": {
-            border: "none",
-            borderRadius: 1,
-            padding: "8px 16px",
-            fontSize: "14px",
+          justifyContent: "space-between",
+          flexWrap: 'wrap',
+          gap: 2,
+          '& button': {
+            borderRadius: 1.5,
+            height: 36,
+            px: 2,
+            fontSize: '0.85rem',
             fontWeight: 500,
-            color: "text.primary",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            transition: "all 0.2s",
-            "&:hover": {
-              backgroundColor: "action.hover",
+            textTransform: 'none',
+            transition: 'all 0.2s ease',
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'transparent',
+            color: 'text.secondary',
+            '&:hover': {
+              bgcolor: 'action.hover',
+              borderColor: 'primary.main',
+              color: 'primary.main',
             },
-            "&:active": {
-              transform: "scale(0.98)",
-            },
-            "&.rbc-active": {
-              backgroundColor: "#1976d2",
-              color: "white",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-              "&:hover": {
-                backgroundColor: "#1565c0",
-              },
-            },
-            "&:focus": {
-              outline: "none",
-            },
+            '&.rbc-active': {
+              bgcolor: 'primary.main',
+              color: 'white',
+              borderColor: 'primary.main',
+              boxShadow: (theme: any) => `0 4px 12px ${theme.palette.primary.main}44`,
+            }
           },
           "& .rbc-toolbar-label": {
             fontSize: "1.25rem",
             fontWeight: 600,
             textTransform: "capitalize",
+            color: 'text.primary',
           },
-        },
-        "& .rbc-header": {
-          padding: "12px 0",
-          fontWeight: 600,
-          color: "text.secondary",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          fontSize: "0.875rem",
-          textTransform: "uppercase",
-          letterSpacing: "0.5px",
         },
         "& .rbc-month-view": {
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2,
-          overflow: "hidden",
+          borderRadius: 1.5,
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+          bgcolor: 'transparent',
+        },
+        "& .rbc-month-header": {
+          bgcolor: 'action.hover',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        },
+        "& .rbc-header": {
+          py: 1.5,
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          color: 'text.secondary',
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          borderBottom: 'none',
         },
         "& .rbc-day-bg": {
-          borderColor: "divider",
+          borderLeft: '1px solid',
+          borderColor: 'divider',
+          transition: 'background-color 0.2s',
+          '&:hover': {
+            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+          }
         },
         "& .rbc-off-range-bg": {
-          backgroundColor: "action.hover",
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.02)',
         },
         "& .rbc-today": {
-          backgroundColor: "rgba(25, 118, 210, 0.04)",
+          bgcolor: (theme: any) => `${theme.palette.primary.main}08`,
         },
         "& .rbc-event": {
-          borderRadius: 1,
-          backgroundColor: "#1976d2",
-          border: "none",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-          padding: "2px 5px",
-          fontSize: "0.85rem",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            backgroundColor: "#1565c0",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-            transform: "translateY(-1px)",
-            zIndex: 10,
-          },
-          "&:focus": {
-            outline: "none",
-          },
+          borderRadius: '6px',
+          padding: '4px 8px',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          border: 'none',
+          '&:focus': { outline: 'none' },
         },
-        "& .rbc-day-slot .rbc-time-column": {
-          borderRight: "1px solid",
-          borderColor: "divider",
+        "& .rbc-show-more": {
+          fontSize: '0.65rem',
+          fontWeight: 700,
+          color: 'primary.main',
+          bgcolor: (theme: any) => theme.palette.mode === 'dark' ? 'rgba(11, 129, 133, 0.15)' : 'rgba(11, 129, 133, 0.08)',
+          borderRadius: '4px',
+          px: 1,
+          py: 0.3,
+          mt: 0.5,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+          display: 'inline-block',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            textDecoration: 'none',
+            bgcolor: 'primary.main',
+            color: 'white',
+            transform: 'translateY(-1px)',
+          }
+        },
+        "& .rbc-overlay": {
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(20, 20, 20, 0.9) !important' : 'rgba(255, 255, 255, 0.9) !important',
+          backdropFilter: 'blur(20px) saturate(180%) !important',
+          borderRadius: '12px !important',
+          border: '1px solid !important',
+          borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1) !important' : 'rgba(0, 0, 0, 0.1) !important',
+          boxShadow: (theme) => theme.palette.mode === 'dark' 
+            ? '0 8px 32px rgba(0,0,0,0.5)' 
+            : '0 8px 32px rgba(0,0,0,0.15)',
+          p: '12px !important',
+          zIndex: 1000,
+          minWidth: 280,
+          "& .rbc-overlay-header": {
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            pb: 1,
+            mb: 1.5,
+            fontWeight: 700,
+            fontSize: '0.8rem',
+            color: 'primary.main',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+          },
+          "& .rbc-event": {
+            mb: 0.75,
+            width: '100%',
+            borderRadius: '6px',
+            '&:last-child': { mb: 0 },
+          }
         },
         "& .rbc-time-view": {
           border: "1px solid",
           borderColor: "divider",
-          borderRadius: 2,
+          borderRadius: 1.5,
           overflow: "hidden",
+          bgcolor: 'transparent',
         },
-        "& .rbc-time-header-content": {
-          borderLeft: "1px solid",
+        "& .rbc-timeslot-group": {
           borderColor: "divider",
+          minHeight: '60px',
+        },
+        "& .rbc-time-header": {
+          "& .rbc-header": {
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }
+        },
+        "& .rbc-agenda-view": {
+          borderRadius: 1.5,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+          "& .rbc-agenda-table": {
+            border: 'none',
+            "& thead > tr > th": {
+              bgcolor: 'action.hover',
+              py: 2,
+              px: 3,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontSize: '0.75rem',
+              letterSpacing: 1,
+            },
+            "& tbody > tr": {
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+              "& td": {
+                py: 2,
+                px: 3,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+              }
+            }
+          }
         },
         "& .rbc-time-content": {
           borderTop: "1px solid",
@@ -195,12 +298,22 @@ export default function ReservationsCalendar({
         onSelectEvent={(e: any) => onSelectEvent && onSelectEvent(e.resource)}
         views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
         // Custom event styling if we wanted colors based on status/type
-        eventPropGetter={(event: any) => ({
-          style: {
-            backgroundColor: "#1976d2", // Primary blue
-            color: "white",
-          },
-        })}
+        eventPropGetter={(event: any) => {
+          const isBlock = event.type === 'block';
+          const bgColor = isBlock ? "#ef4444" : "#0f766e";
+          return {
+            style: {
+              backgroundColor: bgColor,
+              backgroundImage: isBlock 
+                ? 'linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05) 75%, transparent 75%, transparent)' 
+                : 'none',
+              backgroundSize: isBlock ? '20px 20px' : 'none',
+              color: "white",
+              opacity: 0.95,
+              border: `1px solid ${isBlock ? '#dc2626' : '#0d9488'}`,
+            },
+          };
+        }}
       />
     </Box>
   );

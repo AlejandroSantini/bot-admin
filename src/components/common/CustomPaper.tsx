@@ -12,7 +12,7 @@ export function CustomPaper({ children, sx, ...props }: CustomPaperProps) {
       elevation={0}
       sx={{
         p: 3,
-        borderRadius: 2,
+        borderRadius: 1.5,
         border: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',

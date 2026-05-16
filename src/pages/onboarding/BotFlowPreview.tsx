@@ -793,7 +793,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                 
                 setConnectMenu(null);
               }}
-              sx={{ display: 'flex', gap: 1.5, py: 1, borderRadius: 1, '&:hover': { bgcolor: theme.palette.action.hover } }}
+              sx={{ display: 'flex', gap: 1.5, py: 1, borderRadius: 1.5, '&:hover': { bgcolor: theme.palette.action.hover } }}
             >
               <Typography sx={{ fontSize: 18 }}>{opt.icon}</Typography>
               <Typography variant="body2" sx={{ fontWeight: 500, color: theme.palette.text.primary }}>{opt.label}</Typography>
@@ -840,7 +840,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
           alignItems: 'center', justifyContent: 'center', gap: 3,
         }}>
           <Box sx={{
-            bgcolor: '#1a1a2e', borderRadius: 4, px: 6, py: 5,
+            bgcolor: '#1a1a2e', borderRadius: 1.5, px: 6, py: 5,
             border: '1px solid rgba(124,58,237,0.4)',
             boxShadow: '0 0 60px rgba(124,58,237,0.3)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2.5,
@@ -867,7 +867,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
             severity="success"
             onClose={() => setSaveResult(null)}
             sx={{
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 1.5,
               fontSize: 14, fontWeight: 600,
               '& .MuiAlert-icon': { fontSize: 22 },
             }}
@@ -885,7 +885,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
             severity="error"
             onClose={() => setSaveResult(null)}
             sx={{
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)', borderRadius: 1.5,
               fontSize: 14, fontWeight: 600,
               '& .MuiAlert-icon': { fontSize: 22 },
             }}
@@ -930,7 +930,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
         height: 'calc(100% - 48px)',
         m: 3,
         bgcolor: theme.palette.background.paper,
-        borderRadius: 4,
+        borderRadius: 1.5,
         boxShadow: isDark ? '0 12px 48px rgba(0,0,0,0.5)' : '0 12px 48px rgba(0,0,0,0.06)',
         border: `1px solid ${theme.palette.divider}`,
         transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -983,7 +983,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                    <IconButton 
                     onClick={() => setActiveSection(tab.id as any)}
                     sx={{ 
-                      flex: 1, borderRadius: 2, m: 0.5,
+                      flex: 1, borderRadius: 1.5, m: 0.5,
                       color: activeSection === tab.id ? '#0f62fe' : theme.palette.text.secondary,
                       bgcolor: activeSection === tab.id ? (isDark ? '#0f62fe22' : '#f0f4ff') : 'transparent',
                       '&:hover': { bgcolor: activeSection === tab.id ? (isDark ? '#0f62fe33' : '#f0f4ff') : theme.palette.action.hover },
@@ -1022,7 +1022,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                         draggable
                         onDragStart={(e) => onDragStart(e, t.id)}
                         sx={{ 
-                          p: 2, bgcolor: theme.palette.background.paper, borderRadius: 3, border: `1px solid ${theme.palette.divider}`,
+                          p: 2, bgcolor: theme.palette.background.paper, borderRadius: 1.5, border: `1px solid ${theme.palette.divider}`,
                           cursor: 'grab', display: 'flex', alignItems: 'center', gap: 2,
                           boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                           transition: 'all 0.2s ease',
@@ -1049,7 +1049,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                   <Box sx={{ 
                     flex: 1, 
                     bgcolor: isDark ? '#1a1a2e' : '#fafafa', 
-                    borderRadius: 3, 
+                    borderRadius: 1.5, 
                     p: 2, 
                     mb: 2, 
                     overflowY: 'auto', 
@@ -1067,7 +1067,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                         border: msg.role === 'user' ? 'none' : `1px solid ${theme.palette.divider}`,
                         boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
                         p: 1.5, 
-                        borderRadius: 3, 
+                        borderRadius: 1.5, 
                         maxWidth: '90%',
                         borderBottomRightRadius: msg.role === 'user' ? 4 : 12,
                         borderBottomLeftRadius: msg.role === 'user' ? 12 : 4,
@@ -1078,7 +1078,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                       </Box>
                     ))}
                     {aiLoading && (
-                      <Box sx={{ alignSelf: 'flex-start', bgcolor: theme.palette.background.paper, p: 1.5, borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}>
+                      <Box sx={{ alignSelf: 'flex-start', bgcolor: theme.palette.background.paper, p: 1.5, borderRadius: 1.5, border: `1px solid ${theme.palette.divider}` }}>
                         <CircularProgress size={16} sx={{ color: '#0f62fe' }} />
                       </Box>
                     )}
@@ -1101,7 +1101,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                         '& .MuiOutlinedInput-root': {
                           bgcolor: theme.palette.background.paper,
                           fontSize: 13,
-                          borderRadius: 3,
+                          borderRadius: 1.5,
                           color: theme.palette.text.primary,
                           '& fieldset': { borderColor: theme.palette.divider },
                           '&:hover fieldset': { borderColor: '#0f62fe' },
@@ -1126,7 +1126,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                 <Box>
                   <Typography variant="overline" sx={{ color: '#0f62fe', fontWeight: 700, letterSpacing: 0.5 }}>Variables</Typography>
                   <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: 12, mb: 2 }}>
-                    Usá <code style={{ color: '#0f62fe', backgroundColor: isDark ? '#0f62fe22' : '#f0f4ff', padding: '2px 6px', borderRadius: 4 }}>{`{{etiqueta}}`}</code> en los textos de tu bot para personalizarlos.
+                    Usá <code style={{ color: '#0f62fe', backgroundColor: isDark ? '#0f62fe22' : '#f0f4ff', padding: '2px 6px', borderRadius: 1.5 }}>{`{{etiqueta}}`}</code> en los textos de tu bot para personalizarlos.
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                      {[
@@ -1136,7 +1136,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                        { var: 'saludo', label: 'Saludo (Buen día/etc)' },
                        { var: 'detalles_del_turno', label: 'Resumen del turno' }
                      ].map(v => (
-                       <Box key={v.var} sx={{ p: 1.5, bgcolor: isDark ? '#1a1a2e' : '#fafafa', borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                       <Box key={v.var} sx={{ p: 1.5, bgcolor: isDark ? '#1a1a2e' : '#fafafa', borderRadius: 1.5, border: `1px solid ${theme.palette.divider}` }}>
                           <Typography variant="body2" sx={{ color: '#0f62fe', fontWeight: 700, fontSize: 13 }}>{`{{${v.var}}}`}</Typography>
                           <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: 11 }}>{v.label}</Typography>
                        </Box>
@@ -1151,7 +1151,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
                   <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: 12, mb: 2 }}>Acciones avanzadas para tus nodos.</Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                      {systemModules.map(m => (
-                       <Box key={m.id} sx={{ p: 1.5, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                       <Box key={m.id} sx={{ p: 1.5, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                           <ExtensionIcon sx={{ fontSize: 18, color: m.category === 'data' ? '#ed6c02' : '#0f62fe' }} />
                           <Box>
                             <Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 600, fontSize: 13 }}>{m.label}</Typography>
@@ -1191,7 +1191,7 @@ function BotFlowPreviewInner({ botType, structuredData, setStructuredData, onNex
   return (
     <>
       {/* Main Container */}
-      <Box sx={{ position: 'relative', display: 'flex', width: '100%', height: '85vh', borderRadius: 4, overflow: 'hidden', bgcolor: theme.palette.background.default, border: `1px solid ${theme.palette.divider}` }}>
+      <Box sx={{ position: 'relative', display: 'flex', width: '100%', height: '85vh', borderRadius: 1.5, overflow: 'hidden', bgcolor: theme.palette.background.default, border: `1px solid ${theme.palette.divider}` }}>
         
         {/* Canvas Area (Background) */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>

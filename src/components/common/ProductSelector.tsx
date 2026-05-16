@@ -83,7 +83,7 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
   };
 
   return (
-    <Box sx={{ p: 2, border: "1px dashed", borderColor: "divider", borderRadius: 2, mb: 3 }}>
+    <Box sx={{ p: 2, border: "1px dashed", borderColor: "divider", borderRadius: 1.5, mb: 3 }}>
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
         Agregar Productos
       </Typography>
@@ -128,11 +128,23 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
                 fullWidth
                 sx={{
                   "& .MuiInputBase-root": {
-                    borderRadius: 2,
-                    backgroundColor: "background.paper",
-                    "& input": { color: "text.primary" },
+                    height: 40,
+                    borderRadius: 1.5,
+                    backgroundColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
+                    border: "1px solid",
+                    borderColor: (theme: any) => theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                    "& input": { color: "text.primary", py: 0 },
+                    '&:hover': {
+                      borderColor: "primary.main",
+                    },
+                    '&.Mui-focused': {
+                      borderColor: "primary.main",
+                      boxShadow: (theme: any) => `0 0 0 3px ${theme.palette.primary.main}22`,
+                    },
                   },
-                  "& .MuiOutlinedInput-notchedOutline": { borderRadius: 2 },
+                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  "& .MuiInputLabel-root": { top: -6 },
+                  "& .MuiInputLabel-shrink": { top: 0 },
                 }}
                 slotProps={{
                   input: {
@@ -163,7 +175,7 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
         </Box>
 
         {/* Botón agregar */}
-        <ContainedButton onClick={addItem} disabled={!currentProduct} sx={{ height: 40, alignSelf: "center" }}>
+        <ContainedButton onClick={addItem} disabled={!currentProduct} sx={{ alignSelf: "center" }}>
           +
         </ContainedButton>
       </Box>
@@ -181,7 +193,9 @@ export function ProductSelector({ items, onChange }: ProductSelectorProps) {
                 p: 1,
                 mb: 1,
                 backgroundColor: "action.hover",
-                borderRadius: 1,
+                borderRadius: 1.5,
+                border: "1px solid",
+                borderColor: "divider",
               }}
             >
               <Typography variant="body2">

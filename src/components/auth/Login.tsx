@@ -13,7 +13,7 @@ import {
 import { Input } from "../common/Input";
 import { ContainedButton } from "../common/ContainedButton";
 import { useAuth } from "../../hooks/useAuth";
-import { Visibility, VisibilityOff, Email, Lock } from "@mui/icons-material";
+import { Visibility, VisibilityOff, Email, Lock, Person } from "@mui/icons-material";
 
 interface LoginFormData {
   phone_number_id: string;
@@ -60,27 +60,33 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
     >
       <Card
         sx={{
-          maxWidth: 340,
+          maxWidth: 400,
           width: "100%",
-          borderRadius: 2.5,
-          backgroundColor: "background.paper",
-          boxShadow: isDark ? "0 20px 40px -10px rgba(0,0,0,0.5)" : "0 8px 30px rgba(0,0,0,0.1)",
-          border: "1px solid",
-          borderColor: "divider",
+          borderRadius: 1.5,
+          border: '1px solid',
+          borderColor: 'divider',
+          background: isDark 
+            ? 'rgba(26, 26, 26, 0.8)' 
+            : 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: isDark ? "0 20px 40px rgba(0,0,0,0.4)" : "0 8px 30px rgba(0,0,0,0.05)",
         }}
       >
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ mb: 3, textAlign: "center" }}>
-            <Typography variant="h6" fontWeight={700} gutterBottom>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ mb: 4, textAlign: "center" }}>
+            <Typography variant="h4" sx={{ mb: 1, display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 1 }}>
+              <span className="tino-font" style={{ color: '#0b8185', fontWeight: 900 }}>tino</span>
+            </Typography>
+            <Typography variant="h6" fontWeight={700} sx={{ mt: 1 }}>
               Bienvenido
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               Ingresá tus credenciales para continuar.
             </Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 1, fontSize: "0.75rem" }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 1.5, fontSize: "0.85rem" }}>
               {error}
             </Alert>
           )}
@@ -91,10 +97,9 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
                 required: "Requerido",
               })}
               label="Phone ID"
-              placeholder="ej: 1029384756"
               error={!!errors.phone_number_id}
-              icon={<InputAdornment position="start"><Email sx={{ fontSize: 16, color: "rgba(255, 255, 255, 0.3)" }} /></InputAdornment>}
-              sx={{ mb: 2 }}
+              icon={<InputAdornment position="start"><Person sx={{ fontSize: 18, color: "text.secondary" }} /></InputAdornment>}
+              sx={{ mb: 2.5 }}
             />
 
             <Input
@@ -104,17 +109,17 @@ export default function Login({ onToggleMode }: { onToggleMode: () => void }) {
               label="Contraseña"
               type={showPassword ? "text" : "password"}
               error={!!errors.password}
-              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 16, color: "text.disabled" }} /></InputAdornment>}
+              icon={<InputAdornment position="start"><Lock sx={{ fontSize: 18, color: "text.secondary" }} /></InputAdornment>}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small" sx={{ color: "rgba(255, 255, 255, 0.3)" }}>
-                      {showPassword ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                      {showPassword ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 3 }}
+              sx={{ mb: 4 }}
             />
 
             <ContainedButton

@@ -37,8 +37,8 @@ export function ThemeModeProvider({ children }: { children: React.ReactNode }) {
       createTheme({
         palette: {
           mode,
-          primary: { main: '#1976d2' },
-          secondary: { main: '#9c27b0' },
+          primary: { main: '#0b8185' },
+          secondary: { main: '#23366eff' },
           background: {
             default: mode === 'light' ? '#f4f6f8' : '#0f0f0f',
             paper: mode === 'light' ? '#ffffff' : '#1a1a1a',

@@ -114,7 +114,7 @@ export default function Billing() {
           <Card 
             variant="outlined" 
             sx={{ 
-              borderRadius: 3, 
+              borderRadius: 1.5, 
               background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(25, 118, 210, 0.02) 100%)',
               border: '1px solid',
               borderColor: 'divider',
@@ -131,7 +131,7 @@ export default function Billing() {
 
               <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex' }}>
-                  <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1.5, border: '1px solid', borderColor: 'divider', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Typography variant="caption" color="text.secondary">Mensajes Enviados</Typography>
                       <Tooltip title={
@@ -151,7 +151,7 @@ export default function Billing() {
 
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex' }}>
-                  <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1.5, border: '1px solid', borderColor: 'divider', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Typography variant="caption" color="text.secondary">Costo por Mensaje</Typography>
                       <Tooltip title={
@@ -172,7 +172,7 @@ export default function Billing() {
               </Grid>
 
 
-              <Box sx={{ mt: 3, p: 2.5, bgcolor: 'action.selected', borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Box sx={{ mt: 3, p: 2.5, bgcolor: 'action.selected', borderRadius: 1.5, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography variant="caption" color="text.secondary" gutterBottom>TOTAL ESTIMADO</Typography>
                 <Typography variant="h3" fontWeight="800" color="primary" sx={{ mb: 0.5, fontSize: { xs: '2rem', sm: '3rem' } }}>
                   USD {billingData?.estimated_cost_usd?.toFixed(2) || "0.00"}
@@ -191,7 +191,7 @@ export default function Billing() {
 
         {/* Configuración de Plantillas */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
+          <Card variant="outlined" sx={{ borderRadius: 1.5, height: '100%' }}>
             <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <Box>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
@@ -201,7 +201,7 @@ export default function Billing() {
                   </Typography>
                 </Box>
 
-                <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 2, mb: 3 }}>
+                <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1.5, mb: 3 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                     <Typography variant="body2" fontWeight="600">
                       Permitir Plantillas

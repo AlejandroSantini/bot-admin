@@ -133,7 +133,7 @@ export default function Dashboard() {
             <Select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              sx={{ borderRadius: 2.5, fontWeight: 600, fontSize: '0.85rem' }}
+              sx={{ borderRadius: 1.5, fontWeight: 600, fontSize: '0.85rem' }}
             >
               <MenuItem value="day">Hoy</MenuItem>
               <MenuItem value="weekly">Esta Semana</MenuItem>
@@ -144,14 +144,14 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 4, borderRadius: 1.5 }}>{error}</Alert>}
 
       {/* Main Stats Row */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         {mainStats.map((stat, index) => (
           <Grid size={{ xs: 12, md: 4 }} key={index}>
             <Card sx={{ 
-              borderRadius: 4, 
+              borderRadius: 1.5, 
               border: '1px solid',
               borderColor: 'divider',
               transition: 'transform 0.2s ease, border-color 0.2s ease',
@@ -164,7 +164,7 @@ export default function Dashboard() {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                   <Box sx={{ 
                     p: 1.2, 
-                    borderRadius: 2, 
+                    borderRadius: 1.5, 
                     bgcolor: `${stat.color}15`, 
                     color: stat.color,
                   }}>
@@ -218,7 +218,7 @@ export default function Dashboard() {
         {secondaryStats.map((stat, index) => (
           <Grid size={{ xs: 12, md: 4 }} key={index}>
             <Card sx={{ 
-              borderRadius: 3, 
+              borderRadius: 1.5, 
               border: '1px solid',
               borderColor: 'divider',
             }}>
@@ -284,7 +284,7 @@ export default function Dashboard() {
             <Typography variant="caption" color="text.secondary">Volumen de mensajes y conversiones detectadas</Typography>
           </Box>
           
-          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, p: 1, px: 2, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', alignSelf: { xs: 'stretch', sm: 'auto' }, justifyContent: 'center' }}>
+          <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, p: 1, px: 2, borderRadius: 1.5, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', alignSelf: { xs: 'stretch', sm: 'auto' }, justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#3b82f6' }} />
               <Typography variant="caption" sx={{ fontWeight: 600 }}>Mensajes</Typography>
@@ -302,7 +302,7 @@ export default function Dashboard() {
           overflowX: 'auto', 
           pb: 2,
           '&::-webkit-scrollbar': { height: 4 },
-          '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 }
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 1.5 }
         }}>
           <Box sx={{ 
             position: 'relative', 
@@ -374,7 +374,7 @@ export default function Dashboard() {
                     borderColor: 'divider',
                     px: 1, 
                     py: 0.3, 
-                    borderRadius: 1, 
+                    borderRadius: 1.5, 
                     fontSize: '0.65rem', 
                     fontWeight: 800,
                     opacity: 0,

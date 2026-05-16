@@ -30,7 +30,7 @@ export default function FlowEdge({
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX, sourceY, sourcePosition,
     targetX, targetY, targetPosition,
-    borderRadius: 12,
+    borderRadius: 20,
   });
 
   const strokeColor = selected ? '#f59e0b' : '#7c6fff';
@@ -80,7 +80,7 @@ export default function FlowEdge({
               background: selected ? '#f59e0b' : '#3d2fa0',
               color: '#fff',
               border: `1px solid ${selected ? '#d97706' : '#7c6fff'}`,
-              borderRadius: 20,
+              borderRadius: 1.5,
               padding: '2px 10px',
               fontSize: 11,
               fontWeight: 700,

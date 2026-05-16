@@ -37,6 +37,7 @@ export function Table<T>({
         width: '100%', 
         p: 0, 
         mb: 2, 
+        borderRadius: 1.5,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',

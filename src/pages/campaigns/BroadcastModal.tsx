@@ -116,7 +116,7 @@ export default function BroadcastModal({ open, onClose, campaign, onSuccess }: B
                 <Paper
                   variant="outlined"
                   sx={{
-                    p: 1.5, borderRadius: 2.5, cursor: 'pointer',
+                    p: 1.5, borderRadius: 1.5, cursor: 'pointer',
                     transition: 'all 0.2s',
                     borderColor: mode === 'smart' ? 'primary.main' : 'divider',
                     bgcolor: mode === 'smart' ? 'rgba(59, 130, 246, 0.02)' : 'transparent',
@@ -166,7 +166,7 @@ export default function BroadcastModal({ open, onClose, campaign, onSuccess }: B
                 <Paper
                   variant="outlined"
                   sx={{
-                    p: 1.5, borderRadius: 2.5, cursor: 'pointer',
+                    p: 1.5, borderRadius: 1.5, cursor: 'pointer',
                     transition: 'all 0.2s',
                     borderColor: mode === 'free' ? 'success.main' : 'divider',
                     bgcolor: mode === 'free' ? 'rgba(34, 197, 94, 0.02)' : 'transparent',

@@ -106,7 +106,7 @@ export default function BlockedDatesTab() {
             p: 4, 
             textAlign: "center", 
             bgcolor: "action.hover", 
-            borderRadius: 2,
+            borderRadius: 1.5,
             border: '1px dashed',
             borderColor: 'divider'
           }}>

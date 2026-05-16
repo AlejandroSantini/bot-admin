@@ -59,7 +59,7 @@ export default function DocsWhatsApp() {
       <Typography variant="h6" color="text.secondary" sx={{ mb: 2, fontWeight: 400 }}>
         Conecta, configura y activa tu canal de WhatsApp Business para gestionar conversaciones automatizadas.
       </Typography>
-      <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ mb: 6, borderRadius: 2 }}>
+      <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ mb: 6, borderRadius: 1.5 }}>
         <strong>Importante:</strong> Se recomienda realizar toda la configuración desde una <strong>computadora</strong> para evitar errores de visualización en las ventanas emergentes de Meta.
       </Alert>
 
@@ -112,7 +112,7 @@ export default function DocsWhatsApp() {
       <Alert 
         severity="info" 
         icon={<InfoOutlined />}
-        sx={{ mb: 6, borderRadius: 2, bgcolor: "rgba(59, 130, 246, 0.05)", border: "1px solid rgba(59, 130, 246, 0.2)" }}
+        sx={{ mb: 6, borderRadius: 1.5, bgcolor: "rgba(59, 130, 246, 0.05)", border: "1px solid rgba(59, 130, 246, 0.2)" }}
       >
         <Typography variant="subtitle2" fontWeight={700}>Tip Pro:</Typography>
         <Typography variant="body2">

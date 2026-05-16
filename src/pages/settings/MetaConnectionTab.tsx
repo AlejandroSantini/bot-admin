@@ -73,7 +73,7 @@ export default function MetaConnectionTab() {
 
       <Card 
         sx={{ 
-          borderRadius: 2, 
+          borderRadius: 1.5, 
           backgroundColor: isConnected ? "rgba(74, 222, 128, 0.02)" : "transparent",
           border: isConnected ? "1px solid rgba(74, 222, 128, 0.2)" : "1px solid rgba(255, 255, 255, 0.05)",
           mb: 3
@@ -119,7 +119,7 @@ export default function MetaConnectionTab() {
                 icon={<InfoIcon fontSize="small" />} 
                 sx={{ 
                   mb: 1.5, 
-                  borderRadius: 2, 
+                  borderRadius: 1.5, 
                   "& .MuiAlert-message": { fontSize: "0.8rem" } 
                 }}
               >
@@ -132,7 +132,7 @@ export default function MetaConnectionTab() {
                 alignItems: "center", 
                 gap: 1.5, 
                 p: 1.5, 
-                borderRadius: 2, 
+                borderRadius: 1.5, 
                 bgcolor: "rgba(255, 152, 0, 0.05)", 
                 border: "1px solid rgba(255, 152, 0, 0.2)" 
               }}>
@@ -150,7 +150,7 @@ export default function MetaConnectionTab() {
                     alignItems: "center", 
                     gap: 2, 
                     p: 2, 
-                    borderRadius: 2, 
+                    borderRadius: 1.5, 
                     bgcolor: "action.hover", 
                     border: "1px solid",
                     borderColor: "divider",
@@ -166,7 +166,7 @@ export default function MetaConnectionTab() {
                   </Box>
                 </Box>
 
-                <Box sx={{ p: 2, borderRadius: 2, bgcolor: "background.default", border: "1px solid", borderColor: "divider" }}>
+                <Box sx={{ p: 2, borderRadius: 1.5, bgcolor: "background.default", border: "1px solid", borderColor: "divider" }}>
                   <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main", mb: 1, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>
                     Requisitos Previos
                   </Typography>
@@ -194,7 +194,7 @@ export default function MetaConnectionTab() {
                   <Typography variant="caption" sx={{ mb: 1, display: "block", textAlign: "center" }}>
                     Sincronizando... {progress}%
                   </Typography>
-                  <LinearProgress variant="determinate" value={progress} sx={{ height: 4, borderRadius: 2 }} />
+                  <LinearProgress variant="determinate" value={progress} sx={{ height: 4, borderRadius: 1.5 }} />
                 </Box>
               ) : (
                 <ContainedButton 
@@ -218,7 +218,7 @@ export default function MetaConnectionTab() {
         <Alert 
           severity="success" 
           sx={{ 
-            borderRadius: 2, 
+            borderRadius: 1.5, 
             backgroundColor: "rgba(74, 222, 128, 0.05)",
             border: "1px solid rgba(74, 222, 128, 0.1)",
             "& .MuiAlert-message": { fontSize: "0.8rem" }
@@ -236,7 +236,7 @@ export default function MetaConnectionTab() {
           sx: {
             backgroundColor: "#1e293b",
             color: "white",
-            borderRadius: 3,
+            borderRadius: 1.5,
             border: "1px solid rgba(255, 255, 255, 0.1)",
             minWidth: 320
           }
@@ -263,7 +263,7 @@ export default function MetaConnectionTab() {
           </OutlinedButton>
           <ContainedButton 
             onClick={handleDisconnect}
-            sx={{ bgcolor: 'error.main', background: 'error.main', textTransform: "none", borderRadius: 2, fontWeight: 700, '&:hover': { bgcolor: 'error.dark' } }}
+            sx={{ bgcolor: 'error.main', background: 'error.main', textTransform: "none", borderRadius: 1.5, fontWeight: 700, '&:hover': { bgcolor: 'error.dark' } }}
           >
             Sí, desvincular y borrar todo
           </ContainedButton>

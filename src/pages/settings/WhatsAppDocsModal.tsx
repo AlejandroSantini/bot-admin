@@ -117,7 +117,7 @@ export default function WhatsAppDocsModal({ open, onClose }: WhatsAppDocsModalPr
           Conecta, configura y activa tu canal de WhatsApp Business para gestionar conversaciones automatizadas.
         </Typography>
 
-        <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ mb: 4, borderRadius: 2, "& .MuiAlert-message": { fontSize: "0.8rem" } }}>
+        <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ mb: 4, borderRadius: 1.5, "& .MuiAlert-message": { fontSize: "0.8rem" } }}>
           <strong>Importante:</strong> Se recomienda realizar toda la configuración desde una <strong>computadora</strong>.
         </Alert>
 
@@ -165,7 +165,7 @@ export default function WhatsAppDocsModal({ open, onClose }: WhatsAppDocsModalPr
         <Alert 
           severity="info" 
           icon={<InfoOutlined />}
-          sx={{ mb: 4, borderRadius: 2, "& .MuiAlert-message": { fontSize: "0.8rem" } }}
+          sx={{ mb: 4, borderRadius: 1.5, "& .MuiAlert-message": { fontSize: "0.8rem" } }}
         >
           <Typography variant="caption" fontWeight={700} sx={{ display: "block" }}>Tip Pro:</Typography>
           <Typography variant="caption">
