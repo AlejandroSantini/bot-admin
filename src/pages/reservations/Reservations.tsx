@@ -283,9 +283,9 @@ export default function Reservations() {
             <ContainedButton
               onClick={handleSyncCalendar}
               disabled={syncing}
-              sx={{ bgcolor: 'secondary.main', '&:hover': { bgcolor: 'secondary.dark' } }}
+              color="secondary"
             >
-              {syncing ? <CircularProgress size={20} color="inherit" /> : "🔄 Sincronizar desde Google Calendar"}
+              {syncing ? <CircularProgress size={20} color="inherit" /> : "Sincronizar desde Google Calendar"}
             </ContainedButton>
           )}
           <ContainedButton

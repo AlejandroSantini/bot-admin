@@ -98,13 +98,20 @@ export default function ReservationForm() {
     setFichaOpen(true);
   };
 
+  const recalculateTotal = (serviceTitle: string, items: typeof form.items) => {
+    const service = availableServices.find(s => s.title === serviceTitle);
+    const servicePrice = Number(service?.price || service?.precio || 0);
+    const productsTotal = items.reduce((acc, curr) => acc + curr.precio, 0);
+    return (servicePrice + productsTotal).toString();
+  };
+
   const updateItemsAndTotals = (newItems: typeof form.items) => {
-    const total = newItems.reduce((acc, curr) => acc + curr.precio, 0);
+    const total = recalculateTotal(form.rubro, newItems);
     const joinedNames = newItems.map(i => `${i.nombre} (x${i.cantidad})`).join(", ");
     setForm((prev) => ({
       ...prev,
       items: newItems,
-      monto_pago: total.toString(),
+      monto_pago: total,
       producto: joinedNames
     }));
   };
@@ -203,7 +210,14 @@ export default function ReservationForm() {
           <Select
             label="Rubro / Servicio"
             value={form.rubro}
-            onChange={(e: any) => setForm({ ...form, rubro: e.target.value })}
+            onChange={(e: any) => {
+              const newService = e.target.value;
+              setForm(prev => ({ 
+                ...prev, 
+                rubro: newService,
+                monto_pago: recalculateTotal(newService, prev.items)
+              }));
+            }}
             options={[
               { value: "", label: "Seleccionar servicio..." },
               ...availableServices.map((s: any) => ({
